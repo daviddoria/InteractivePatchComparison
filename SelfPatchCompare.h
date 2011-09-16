@@ -63,7 +63,8 @@ public:
   // Prepare to do some comparisons by finding all of the valid pixels in the target region
   //void ComputeOffsets();
 
-  virtual float PixelDifference(const VectorType &a, const VectorType &b) = 0;
+  float PixelDifference(const VectorType &a, const VectorType &b);
+  float PixelSquaredDifference(const VectorType &a, const VectorType &b);
   
 protected:
   // If a channel of one pixel was white (255) and the corresponding channel of the other pixel

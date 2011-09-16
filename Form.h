@@ -57,6 +57,7 @@ public:
   void Refresh();
   
 public slots:
+  
   void on_actionOpenImage_activated();
   void on_actionOpenMask_activated();
   void on_actionOpenMaskInverted_activated();
@@ -78,6 +79,8 @@ public slots:
   void RefreshSlot();
   
 protected:
+  
+  void SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image);
   
   static const unsigned char Green[3];
   static const unsigned char Red[3];

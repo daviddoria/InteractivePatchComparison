@@ -108,6 +108,7 @@ Form::Form()
   this->VTKImage = vtkSmartPointer<vtkImageData>::New();
   this->ImageSlice = vtkSmartPointer<vtkImageSlice>::New();
   this->ImageSliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
+  this->ImageSliceMapper->BorderOn();
   this->ImageSlice->PickableOff();
   this->ImageSliceMapper->SetInputConnection(this->VTKImage->GetProducerPort());
   this->ImageSlice->SetMapper(this->ImageSliceMapper);
@@ -118,6 +119,7 @@ Form::Form()
   this->MaskImageSlice = vtkSmartPointer<vtkImageSlice>::New();
   this->MaskImageSliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
   this->MaskImageSlice->PickableOff();
+  this->MaskImageSliceMapper->BorderOn();
   this->MaskImageSliceMapper->SetInputConnection(this->VTKMaskImage->GetProducerPort());
   this->MaskImageSlice->SetMapper(this->MaskImageSliceMapper);
   this->MaskImageSlice->GetProperty()->SetInterpolationTypeToNearest();
@@ -126,6 +128,7 @@ Form::Form()
   this->SourcePatch = vtkSmartPointer<vtkImageData>::New();
   this->SourcePatchSlice = vtkSmartPointer<vtkImageSlice>::New();
   this->SourcePatchSliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
+  this->SourcePatchSliceMapper->BorderOn();
   this->SourcePatchSliceMapper->SetInputConnection(this->SourcePatch->GetProducerPort());
   this->SourcePatchSlice->SetMapper(this->SourcePatchSliceMapper);
   this->SourcePatchSlice->GetProperty()->SetInterpolationTypeToNearest();
@@ -133,6 +136,7 @@ Form::Form()
   this->TargetPatch = vtkSmartPointer<vtkImageData>::New();
   this->TargetPatchSlice = vtkSmartPointer<vtkImageSlice>::New();
   this->TargetPatchSliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
+  this->TargetPatchSliceMapper->BorderOn();
   this->TargetPatchSliceMapper->SetInputConnection(this->TargetPatch->GetProducerPort());
   this->TargetPatchSlice->SetMapper(this->TargetPatchSliceMapper);
   this->TargetPatchSlice->GetProperty()->SetInterpolationTypeToNearest();
@@ -141,6 +145,7 @@ Form::Form()
   this->SourcePatchDisplay = vtkSmartPointer<vtkImageData>::New();
   this->SourcePatchDisplaySlice = vtkSmartPointer<vtkImageSlice>::New();
   this->SourcePatchDisplaySliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
+  this->SourcePatchDisplaySliceMapper->BorderOn();
   this->SourcePatchDisplaySliceMapper->SetInputConnection(this->SourcePatchDisplay->GetProducerPort());
   this->SourcePatchDisplaySlice->SetMapper(this->SourcePatchDisplaySliceMapper);
   this->SourcePatchDisplaySlice->PickableOff();
@@ -150,6 +155,7 @@ Form::Form()
   this->TargetPatchDisplay = vtkSmartPointer<vtkImageData>::New();
   this->TargetPatchDisplaySlice = vtkSmartPointer<vtkImageSlice>::New();
   this->TargetPatchDisplaySliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
+  this->TargetPatchDisplaySliceMapper->BorderOn();
   this->TargetPatchDisplaySliceMapper->SetInputConnection(this->TargetPatchDisplay->GetProducerPort());
   this->TargetPatchDisplaySlice->SetMapper(this->TargetPatchDisplaySliceMapper);
   this->TargetPatchDisplaySlice->PickableOff();
@@ -448,7 +454,7 @@ void Form::PatchesMoved()
   // Get data
   Helpers::ITKRegionToVTKImage(this->Image, sourceRegion, this->SourcePatchDisplay);
   Helpers::ITKRegionToVTKImage(this->Image, targetRegion, this->TargetPatchDisplay);
-
+  
   Helpers::OutlineImage(this->SourcePatchDisplay, this->Green);
   Helpers::OutlineImage(this->TargetPatchDisplay, this->Red);
   
@@ -459,14 +465,38 @@ void Form::PatchesMoved()
   patchCompare.SetMask(this->MaskImage);
   
   Refresh();
-  
+
+  // This checks to see if both the image and mask have been set
   if(!patchCompare.IsReady())
     {
     return;
     }
+    
+  SetMaskedPixelsToGreen(targetRegion, this->TargetPatchDisplay);
+
   float difference = patchCompare.SlowDifference();
   
   this->lblDifference->setNum(difference);
   
   
+}
+
+void Form::SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image)
+{
+  itk::ImageRegionIterator<Mask> maskIterator(this->MaskImage, targetRegion);
+
+  while(!maskIterator.IsAtEnd())
+    {
+    if(this->MaskImage->IsHole(maskIterator.GetIndex()))
+      {
+      itk::Index<2> index = maskIterator.GetIndex();
+      index[0] -= targetRegion.GetIndex()[0];
+      index[1] -= targetRegion.GetIndex()[1];
+      unsigned char* pixel = static_cast<unsigned char*>(image->GetScalarPointer(index[0], index[1],0));
+      pixel[0] = 0;
+      pixel[1] = 255;
+      pixel[2] = 0;
+      }
+    ++maskIterator;
+    }  
 }

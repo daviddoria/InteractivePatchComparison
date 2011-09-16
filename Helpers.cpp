@@ -138,7 +138,7 @@ void ITKRegionToVTKImage(FloatVectorImageType::Pointer image, const itk::ImageRe
   outputImage->Modified();
 }
 
-void SetMaskTransparency(Mask::Pointer input, vtkImageData* outputImage)
+void SetMaskTransparencyBinary(Mask::Pointer input, vtkImageData* outputImage)
 {
   // Setup and allocate the VTK image
   outputImage->SetNumberOfScalarComponents(2);
@@ -173,6 +173,46 @@ void SetMaskTransparency(Mask::Pointer input, vtkImageData* outputImage)
     
   outputImage->Modified();
 }
+
+void SetMaskTransparency(Mask::Pointer input, vtkImageData* outputImage)
+{
+  // Setup and allocate the VTK image
+  outputImage->SetNumberOfScalarComponents(4);
+  outputImage->SetScalarTypeToUnsignedChar();
+  outputImage->SetDimensions(input->GetLargestPossibleRegion().GetSize()[0],
+                             input->GetLargestPossibleRegion().GetSize()[1],
+                             1);
+
+  outputImage->AllocateScalars();
+
+  // Copy all of the pixels to the output
+  itk::ImageRegionConstIteratorWithIndex<UnsignedCharScalarImageType> imageIterator(input, input->GetLargestPossibleRegion());
+  imageIterator.GoToBegin();
+
+  while(!imageIterator.IsAtEnd())
+    {
+    unsigned char* pixel = static_cast<unsigned char*>(outputImage->GetScalarPointer(imageIterator.GetIndex()[0],
+                                                                                     imageIterator.GetIndex()[1],0));
+    // Set masked pixels to bright green and opaque. Set non-masked pixels to black and fully transparent.
+    pixel[0] = 0;
+    pixel[1] = imageIterator.Get();
+    pixel[2] = 0;
+    
+    if(input->IsHole(imageIterator.GetIndex()))
+      {
+      pixel[3] = 255;
+      }
+    else
+      {
+      pixel[3] = 0;
+      }
+    
+    ++imageIterator;
+    }
+    
+  outputImage->Modified();
+}
+
 void VectorImageToRGBImage(FloatVectorImageType::Pointer image, RGBImageType::Pointer rgbImage)
 {
   // Only the first 3 components are used (assumed to be RGB)
