@@ -43,26 +43,27 @@ class SelfPatchCompare
 public:
   SelfPatchCompare(const unsigned int);
   
-  unsigned int FindBestPatch();
+  //unsigned int FindBestPatch();
 
   void SetImage(FloatVectorImageType::Pointer);
 
   void SetMask(Mask::Pointer mask);
 
-  void SetTargetRegion(const itk::ImageRegion<2>);
+  void SetTargetRegion(const itk::ImageRegion<2>&);
 
-  void SetSourceRegions(const std::vector<itk::ImageRegion<2> >&);
+  void SetSourceRegion(const itk::ImageRegion<2>&);
 
-  float SlowDifference(const itk::ImageRegion<2>& sourceRegion);
-  float PatchDifferenceManual(const itk::ImageRegion<2>& sourceRegion);
-  float PatchDifferenceExternal(const itk::ImageRegion<2>& sourceRegion);
-  float PatchDifferenceBoundary(const itk::ImageRegion<2>& sourceRegion);
+  float SlowDifference();
+  
+  bool IsReady();
+  //float PatchDifferenceManual(const itk::ImageRegion<2>& sourceRegion);
+  //float PatchDifferenceExternal(const itk::ImageRegion<2>& sourceRegion);
+  //float PatchDifferenceBoundary(const itk::ImageRegion<2>& sourceRegion);
 
   // Prepare to do some comparisons by finding all of the valid pixels in the target region
-  void ComputeOffsets();
+  //void ComputeOffsets();
 
   virtual float PixelDifference(const VectorType &a, const VectorType &b) = 0;
-  float NonVirtualPixelDifference(const VectorType &a, const VectorType &b);
   
 protected:
   // If a channel of one pixel was white (255) and the corresponding channel of the other pixel
@@ -76,7 +77,7 @@ protected:
   itk::ImageRegion<2> TargetRegion;
 
   // These are the fully valid source regions
-  std::vector<itk::ImageRegion<2> > SourceRegions;
+  itk::ImageRegion<2> SourceRegion;
   
   // This is the image from which to take the patches
   FloatVectorImageType::Pointer Image;

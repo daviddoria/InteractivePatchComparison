@@ -29,19 +29,19 @@
             <rect>
              <x>10</x>
              <y>40</y>
-             <width>67</width>
+             <width>91</width>
              <height>17</height>
             </rect>
            </property>
            <property name="text">
-            <string>Patch Size</string>
+            <string>Patch Radius</string>
            </property>
           </widget>
-          <widget class="QLineEdit" name="txtPatchSize">
+          <widget class="QLineEdit" name="txtPatchRadius">
            <property name="geometry">
             <rect>
-             <x>90</x>
-             <y>40</y>
+             <x>120</x>
+             <y>30</y>
              <width>41</width>
              <height>27</height>
             </rect>
@@ -50,10 +50,10 @@
             <string>Sets the width/height of a square patch</string>
            </property>
            <property name="text">
-            <string>20</string>
+            <string>10</string>
            </property>
           </widget>
-          <widget class="QLineEdit" name="txtPatch1X">
+          <widget class="QLineEdit" name="txtSourceX">
            <property name="geometry">
             <rect>
              <x>30</x>
@@ -66,7 +66,7 @@
             <string>0</string>
            </property>
           </widget>
-          <widget class="QLineEdit" name="txtPatch1Y">
+          <widget class="QLineEdit" name="txtSourceY">
            <property name="geometry">
             <rect>
              <x>110</x>
@@ -84,12 +84,12 @@
             <rect>
              <x>10</x>
              <y>90</y>
-             <width>67</width>
+             <width>161</width>
              <height>17</height>
             </rect>
            </property>
            <property name="text">
-            <string>Patch1</string>
+            <string>&lt;font color=&quot;green&quot;&gt;Source Patch Corner&lt;/font&gt;</string>
            </property>
           </widget>
           <widget class="QLabel" name="label_3">
@@ -97,15 +97,15 @@
             <rect>
              <x>10</x>
              <y>170</y>
-             <width>67</width>
+             <width>161</width>
              <height>17</height>
             </rect>
            </property>
            <property name="text">
-            <string>Patch2</string>
+            <string>&lt;font color=&quot;red&quot;&gt;Target Patch Corner&lt;/font&gt;</string>
            </property>
           </widget>
-          <widget class="QLineEdit" name="txtPatch2X">
+          <widget class="QLineEdit" name="txtTargetX">
            <property name="geometry">
             <rect>
              <x>40</x>
@@ -118,7 +118,7 @@
             <string>0</string>
            </property>
           </widget>
-          <widget class="QLineEdit" name="txtPatch2Y">
+          <widget class="QLineEdit" name="txtTargetY">
            <property name="geometry">
             <rect>
              <x>110</x>

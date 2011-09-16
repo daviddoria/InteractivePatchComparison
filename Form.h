@@ -23,16 +23,10 @@
 
 // VTK
 #include <vtkSmartPointer.h>
-//#include <vtkSeedWidget.h>
-//#include <vtkPointHandleRepresentation2D.h>
 
-class vtkActor;
-class vtkBorderWidget;
 class vtkImageData;
 class vtkImageSlice;
 class vtkImageSliceMapper;
-class vtkPolyData;
-class vtkPolyDataMapper;
 
 // ITK
 #include "itkImage.h"
@@ -44,7 +38,7 @@ class vtkPolyDataMapper;
 #include "Mask.h"
 #include "Types.h"
 
-class InteractorStyleImageNoLevel;
+class SwitchBetweenStyle;
 
 class Form : public QMainWindow, public Ui::Form
 {
@@ -56,7 +50,7 @@ public:
   ~Form() {};
   
   // These function deal with flipping the image
-  void SetCameraPosition(double leftToRight[3], double bottomToTop[3]);
+  void SetCameraPosition(const double leftToRight[3], const double bottomToTop[3]);
   void SetCameraPosition1();
   void SetCameraPosition2();
   
@@ -72,12 +66,31 @@ public slots:
   
   void on_actionFlipImage_activated();
   
+  void on_txtPatchRadius_returnPressed();
+  
+  void on_txtSourceX_returnPressed();
+  void on_txtSourceY_returnPressed();
+  
+  void on_txtTargetX_returnPressed();
+  void on_txtTargetY_returnPressed();
+  
+  
   void RefreshSlot();
   
 protected:
   
-  // The interactor to allow us to zoom and pan the image
-  vtkSmartPointer<InteractorStyleImageNoLevel> InteractorStyle;
+  static const unsigned char Green[3];
+  static const unsigned char Red[3];
+  
+  void GetPatchSize();
+  
+  void InitializePatch(vtkImageData* image, const unsigned char color[3]);
+  
+  void PatchesMoved();
+  void SetupPatches();
+  
+  // Allow us to interact with the objects as we would like.
+  vtkSmartPointer<SwitchBetweenStyle> InteractorStyle;
   
   // Track if the image has been flipped
   bool Flipped;
@@ -94,10 +107,30 @@ protected:
   vtkSmartPointer<vtkImageSlice> MaskImageSlice;
   vtkSmartPointer<vtkImageSliceMapper> MaskImageSliceMapper;
   
+  // Movable patches
+  vtkSmartPointer<vtkImageData> SourcePatch;
+  vtkSmartPointer<vtkImageSlice> SourcePatchSlice;
+  vtkSmartPointer<vtkImageSliceMapper> SourcePatchSliceMapper;
+  
+  vtkSmartPointer<vtkImageData> TargetPatch;
+  vtkSmartPointer<vtkImageSlice> TargetPatchSlice;
+  vtkSmartPointer<vtkImageSliceMapper> TargetPatchSliceMapper;
+  
+  // Patch displays
+  vtkSmartPointer<vtkImageData> SourcePatchDisplay;
+  vtkSmartPointer<vtkImageSlice> SourcePatchDisplaySlice;
+  vtkSmartPointer<vtkImageSliceMapper> SourcePatchDisplaySliceMapper;
+  
+  vtkSmartPointer<vtkImageData> TargetPatchDisplay;
+  vtkSmartPointer<vtkImageSlice> TargetPatchDisplaySlice;
+  vtkSmartPointer<vtkImageSliceMapper> TargetPatchDisplaySliceMapper;
+  
   // The data that the user loads
   FloatVectorImageType::Pointer Image;
   Mask::Pointer MaskImage;
   
+  itk::Size<2> PatchSize;
+  unsigned int PatchScale;
 };
 
 #endif // Form_H

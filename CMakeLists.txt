@@ -23,7 +23,10 @@ ADD_EXECUTABLE(InteractivePatchComparison
 Form.cxx 
 Helpers.cpp 
 Interactive.cpp 
-InteractorStyleImageNoLevel.cxx
+SwitchBetweenStyle.cxx
+CustomImageStyle.cxx
+CustomTrackballStyle.cxx
+SelfPatchCompare.cpp
 ${UISrcs} ${MOCSrcs})
 TARGET_LINK_LIBRARIES(InteractivePatchComparison ${VTK_LIBRARIES} QVTK ${ITK_LIBRARIES} ${QT_LIBRARIES})
 INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )

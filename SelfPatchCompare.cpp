@@ -26,6 +26,18 @@ SelfPatchCompare::SelfPatchCompare(const unsigned int components)
   this->NumberOfComponentsPerPixel = components;
 }
 
+bool SelfPatchCompare::IsReady()
+{
+  if(this->Image && this->MaskImage)
+    {
+    return true;
+    }
+  else
+    {
+    return false;
+    }
+}
+
 void SelfPatchCompare::SetImage(FloatVectorImageType::Pointer image)
 {
   this->Image = image;
@@ -36,16 +48,17 @@ void SelfPatchCompare::SetMask(Mask::Pointer mask)
   this->MaskImage = mask;
 }
 
-void SelfPatchCompare::SetTargetRegion(const itk::ImageRegion<2> region)
+void SelfPatchCompare::SetTargetRegion(const itk::ImageRegion<2>& region)
 {
   this->TargetRegion = region;
 }
 
-void SelfPatchCompare::SetSourceRegions(const std::vector<itk::ImageRegion<2> >& regions)
+void SelfPatchCompare::SetSourceRegion(const itk::ImageRegion<2>& region)
 {
-  this->SourceRegions = regions;
+  this->SourceRegion = region;
 }
 
+#if 0
 void SelfPatchCompare::ComputeOffsets()
 {
   try
@@ -75,8 +88,9 @@ void SelfPatchCompare::ComputeOffsets()
     exit(-1);
   }
 }
+#endif
 
-float SelfPatchCompare::SlowDifference(const itk::ImageRegion<2>& sourceRegion)
+float SelfPatchCompare::SlowDifference()
 {
   // This function assumes that all pixels in the source region are unmasked.
   
@@ -86,81 +100,47 @@ float SelfPatchCompare::SlowDifference(const itk::ImageRegion<2>& sourceRegion)
   // comparisons, the mask need only be traversed once. This method is performed by ComputeOffsets()
   // and PatchDifference*(). This function is only here for comparison purposes (to ensure the result of the other functions
   // is correct).
+
+  itk::ImageRegionConstIterator<FloatVectorImageType> sourcePatchIterator(this->Image, this->SourceRegion);
+  itk::ImageRegionConstIterator<FloatVectorImageType> targetPatchIterator(this->Image, this->TargetRegion);
+  itk::ImageRegionConstIterator<Mask> maskIterator(this->MaskImage, this->TargetRegion);
+
+  float sum = 0;
+  unsigned int validPixelCounter = 0;
   
-  try
-  {
-    assert(this->Image->GetLargestPossibleRegion().IsInside(sourceRegion));
-
-    itk::ImageRegion<2> newSourceRegion = sourceRegion;
-    itk::ImageRegion<2> newTargetRegion = this->TargetRegion;
-
-    if(!this->Image->GetLargestPossibleRegion().IsInside(this->TargetRegion))
+  while(!sourcePatchIterator.IsAtEnd())
+    {
+    itk::Index<2> currentPixel = maskIterator.GetIndex();
+    if(this->MaskImage->IsValid(currentPixel))
       {
-      // Move the source region to the target region. We move this way because we want to iterate over the mask in the target region.
-      itk::Offset<2> sourceTargetOffset = this->TargetRegion.GetIndex() - sourceRegion.GetIndex();
-
-      newSourceRegion.SetIndex(sourceRegion.GetIndex() + sourceTargetOffset);
-
-      // Force both regions to be entirely inside the image
-      newTargetRegion.Crop(this->Image->GetLargestPossibleRegion());
-      newSourceRegion.Crop(this->Image->GetLargestPossibleRegion());
-
-      // Move the source region back to its original position
-      newSourceRegion.SetIndex(newSourceRegion.GetIndex() - sourceTargetOffset);
+      //std::cout << "Offset from iterator: " << this->Image->ComputeOffset(maskIterator.GetIndex()) * componentsPerPixel;
+      FloatVectorImageType::PixelType sourcePixel = sourcePatchIterator.Get();
+      FloatVectorImageType::PixelType targetPixel = targetPatchIterator.Get();
+      //std::cout << "Source pixel: " << sourcePixel << " target pixel: " << targetPixel << std::endl;
+      //float difference = Helpers::PixelSquaredDifference(sourcePixel, targetPixel);
+      float difference = PixelDifference(sourcePixel, targetPixel);
+      sum +=  difference;
+      validPixelCounter++;
       }
 
-    //std::cout << "New source region: " << newSourceRegion << std::endl;
-    //std::cout << "New target region: " << newTargetRegion << std::endl;
-    itk::ImageRegionConstIterator<FloatVectorImageType> sourcePatchIterator(this->Image, newSourceRegion);
-    itk::ImageRegionConstIterator<FloatVectorImageType> targetPatchIterator(this->Image, newTargetRegion);
-    itk::ImageRegionConstIterator<Mask> maskIterator(this->MaskImage, newTargetRegion);
+    ++sourcePatchIterator;
+    ++targetPatchIterator;
+    ++maskIterator;
+    } // end while iterate over sourcePatch
 
-    float sum = 0;
-    unsigned int validPixelCounter = 0;
-    //unsigned int componentsPerPixel = this->Image->GetNumberOfComponentsPerPixel();
-    while(!sourcePatchIterator.IsAtEnd())
-      {
-      itk::Index<2> currentPixel = maskIterator.GetIndex();
-      if(this->MaskImage->IsValid(currentPixel))
-        {
-        //std::cout << "Offset from iterator: " << this->Image->ComputeOffset(maskIterator.GetIndex()) * componentsPerPixel;
-        FloatVectorImageType::PixelType sourcePixel = sourcePatchIterator.Get();
-        FloatVectorImageType::PixelType targetPixel = targetPatchIterator.Get();
-        //std::cout << "Source pixel: " << sourcePixel << " target pixel: " << targetPixel << std::endl;
-        //float difference = Helpers::PixelSquaredDifference(sourcePixel, targetPixel);
-	float difference = PixelDifference(sourcePixel, targetPixel);
-        sum +=  difference;
-        validPixelCounter++;
-        }
+  //std::cout << "totalDifference: " << sum << std::endl;
+  //std::cout << "Valid pixels: " << validPixelCounter << std::endl;
 
-      ++sourcePatchIterator;
-      ++targetPatchIterator;
-      ++maskIterator;
-      } // end while iterate over sourcePatch
+  if(validPixelCounter == 0)
+    {
+    return 0;
+    }
+  float averageDifference = sum/static_cast<float>(validPixelCounter);
+  return averageDifference;
 
-    //std::cout << "totalDifference: " << sum << std::endl;
-    //std::cout << "Valid pixels: " << validPixelCounter << std::endl;
-
-    if(validPixelCounter == 0)
-      {
-      std::cerr << "Zero valid pixels in PatchDifference." << std::endl;
-      std::cerr << "Source region: " << sourceRegion << std::endl;
-      std::cerr << "Target region: " << this->TargetRegion << std::endl;
-      std::cerr << "New source region: " << newSourceRegion << std::endl;
-      std::cerr << "New target region: " << newTargetRegion << std::endl;
-      exit(-1);
-      }
-    float averageDifference = sum/static_cast<float>(validPixelCounter);
-    return averageDifference;
-  } //end try
-  catch( itk::ExceptionObject & err )
-  {
-    std::cerr << "ExceptionObject caught in PatchDifference!" << std::endl;
-    std::cerr << err << std::endl;
-    exit(-1);
-  }
 }
 
+#if 0
 float SelfPatchCompare::PatchDifferenceManual(const itk::ImageRegion<2>& sourceRegion)
 {
   // This function assumes that all pixels in the source region are unmasked.
@@ -223,9 +203,9 @@ float SelfPatchCompare::PatchDifferenceManual(const itk::ImageRegion<2>& sourceR
     exit(-1);
   }
 }
+#endif
 
-
-
+#if 0
 float SelfPatchCompare::PatchDifferenceExternal(const itk::ImageRegion<2>& sourceRegion)
 {
   // This function assumes that all pixels in the source region are unmasked.
@@ -289,8 +269,9 @@ float SelfPatchCompare::PatchDifferenceExternal(const itk::ImageRegion<2>& sourc
     exit(-1);
   }
 }
+#endif
 
-
+#if 0
 float SelfPatchCompare::PatchDifferenceBoundary(const itk::ImageRegion<2>& sourceRegion)
 {
   // This function assumes that all pixels in the source region are unmasked.
@@ -346,8 +327,9 @@ float SelfPatchCompare::PatchDifferenceBoundary(const itk::ImageRegion<2>& sourc
     exit(-1);
   }
 }
+#endif
 
-
+#if 0
 unsigned int SelfPatchCompare::FindBestPatch()
 {
   try
@@ -397,28 +379,4 @@ unsigned int SelfPatchCompare::FindBestPatch()
     exit(-1);
   }
 }
-
-float SelfPatchCompare::NonVirtualPixelDifference(const VectorType &a, const VectorType &b)
-{
-  float difference = 0;
-  
-  float diff = 0;
-  // Compute the squared norm of the difference of the color channels
-  for(unsigned int i = 0; i < 3; ++i)
-    {
-    diff = a[i] - b[i];
-    difference += diff * diff;
-    }
-  
-  //std::cout << "difference was: " << difference << std::endl;
-  
-  float depthDifference = fabs(a[3] - b[3]);
-  //std::cout << "depthDifference : " << depthDifference << std::endl;
-      
-  
-  difference += this->MaxColorDifference * (1-exp(-depthDifference));
-  
-  //std::cout << "difference is now: " << difference << std::endl;
-  
-  return difference;
-}
+#endif

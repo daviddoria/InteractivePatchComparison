@@ -27,6 +27,8 @@
 // VTK
 #include <vtkImageData.h>
 #include <vtkPointData.h>
+#include <vtkImageSlice.h>
+#include <vtkImageMapper3D.h>
 
 // Custom
 #include "itkRGBToLabColorSpacePixelAccessor.h"
@@ -66,6 +68,74 @@ void RGBImageToCIELabImage(RGBImageType::Pointer rgbImage, FloatVectorImageType:
   
   // Copy to the output
   DeepCopyVectorImage<FloatVectorImageType>(reassembler->GetOutput(), cielabImage);
+}
+
+itk::Index<2> GetIndexFromImageSlice(vtkImageSlice* slice)
+{
+  double position[3];
+  slice->GetPosition(position);
+  
+  if(position[0] < 0)
+    {
+    position[0] = 0;
+    }
+    
+  if(position[1] < 0)
+    {
+    position[1] = 0;
+    }
+    
+  int dims[3];
+  vtkImageData::SafeDownCast(slice->GetMapper()->GetDataSetInput())->GetDimensions(dims);
+  
+  if(position[0] > dims[0] - 1)
+    {
+    position[0] = dims[0] - 1;
+    }
+    
+  if(position[1] > dims[1] - 1)
+    {
+    position[1] = dims[1] - 1;
+    }
+
+  itk::Index<2> index;
+  index[0] = position[0];
+  index[1] = position[1];
+  
+  return index;
+}
+
+void ITKRegionToVTKImage(FloatVectorImageType::Pointer image, const itk::ImageRegion<2>& region, vtkImageData* outputImage)
+{
+  // Setup and allocate the VTK image
+  outputImage->SetNumberOfScalarComponents(3);
+  outputImage->SetScalarTypeToUnsignedChar();
+  outputImage->SetDimensions(region.GetSize()[0],
+                             region.GetSize()[1],
+                             1);
+
+  outputImage->AllocateScalars();
+
+  // Copy all of the pixels to the output
+  itk::ImageRegionConstIteratorWithIndex<FloatVectorImageType> imageIterator(image, region);
+  imageIterator.GoToBegin();
+
+  while(!imageIterator.IsAtEnd())
+    {
+    itk::Index<2> currentIndex = imageIterator.GetIndex();
+    itk::Offset<2> currentOffset = currentIndex - region.GetIndex();
+    
+    unsigned char* pixel = static_cast<unsigned char*>(outputImage->GetScalarPointer(currentOffset[0],
+                                                                                     currentOffset[1],0));
+    
+    pixel[0] = imageIterator.Get()[0];
+    pixel[1] = imageIterator.Get()[1];
+    pixel[2] = imageIterator.Get()[2];
+    
+    ++imageIterator;
+    }
+    
+  outputImage->Modified();
 }
 
 void SetMaskTransparency(Mask::Pointer input, vtkImageData* outputImage)
@@ -304,6 +374,56 @@ void ITKImagetoVTKMagnitudeImage(FloatVectorImageType::Pointer image, vtkImageDa
     }
     
   outputImage->Modified();
+}
+
+void BlankAndOutlineImage(vtkImageData* image, const unsigned char color[3])
+{
+  int dims[3];
+  image->GetDimensions(dims);
+  
+  for(int i = 0; i < dims[0]; ++i)
+    {
+    for(int j = 0; j < dims[1]; ++j)
+      {
+      unsigned char* pixel = static_cast<unsigned char*>(image->GetScalarPointer(i,j,0));
+      if(i == 0 || i == dims[0] - 1 || j == 0 || j == dims[1] - 1)
+	{
+	pixel[0] = color[0];
+	pixel[1] = color[1];
+	pixel[2] = color[2];
+	pixel[3] = 255;
+	}
+      else
+	{
+	pixel[0] = 0;
+	pixel[1] = 0;
+	pixel[2] = 0;
+	pixel[3] = 0;
+	}
+      }
+    }
+  image->Modified();
+}
+
+void OutlineImage(vtkImageData* image, const unsigned char color[3])
+{
+  int dims[3];
+  image->GetDimensions(dims);
+  
+  for(int i = 0; i < dims[0]; ++i)
+    {
+    for(int j = 0; j < dims[1]; ++j)
+      {
+      unsigned char* pixel = static_cast<unsigned char*>(image->GetScalarPointer(i,j,0));
+      if(i == 0 || i == dims[0] - 1 || j == 0 || j == dims[1] - 1)
+	{
+	pixel[0] = color[0];
+	pixel[1] = color[1];
+	pixel[2] = color[2];
+	}
+      }
+    }
+  image->Modified();
 }
 
 } // end namespace

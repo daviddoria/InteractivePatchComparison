@@ -35,6 +35,7 @@
 
 // VTK
 class vtkImageData;
+class vtkImageSlice;
 
 namespace Helpers
 {
@@ -47,6 +48,8 @@ template<typename TImage>
 void DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output);
 
 void SetMaskTransparency(Mask::Pointer input, vtkImageData* outputImage);
+
+void ITKRegionToVTKImage(FloatVectorImageType::Pointer image, const itk::ImageRegion<2>& region, vtkImageData* outputImage);
 
 template<typename TImage>
 void DeepCopyVectorImage(typename TImage::Pointer input, typename TImage::Pointer output);
@@ -95,27 +98,14 @@ template <class T>
 void CopySelfPatchIntoValidRegion(typename T::Pointer image, const UnsignedCharScalarImageType::Pointer mask,
                                   itk::ImageRegion<2> sourceRegion, itk::ImageRegion<2> destinationRegion);
 
-template <class T>
-float MaxValue(typename T::Pointer image);
-
-template <class T>
-float MaxValueLocation(typename T::Pointer image);
-
-template <class T>
-float MinValue(typename T::Pointer image);
-
-template <class T>
-itk::Index<2> MinValueLocation(typename T::Pointer image);
-
-template <typename TImage>
-void ColorToGrayscale(typename TImage::Pointer colorImage, UnsignedCharScalarImageType::Pointer grayscaleImage);
-
 // Non template function declarations
 itk::ImageRegion<2> GetRegionInRadiusAroundPixel(const itk::Index<2> pixel, const unsigned int radius);
 
-// template <typename TPixelType>
-// float PixelSquaredDifference(const TPixelType&, const TPixelType&);
+itk::Index<2> GetIndexFromImageSlice(vtkImageSlice*);
 
+void BlankAndOutlineImage(vtkImageData*, const unsigned char color[3]);
+
+void OutlineImage(vtkImageData*, const unsigned char color[3]);
 
 }// end namespace
 
