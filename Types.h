@@ -24,7 +24,8 @@
 #include "itkImageFileReader.h"
 #include "itkVectorImage.h"
 
-typedef itk::VectorImage<float,2> FloatVectorImageType;
+//typedef itk::VectorImage<float,2> FloatVectorImageType;
+typedef itk::VectorImage<unsigned char, 2> VectorImageType;
 typedef itk::VariableLengthVector<float> VectorType;
 
 typedef itk::Image<itk::RGBPixel<unsigned char>, 2> RGBImageType;

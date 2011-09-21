@@ -61,7 +61,7 @@
 #include "SwitchBetweenStyle.h"
 #include "Mask.h"
 #include "Types.h"
-#include "SelfPatchCompareAll.h"
+#include "SelfPatchCompare.h"
 
 const unsigned char Form::Green[3] = {0,255,0};
 const unsigned char Form::Red[3] = {255,0,0};
@@ -141,27 +141,6 @@ Form::Form()
   this->TargetPatchSlice->SetMapper(this->TargetPatchSliceMapper);
   this->TargetPatchSlice->GetProperty()->SetInterpolationTypeToNearest();
   
-  // Initialize display patches
-  this->SourcePatchDisplay = vtkSmartPointer<vtkImageData>::New();
-  this->SourcePatchDisplaySlice = vtkSmartPointer<vtkImageSlice>::New();
-  this->SourcePatchDisplaySliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
-  this->SourcePatchDisplaySliceMapper->BorderOn();
-  this->SourcePatchDisplaySliceMapper->SetInputConnection(this->SourcePatchDisplay->GetProducerPort());
-  this->SourcePatchDisplaySlice->SetMapper(this->SourcePatchDisplaySliceMapper);
-  this->SourcePatchDisplaySlice->PickableOff();
-  this->SourcePatchDisplaySlice->SetScale(5);
-  this->SourcePatchDisplaySlice->GetProperty()->SetInterpolationTypeToNearest();
-  
-  this->TargetPatchDisplay = vtkSmartPointer<vtkImageData>::New();
-  this->TargetPatchDisplaySlice = vtkSmartPointer<vtkImageSlice>::New();
-  this->TargetPatchDisplaySliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
-  this->TargetPatchDisplaySliceMapper->BorderOn();
-  this->TargetPatchDisplaySliceMapper->SetInputConnection(this->TargetPatchDisplay->GetProducerPort());
-  this->TargetPatchDisplaySlice->SetMapper(this->TargetPatchDisplaySliceMapper);
-  this->TargetPatchDisplaySlice->PickableOff();
-  this->TargetPatchDisplaySlice->SetScale(5);
-  this->TargetPatchDisplaySlice->GetProperty()->SetInterpolationTypeToNearest();
-  
   // Add objects to the renderer
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
   this->qvtkWidget->GetRenderWindow()->AddRenderer(this->Renderer);
@@ -170,8 +149,6 @@ Form::Form()
   this->Renderer->AddViewProp(this->MaskImageSlice);
   this->Renderer->AddViewProp(this->SourcePatchSlice);
   this->Renderer->AddViewProp(this->TargetPatchSlice);
-  this->Renderer->AddViewProp(this->SourcePatchDisplaySlice);
-  this->Renderer->AddViewProp(this->TargetPatchDisplaySlice);
 
   this->InteractorStyle->SetCurrentRenderer(this->Renderer);
   this->qvtkWidget->GetRenderWindow()->GetInteractor()->SetInteractorStyle(this->InteractorStyle);
@@ -208,14 +185,14 @@ void Form::on_actionOpenImage_activated()
   std::cout << "Working directory set to: " << workingDirectory << std::endl;
   QDir::setCurrent(QString(workingDirectory.c_str()));
     
-  typedef itk::ImageFileReader<FloatVectorImageType> ReaderType;
+  typedef itk::ImageFileReader<VectorImageType> ReaderType;
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName(fileName.toStdString());
   reader->Update();
 
   //this->Image = reader->GetOutput();
-  this->Image = FloatVectorImageType::New();
-  Helpers::DeepCopyVectorImage<FloatVectorImageType>(reader->GetOutput(), this->Image);
+  this->Image = VectorImageType::New();
+  Helpers::DeepCopyVectorImage<VectorImageType>(reader->GetOutput(), this->Image);
   
   Helpers::ITKImagetoVTKImage(this->Image, this->VTKImage);
   
@@ -231,9 +208,7 @@ void Form::on_actionOpenImage_activated()
   
   SetupPatches();
   
-  this->SourcePatchDisplaySlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0], 0, 0);
-  this->TargetPatchDisplaySlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0], this->Image->GetLargestPossibleRegion().GetSize()[1] - this->PatchSize[0] * this->PatchScale, 0);
-  
+
   PatchesMoved();
   
   this->Renderer->ResetCamera();
@@ -324,7 +299,7 @@ void Form::on_actionOpenMaskInverted_activated()
 void Form::on_actionOpenMask_activated()
 {
   // Get a filename to open
-  QString fileName = QFileDialog::getOpenFileName(this, "Open File", ".", "Image Files (*.png *.bmp)");
+  QString fileName = QFileDialog::getOpenFileName(this, "Open File", ".", "Image Files (*.png *.bmp);;Image Files(*.mha)");
 
   std::cout << "Got filename: " << fileName.toStdString() << std::endl;
   if(fileName.toStdString().empty())
@@ -452,13 +427,24 @@ void Form::PatchesMoved()
   itk::ImageRegion<2> targetRegion(targetIndex, this->PatchSize);
 
   // Get data
-  Helpers::ITKRegionToVTKImage(this->Image, sourceRegion, this->SourcePatchDisplay);
-  Helpers::ITKRegionToVTKImage(this->Image, targetRegion, this->TargetPatchDisplay);
+  //Helpers::ITKRegionToVTKImage(this->Image, sourceRegion, this->SourcePatchDisplay);
+  //Helpers::ITKRegionToVTKImage(this->Image, targetRegion, this->TargetPatchDisplay);
+
+  // Source display
+  QImage sourcePatchImage = Helpers::ITKImageToQImage(this->Image, sourceRegion);
+
+  QGraphicsScene* sourceScene = new QGraphicsScene();
+  sourceScene->addPixmap(QPixmap::fromImage(sourcePatchImage));
+  this->gfxPatch1->setScene(sourceScene);
+
+  // Target display
+  QImage targetPatchImage = Helpers::ITKImageToQImage(this->Image, targetRegion);
+
+  QGraphicsScene* targetScene = new QGraphicsScene();
+  targetScene->addPixmap(QPixmap::fromImage(targetPatchImage));
+  this->gfxPatch2->setScene(targetScene);
   
-  Helpers::OutlineImage(this->SourcePatchDisplay, this->Green);
-  Helpers::OutlineImage(this->TargetPatchDisplay, this->Red);
-  
-  SelfPatchCompareAll patchCompare(this->Image->GetNumberOfComponentsPerPixel());
+  SelfPatchCompare patchCompare(this->Image->GetNumberOfComponentsPerPixel());
   patchCompare.SetSourceRegion(sourceRegion);
   patchCompare.SetTargetRegion(targetRegion);
   patchCompare.SetImage(this->Image);
@@ -472,14 +458,16 @@ void Form::PatchesMoved()
     return;
     }
     
-  SetMaskedPixelsToGreen(targetRegion, this->TargetPatchDisplay);
+  //SetMaskedPixelsToGreen(targetRegion, this->TargetPatchDisplay);
 
   float difference = patchCompare.SlowDifference();
   
   this->lblDifference->setNum(difference);
-  
-  
 }
+
+
+
+
 
 void Form::SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image)
 {

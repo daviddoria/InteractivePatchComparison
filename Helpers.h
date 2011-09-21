@@ -37,10 +37,13 @@
 class vtkImageData;
 class vtkImageSlice;
 
+// Qt
+#include <QImage>
+
 namespace Helpers
 {
   
-void RGBImageToCIELabImage(RGBImageType::Pointer rgbImage, FloatVectorImageType::Pointer cielabImage);
+void RGBImageToCIELabImage(RGBImageType::Pointer rgbImage, VectorImageType::Pointer cielabImage);
   
 void NormalizeVectorImage(FloatVector2ImageType::Pointer image);
 
@@ -49,18 +52,18 @@ void DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output);
 
 void SetMaskTransparency(Mask::Pointer input, vtkImageData* outputImage);
 
-void ITKRegionToVTKImage(FloatVectorImageType::Pointer image, const itk::ImageRegion<2>& region, vtkImageData* outputImage);
+void ITKRegionToVTKImage(VectorImageType::Pointer image, const itk::ImageRegion<2>& region, vtkImageData* outputImage);
 
 template<typename TImage>
 void DeepCopyVectorImage(typename TImage::Pointer input, typename TImage::Pointer output);
 
-void ITKImagetoVTKImage(FloatVectorImageType::Pointer image, vtkImageData* outputImage); // This function simply drives ITKImagetoVTKRGBImage or ITKImagetoVTKMagnitudeImage
-void ITKImagetoVTKRGBImage(FloatVectorImageType::Pointer image, vtkImageData* outputImage);
-void ITKImagetoVTKMagnitudeImage(FloatVectorImageType::Pointer image, vtkImageData* outputImage);
+void ITKImagetoVTKImage(VectorImageType::Pointer image, vtkImageData* outputImage); // This function simply drives ITKImagetoVTKRGBImage or ITKImagetoVTKMagnitudeImage
+void ITKImagetoVTKRGBImage(VectorImageType::Pointer image, vtkImageData* outputImage);
+void ITKImagetoVTKMagnitudeImage(VectorImageType::Pointer image, vtkImageData* outputImage);
 
 void ITKImagetoVTKVectorFieldImage(FloatVector2ImageType::Pointer image, vtkImageData* outputImage);
 
-void VectorImageToRGBImage(FloatVectorImageType::Pointer image, RGBImageType::Pointer rgbImage);
+void VectorImageToRGBImage(VectorImageType::Pointer image, RGBImageType::Pointer rgbImage);
 
 template <typename TImage>
 void ITKScalarImageToScaledVTKImage(typename TImage::Pointer image, vtkImageData* outputImage);
@@ -106,6 +109,10 @@ itk::Index<2> GetIndexFromImageSlice(vtkImageSlice*);
 void BlankAndOutlineImage(vtkImageData*, const unsigned char color[3]);
 
 void OutlineImage(vtkImageData*, const unsigned char color[3]);
+
+QImage ITKImageToQImage(VectorImageType::Pointer itkimage);
+
+QImage ITKImageToQImage(VectorImageType::Pointer itkimage, const itk::ImageRegion<2>& region);
 
 }// end namespace
 

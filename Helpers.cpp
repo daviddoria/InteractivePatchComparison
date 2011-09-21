@@ -36,38 +36,46 @@
 namespace Helpers
 {
 
-void RGBImageToCIELabImage(RGBImageType::Pointer rgbImage, FloatVectorImageType::Pointer cielabImage)
+void RGBImageToCIELabImage(RGBImageType::Pointer rgbImage, VectorImageType::Pointer cielabImage)
 {
   // Convert RGB image to Lab color space
-  typedef itk::Accessor::RGBToLabColorSpacePixelAccessor<unsigned char, float> RGBToLabColorSpaceAccessorType;
+
+
+  typedef itk::Image<VectorImageType::InternalPixelType, 2> ScalarImageType;
+
+  
+  //typedef itk::Accessor::RGBToLabColorSpacePixelAccessor<unsigned char, float> RGBToLabColorSpaceAccessorType;
+  typedef itk::Accessor::RGBToLabColorSpacePixelAccessor<unsigned char, VectorImageType::InternalPixelType> RGBToLabColorSpaceAccessorType;
   typedef itk::ImageAdaptor<RGBImageType, RGBToLabColorSpaceAccessorType> RGBToLabAdaptorType;
   RGBToLabAdaptorType::Pointer rgbToLabAdaptor = RGBToLabAdaptorType::New();
   rgbToLabAdaptor->SetImage(rgbImage);
   
   // Disassembler
-  typedef itk::VectorIndexSelectionCastImageFilter<RGBToLabAdaptorType, FloatScalarImageType> VectorIndexSelectionFilterType;
+  typedef itk::VectorIndexSelectionCastImageFilter<RGBToLabAdaptorType, ScalarImageType> VectorIndexSelectionFilterType;
   VectorIndexSelectionFilterType::Pointer vectorIndexSelectionFilter = VectorIndexSelectionFilterType::New();
   vectorIndexSelectionFilter->SetInput(rgbToLabAdaptor);
-  
-  std::vector<FloatScalarImageType::Pointer> channels;
+
+  std::vector<ScalarImageType::Pointer> channels;
   
   // Reassembler
-  typedef itk::ImageToVectorImageFilter<FloatScalarImageType> ReassemblerType;
+  //typedef itk::ImageToVectorImageFilter<FloatScalarImageType> ReassemblerType;
+  
+  typedef itk::ImageToVectorImageFilter<ScalarImageType > ReassemblerType;
   typename ReassemblerType::Pointer reassembler = ReassemblerType::New();
   
   for(unsigned int i = 0; i < 3; ++i)
     {
-    channels.push_back(FloatScalarImageType::New());
+    channels.push_back(ScalarImageType::New());
     vectorIndexSelectionFilter->SetIndex(i);
     vectorIndexSelectionFilter->Update();
-    DeepCopy<FloatScalarImageType>(vectorIndexSelectionFilter->GetOutput(), channels[i]);
+    DeepCopy<ScalarImageType>(vectorIndexSelectionFilter->GetOutput(), channels[i]);
     reassembler->SetNthInput(i, channels[i]);
     }
  
   reassembler->Update();
   
   // Copy to the output
-  DeepCopyVectorImage<FloatVectorImageType>(reassembler->GetOutput(), cielabImage);
+  DeepCopyVectorImage<VectorImageType>(reassembler->GetOutput(), cielabImage);
 }
 
 itk::Index<2> GetIndexFromImageSlice(vtkImageSlice* slice)
@@ -105,7 +113,7 @@ itk::Index<2> GetIndexFromImageSlice(vtkImageSlice* slice)
   return index;
 }
 
-void ITKRegionToVTKImage(FloatVectorImageType::Pointer image, const itk::ImageRegion<2>& region, vtkImageData* outputImage)
+void ITKRegionToVTKImage(VectorImageType::Pointer image, const itk::ImageRegion<2>& region, vtkImageData* outputImage)
 {
   // Setup and allocate the VTK image
   outputImage->SetNumberOfScalarComponents(3);
@@ -117,8 +125,7 @@ void ITKRegionToVTKImage(FloatVectorImageType::Pointer image, const itk::ImageRe
   outputImage->AllocateScalars();
 
   // Copy all of the pixels to the output
-  itk::ImageRegionConstIteratorWithIndex<FloatVectorImageType> imageIterator(image, region);
-  imageIterator.GoToBegin();
+  itk::ImageRegionConstIteratorWithIndex<VectorImageType> imageIterator(image, region);
 
   while(!imageIterator.IsAtEnd())
     {
@@ -213,17 +220,17 @@ void SetMaskTransparency(Mask::Pointer input, vtkImageData* outputImage)
   outputImage->Modified();
 }
 
-void VectorImageToRGBImage(FloatVectorImageType::Pointer image, RGBImageType::Pointer rgbImage)
+void VectorImageToRGBImage(VectorImageType::Pointer image, RGBImageType::Pointer rgbImage)
 {
   // Only the first 3 components are used (assumed to be RGB)
   rgbImage->SetRegions(image->GetLargestPossibleRegion());
   rgbImage->Allocate();
 
-  itk::ImageRegionConstIteratorWithIndex<FloatVectorImageType> inputIterator(image, image->GetLargestPossibleRegion());
+  itk::ImageRegionConstIteratorWithIndex<VectorImageType> inputIterator(image, image->GetLargestPossibleRegion());
   
   while(!inputIterator.IsAtEnd())
     {
-    FloatVectorImageType::PixelType inputPixel = inputIterator.Get();
+    VectorImageType::PixelType inputPixel = inputIterator.Get();
     RGBImageType::PixelType outputPixel;
     outputPixel.SetRed(inputPixel[0]);
     outputPixel.SetGreen(inputPixel[1]);
@@ -266,7 +273,7 @@ itk::Index<2> GetRegionCenter(const itk::ImageRegion<2> region)
 
 
 // Convert a vector ITK image to a VTK image for display
-void ITKImagetoVTKImage(FloatVectorImageType::Pointer image, vtkImageData* outputImage)
+void ITKImagetoVTKImage(VectorImageType::Pointer image, vtkImageData* outputImage)
 {
   //std::cout << "ITKImagetoVTKImage()" << std::endl;
   if(image->GetNumberOfComponentsPerPixel() >= 3)
@@ -328,7 +335,7 @@ void ITKImagetoVTKVectorFieldImage(FloatVector2ImageType::Pointer image, vtkImag
 }
 
 // Convert a vector ITK image to a VTK image for display
-void ITKImagetoVTKRGBImage(FloatVectorImageType::Pointer image, vtkImageData* outputImage)
+void ITKImagetoVTKRGBImage(VectorImageType::Pointer image, vtkImageData* outputImage)
 {
   // This function assumes an ND (with N>3) image has the first 3 channels as RGB and extra information in the remaining channels.
   
@@ -349,8 +356,7 @@ void ITKImagetoVTKRGBImage(FloatVectorImageType::Pointer image, vtkImageData* ou
   outputImage->AllocateScalars();
 
   // Copy all of the input image pixels to the output image
-  itk::ImageRegionConstIteratorWithIndex<FloatVectorImageType> imageIterator(image,image->GetLargestPossibleRegion());
-  imageIterator.GoToBegin();
+  itk::ImageRegionConstIteratorWithIndex<VectorImageType> imageIterator(image,image->GetLargestPossibleRegion());
 
   while(!imageIterator.IsAtEnd())
     {
@@ -369,12 +375,12 @@ void ITKImagetoVTKRGBImage(FloatVectorImageType::Pointer image, vtkImageData* ou
 
 
 // Convert a vector ITK image to a VTK image for display
-void ITKImagetoVTKMagnitudeImage(FloatVectorImageType::Pointer image, vtkImageData* outputImage)
+void ITKImagetoVTKMagnitudeImage(VectorImageType::Pointer image, vtkImageData* outputImage)
 {
   //std::cout << "ITKImagetoVTKMagnitudeImage()" << std::endl;
   // Compute the magnitude of the ITK image
   typedef itk::VectorMagnitudeImageFilter<
-                  FloatVectorImageType, FloatScalarImageType >  VectorMagnitudeFilterType;
+                  VectorImageType, FloatScalarImageType >  VectorMagnitudeFilterType;
 
   // Create and setup a magnitude filter
   VectorMagnitudeFilterType::Pointer magnitudeFilter = VectorMagnitudeFilterType::New();
@@ -464,6 +470,28 @@ void OutlineImage(vtkImageData* image, const unsigned char color[3])
       }
     }
   image->Modified();
+}
+
+QImage ITKImageToQImage(VectorImageType::Pointer itkimage, const itk::ImageRegion<2>& region)
+{
+  typedef itk::RegionOfInterestImageFilter< VectorImageType, VectorImageType > FilterType;
+  FilterType::Pointer filter = FilterType::New();
+  filter->SetRegionOfInterest(region);
+  filter->SetInput(itkimage);
+  filter->Update();
+
+  return ITKImageToQImage(filter->GetOutput());
+}
+
+QImage ITKImageToQImage(VectorImageType::Pointer itkimage)
+{
+  int width = itkimage->GetLargestPossibleRegion().GetSize()[0];
+  int height = itkimage->GetLargestPossibleRegion().GetSize()[1];
+
+  QImage image(itkimage->GetBufferPointer(), width, height, width*3, QImage::Format_RGB888); // width*3 is the number of bytes per line/row
+
+  //return image;
+  return image.mirrored(false, true);
 }
 
 } // end namespace

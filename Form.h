@@ -119,17 +119,8 @@ protected:
   vtkSmartPointer<vtkImageSlice> TargetPatchSlice;
   vtkSmartPointer<vtkImageSliceMapper> TargetPatchSliceMapper;
   
-  // Patch displays
-  vtkSmartPointer<vtkImageData> SourcePatchDisplay;
-  vtkSmartPointer<vtkImageSlice> SourcePatchDisplaySlice;
-  vtkSmartPointer<vtkImageSliceMapper> SourcePatchDisplaySliceMapper;
-  
-  vtkSmartPointer<vtkImageData> TargetPatchDisplay;
-  vtkSmartPointer<vtkImageSlice> TargetPatchDisplaySlice;
-  vtkSmartPointer<vtkImageSliceMapper> TargetPatchDisplaySliceMapper;
-  
   // The data that the user loads
-  FloatVectorImageType::Pointer Image;
+  VectorImageType::Pointer Image;
   Mask::Pointer MaskImage;
   
   itk::Size<2> PatchSize;

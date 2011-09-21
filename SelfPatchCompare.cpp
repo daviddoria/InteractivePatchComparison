@@ -38,7 +38,7 @@ bool SelfPatchCompare::IsReady()
     }
 }
 
-void SelfPatchCompare::SetImage(FloatVectorImageType::Pointer image)
+void SelfPatchCompare::SetImage(VectorImageType::Pointer image)
 {
   this->Image = image;
 }
@@ -76,10 +76,9 @@ float SelfPatchCompare::PixelDifference(const VectorType &a, const VectorType &b
 {
   float difference = 0;
   
-  float diff = 0;
   for(unsigned int i = 0; i < this->NumberOfComponentsPerPixel; ++i)
     {
-    diff += fabs(a[i] - b[i]);
+    difference += fabs(a[i] - b[i]);
     }
   return difference;
 }
@@ -96,8 +95,8 @@ float SelfPatchCompare::SlowDifference()
   // and PatchDifference*(). This function is only here for comparison purposes (to ensure the result of the other functions
   // is correct).
 
-  itk::ImageRegionConstIterator<FloatVectorImageType> sourcePatchIterator(this->Image, this->SourceRegion);
-  itk::ImageRegionConstIterator<FloatVectorImageType> targetPatchIterator(this->Image, this->TargetRegion);
+  itk::ImageRegionConstIterator<VectorImageType> sourcePatchIterator(this->Image, this->SourceRegion);
+  itk::ImageRegionConstIterator<VectorImageType> targetPatchIterator(this->Image, this->TargetRegion);
   itk::ImageRegionConstIterator<Mask> maskIterator(this->MaskImage, this->TargetRegion);
 
   float sumDifferences = 0;
@@ -110,14 +109,16 @@ float SelfPatchCompare::SlowDifference()
     if(this->MaskImage->IsValid(currentPixel))
       {
       //std::cout << "Offset from iterator: " << this->Image->ComputeOffset(maskIterator.GetIndex()) * componentsPerPixel;
-      FloatVectorImageType::PixelType sourcePixel = sourcePatchIterator.Get();
-      FloatVectorImageType::PixelType targetPixel = targetPatchIterator.Get();
+      VectorImageType::PixelType sourcePixel = sourcePatchIterator.Get();
+      VectorImageType::PixelType targetPixel = targetPatchIterator.Get();
             
       float difference = PixelDifference(sourcePixel, targetPixel);
       float squaredDifference = PixelSquaredDifference(sourcePixel, targetPixel);
     
-      std::cout << "Source pixel: " << sourcePixel << " target pixel: " << targetPixel << "Difference: " << difference << " squaredDifference: " << squaredDifference << std::endl;
-    
+//       std::cout << "Source pixel: " << static_cast<unsigned int>(sourcePixel)
+//                 << " target pixel: " << static_cast<unsigned int>(targetPixel)
+//                 << "Difference: " << difference << " squaredDifference: " << squaredDifference << std::endl;
+
       sumDifferences +=  difference;
       sumSquaredDifferences +=  squaredDifference;
       

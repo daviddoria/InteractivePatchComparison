@@ -45,7 +45,7 @@ public:
   
   //unsigned int FindBestPatch();
 
-  void SetImage(FloatVectorImageType::Pointer);
+  void SetImage(VectorImageType::Pointer);
 
   void SetMask(Mask::Pointer mask);
 
@@ -72,7 +72,7 @@ protected:
   static const float MaxColorDifference = 255*255;
   
   // These are the offsets of the target region which we with to compare
-  std::vector<FloatVectorImageType::OffsetValueType> ValidOffsets;
+  std::vector<VectorImageType::OffsetValueType> ValidOffsets;
 
   // This is the target region we wish to compare. It may be partially invalid.
   itk::ImageRegion<2> TargetRegion;
@@ -81,7 +81,7 @@ protected:
   itk::ImageRegion<2> SourceRegion;
   
   // This is the image from which to take the patches
-  FloatVectorImageType::Pointer Image;
+  VectorImageType::Pointer Image;
 
   // This is the mask to check the validity of target pixels
   Mask::Pointer MaskImage;

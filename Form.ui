@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,2">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,3,1">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout" stretch="3">
         <item>
@@ -214,7 +214,17 @@
        </layout>
       </item>
       <item>
-       <widget class="QVTKWidget" name="qvtkWidget" native="true"/>
+       <widget class="QVTKWidget" name="qvtkWidget"/>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QGraphicsView" name="gfxPatch1"/>
+        </item>
+        <item>
+         <widget class="QGraphicsView" name="gfxPatch2"/>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
