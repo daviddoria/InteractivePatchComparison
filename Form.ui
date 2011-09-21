@@ -209,17 +209,43 @@
             <string>0</string>
            </property>
           </widget>
+          <widget class="QCheckBox" name="chkShowMask">
+           <property name="geometry">
+            <rect>
+             <x>30</x>
+             <y>260</y>
+             <width>111</width>
+             <height>22</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Show mask</string>
+           </property>
+          </widget>
          </widget>
         </item>
        </layout>
       </item>
       <item>
-       <widget class="QVTKWidget" name="qvtkWidget"/>
+       <widget class="QVTKWidget" name="qvtkWidget" native="true"/>
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <widget class="QGraphicsView" name="gfxPatch1"/>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
         </item>
         <item>
          <widget class="QGraphicsView" name="gfxPatch2"/>

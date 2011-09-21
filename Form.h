@@ -75,6 +75,8 @@ public slots:
   void on_txtTargetX_returnPressed();
   void on_txtTargetY_returnPressed();
   
+  void on_chkShowMask_clicked();
+  
   
   void RefreshSlot();
   
@@ -125,6 +127,8 @@ protected:
   
   itk::Size<2> PatchSize;
   unsigned int PatchScale;
+  
+  QImage FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx);
 };
 
 #endif // Form_H

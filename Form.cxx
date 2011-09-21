@@ -332,6 +332,8 @@ void Form::on_actionOpenMask_activated()
   Helpers::SetMaskTransparency(this->MaskImage, this->VTKMaskImage);
 
   this->statusBar()->showMessage("Opened mask.");
+  
+  Refresh();
 }
 
 void Form::RefreshSlot()
@@ -342,6 +344,7 @@ void Form::RefreshSlot()
 void Form::Refresh()
 {
   //std::cout << "Refresh()" << std::endl;
+  this->MaskImageSlice->SetVisibility(this->chkShowMask->isChecked());
   
   this->qvtkWidget->GetRenderWindow()->Render();
   
@@ -383,6 +386,19 @@ void Form::on_actionFlipImage_activated()
     SetCameraPosition2();
     }
   this->Flipped = !this->Flipped;
+}
+
+QImage Form::FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx)
+{
+  // The -5's are fudge factors so that the scroll bars do not appear
+  if(gfx->height() < gfx->width())
+    {
+    return qimage.scaledToHeight(this->gfxPatch2->height() - 5);
+    }
+  else
+    {
+    return qimage.scaledToWidth(this->gfxPatch2->width() - 5);
+    }
 }
 
 void Form::PatchesMoved()
@@ -432,13 +448,17 @@ void Form::PatchesMoved()
 
   // Source display
   QImage sourcePatchImage = Helpers::ITKImageToQImage(this->Image, sourceRegion);
-
+  //sourcePatchImage = sourcePatchImage.scaledToHeight(this->gfxPatch1->height());
+  sourcePatchImage = FitToGraphicsView(sourcePatchImage, this->gfxPatch1);
+  
   QGraphicsScene* sourceScene = new QGraphicsScene();
   sourceScene->addPixmap(QPixmap::fromImage(sourcePatchImage));
   this->gfxPatch1->setScene(sourceScene);
 
   // Target display
   QImage targetPatchImage = Helpers::ITKImageToQImage(this->Image, targetRegion);
+  //targetPatchImage = targetPatchImage.scaledToHeight(this->gfxPatch2->height());
+  targetPatchImage = FitToGraphicsView(targetPatchImage, this->gfxPatch2);
 
   QGraphicsScene* targetScene = new QGraphicsScene();
   targetScene->addPixmap(QPixmap::fromImage(targetPatchImage));
@@ -487,4 +507,9 @@ void Form::SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkIm
       }
     ++maskIterator;
     }  
+}
+
+void Form::on_chkShowMask_clicked()
+{
+  Refresh();
 }
