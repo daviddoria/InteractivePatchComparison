@@ -19,7 +19,7 @@
 #include <QApplication>
 #include <QCleanlooksStyle>
 
-#include "Form.h"
+#include "InteractivePatchComparisonWidget.h"
 
 int main( int argc, char** argv )
 {
@@ -27,8 +27,8 @@ int main( int argc, char** argv )
 
   QApplication::setStyle(new QCleanlooksStyle);
 
-  Form myForm;
-  myForm.show();
+  InteractivePatchComparisonWidget interactivePatchComparisonWidget;
+  interactivePatchComparisonWidget.show();
 
   return app.exec();
 }

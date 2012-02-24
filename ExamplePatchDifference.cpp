@@ -16,8 +16,8 @@
  *
  *=========================================================================*/
 
+#include "Mask.h"
 #include "Types.h"
-#include "SelfPatchCompare.h"
 
 int main(int argc, char *argv[])
 {
@@ -55,17 +55,6 @@ int main(int argc, char *argv[])
   targetCorner[1] = 218;
   itk::ImageRegion<2> targetRegion(targetCorner, size);
 
-  SelfPatchCompare patchCompare(imageReader->GetOutput()->GetNumberOfComponentsPerPixel());
-  patchCompare.SetSourceRegion(sourceRegion);
-  patchCompare.SetTargetRegion(targetRegion);
-  patchCompare.SetImage(imageReader->GetOutput());
-  patchCompare.SetMask(maskReader->GetOutput());
-
-  float totalAbsoluteDifference = patchCompare.SlowTotalAbsoluteDifference();
-  float totalSquaredDifference = patchCompare.SlowTotalSquaredDifference();
-
-  std::cerr << "Total Absolute Difference: " << totalAbsoluteDifference << std::endl;
-  std::cerr << "Total Squared Difference: " << totalSquaredDifference << std::endl;
 
   return EXIT_SUCCESS;
 }

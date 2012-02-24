@@ -17,7 +17,7 @@
  *=========================================================================*/
 
 #include "ui_Form.h"
-#include "Form.h"
+#include "InteractivePatchComparisonWidget.h"
 
 // ITK
 #include "itkCastImageFilter.h"
@@ -61,12 +61,13 @@
 #include "SwitchBetweenStyle.h"
 #include "Mask.h"
 #include "Types.h"
-#include "SelfPatchCompare.h"
+#include "AveragePixelDifference.hpp"
+#include "PixelDifferences.hpp"
 
-const unsigned char Form::Green[3] = {0,255,0};
-const unsigned char Form::Red[3] = {255,0,0};
+const unsigned char InteractivePatchComparisonWidget::Green[3] = {0,255,0};
+const unsigned char InteractivePatchComparisonWidget::Red[3] = {255,0,0};
 
-void Form::on_actionHelp_activated()
+void InteractivePatchComparisonWidget::on_actionHelp_activated()
 {
   QTextEdit* help=new QTextEdit();
   
@@ -79,7 +80,7 @@ void Form::on_actionHelp_activated()
 }
 
 // Constructor
-Form::Form()
+InteractivePatchComparisonWidget::InteractivePatchComparisonWidget()
 {
   this->setupUi(this);
   
@@ -159,15 +160,15 @@ Form::Form()
   this->Image = NULL;
   this->MaskImage = NULL;
   
-  this->InteractorStyle->TrackballStyle->AddObserver(CustomTrackballStyle::PatchesMovedEvent, this, &Form::PatchesMoved);
+  this->InteractorStyle->TrackballStyle->AddObserver(CustomTrackballStyle::PatchesMovedEvent, this, &InteractivePatchComparisonWidget::PatchesMoved);
 };
 
-void Form::on_actionQuit_activated()
+void InteractivePatchComparisonWidget::on_actionQuit_activated()
 {
   exit(0);
 }
 
-void Form::on_actionOpenImage_activated()
+void InteractivePatchComparisonWidget::on_actionOpenImage_activated()
 {
   // Get a filename to open
   QString fileName = QFileDialog::getOpenFileName(this, "Open File", ".", "Image Files (*.jpg *.jpeg *.bmp *.png *.mha);;PNG Files (*.png)");
@@ -217,12 +218,12 @@ void Form::on_actionOpenImage_activated()
   
 }
 
-void Form::on_txtPatchRadius_returnPressed()
+void InteractivePatchComparisonWidget::on_txtPatchRadius_returnPressed()
 {
   SetupPatches();
 }
 
-void Form::on_txtSourceX_returnPressed()
+void InteractivePatchComparisonWidget::on_txtSourceX_returnPressed()
 {
   double position[3];
   this->SourcePatchSlice->GetPosition(position);
@@ -231,7 +232,7 @@ void Form::on_txtSourceX_returnPressed()
   PatchesMoved();
 }
 
-void Form::on_txtSourceY_returnPressed()
+void InteractivePatchComparisonWidget::on_txtSourceY_returnPressed()
 {
   double position[3];
   this->SourcePatchSlice->GetPosition(position);
@@ -240,7 +241,7 @@ void Form::on_txtSourceY_returnPressed()
   PatchesMoved();
 }
 
-void Form::on_txtTargetX_returnPressed()
+void InteractivePatchComparisonWidget::on_txtTargetX_returnPressed()
 {
   double position[3];
   this->TargetPatchSlice->GetPosition(position);
@@ -249,7 +250,7 @@ void Form::on_txtTargetX_returnPressed()
   PatchesMoved();
 }
 
-void Form::on_txtTargetY_returnPressed()
+void InteractivePatchComparisonWidget::on_txtTargetY_returnPressed()
 {
   double position[3];
   this->TargetPatchSlice->GetPosition(position);
@@ -258,14 +259,14 @@ void Form::on_txtTargetY_returnPressed()
   PatchesMoved();
 }
 
-void Form::GetPatchSize()
+void InteractivePatchComparisonWidget::GetPatchSize()
 {
   // The edge length of the patch is the (radius*2) + 1
   this->PatchSize[0] = this->txtPatchRadius->text().toUInt() * 2 + 1;
   this->PatchSize[1] = this->txtPatchRadius->text().toUInt() * 2 + 1;
 }
 
-void Form::SetupPatches()
+void InteractivePatchComparisonWidget::SetupPatches()
 {
   GetPatchSize();
 
@@ -277,7 +278,7 @@ void Form::SetupPatches()
   Refresh();
 }
 
-void Form::InitializePatch(vtkImageData* image, const unsigned char color[3])
+void InteractivePatchComparisonWidget::InitializePatch(vtkImageData* image, const unsigned char color[3])
 {
   // Setup and allocate the image data
   image->SetNumberOfScalarComponents(4);
@@ -288,7 +289,7 @@ void Form::InitializePatch(vtkImageData* image, const unsigned char color[3])
   Helpers::BlankAndOutlineImage(image,color);
 }
 
-void Form::on_actionOpenMaskInverted_activated()
+void InteractivePatchComparisonWidget::on_actionOpenMaskInverted_activated()
 {
   std::cout << "on_actionOpenMaskInverted_activated()" << std::endl;
   on_actionOpenMask_activated();
@@ -296,7 +297,7 @@ void Form::on_actionOpenMaskInverted_activated()
   this->MaskImage->Cleanup();
   }
 
-void Form::on_actionOpenMask_activated()
+void InteractivePatchComparisonWidget::on_actionOpenMask_activated()
 {
   // Get a filename to open
   QString fileName = QFileDialog::getOpenFileName(this, "Open File", ".", "Image Files (*.png *.bmp);;Image Files(*.mha)");
@@ -336,12 +337,12 @@ void Form::on_actionOpenMask_activated()
   Refresh();
 }
 
-void Form::RefreshSlot()
+void InteractivePatchComparisonWidget::RefreshSlot()
 {
   Refresh();
 }
 
-void Form::Refresh()
+void InteractivePatchComparisonWidget::Refresh()
 {
   //std::cout << "Refresh()" << std::endl;
   this->MaskImageSlice->SetVisibility(this->chkShowMask->isChecked());
@@ -350,14 +351,14 @@ void Form::Refresh()
   
 }
 
-void Form::SetCameraPosition1()
+void InteractivePatchComparisonWidget::SetCameraPosition1()
 {
   double leftToRight[3] = {-1,0,0};
   double bottomToTop[3] = {0,1,0};
   SetCameraPosition(leftToRight, bottomToTop);
 }
 
-void Form::SetCameraPosition2()
+void InteractivePatchComparisonWidget::SetCameraPosition2()
 {
   double leftToRight[3] = {-1,0,0};
   double bottomToTop[3] = {0,-1,0};
@@ -365,7 +366,7 @@ void Form::SetCameraPosition2()
   SetCameraPosition(leftToRight, bottomToTop);
 }
 
-void Form::SetCameraPosition(const double leftToRight[3], const double bottomToTop[3])
+void InteractivePatchComparisonWidget::SetCameraPosition(const double leftToRight[3], const double bottomToTop[3])
 {
   this->InteractorStyle->SetImageOrientation(leftToRight, bottomToTop);
 
@@ -375,7 +376,7 @@ void Form::SetCameraPosition(const double leftToRight[3], const double bottomToT
 }
 
 
-void Form::on_actionFlipImage_activated()
+void InteractivePatchComparisonWidget::on_actionFlipImage_activated()
 {
   if(this->Flipped)
     {
@@ -388,7 +389,7 @@ void Form::on_actionFlipImage_activated()
   this->Flipped = !this->Flipped;
 }
 
-QImage Form::FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx)
+QImage InteractivePatchComparisonWidget::FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx)
 {
   // The -5's are fudge factors so that the scroll bars do not appear
   if(gfx->height() < gfx->width())
@@ -401,7 +402,7 @@ QImage Form::FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx)
     }
 }
 
-void Form::PatchesMoved()
+void InteractivePatchComparisonWidget::PatchesMoved()
 {
   //std::cout << "Patches moved." << std::endl;
 
@@ -466,34 +467,18 @@ void Form::PatchesMoved()
   targetScene->addPixmap(QPixmap::fromImage(targetPatchImage));
   this->gfxPatch2->setScene(targetScene);
   
-  SelfPatchCompare patchCompare(this->Image->GetNumberOfComponentsPerPixel());
-  patchCompare.SetSourceRegion(sourceRegion);
-  patchCompare.SetTargetRegion(targetRegion);
-  patchCompare.SetImage(this->Image);
-  patchCompare.SetMask(this->MaskImage);
-  
+  AveragePixelDifference<SumOfAbsoluteDifferences> averagePixelDifferenceFunctor;
+  float averagePixelDifference = averagePixelDifferenceFunctor(this->Image.GetPointer(), this->MaskImage, sourceRegion, targetRegion);
+
   Refresh();
 
-  // This checks to see if both the image and mask have been set
-  if(!patchCompare.IsReady())
-    {
-    return;
-    }
-    
   //SetMaskedPixelsToGreen(targetRegion, this->TargetPatchDisplay);
 
-  float absoluteDifference = patchCompare.SlowTotalAbsoluteDifference();
-  float squaredDifference = patchCompare.SlowTotalSquaredDifference();
-  
-  this->lblAbsoluteDifference->setNum(absoluteDifference);
-  this->lblSquaredDifference->setNum(squaredDifference);
+  this->lblAbsoluteDifference->setNum(averagePixelDifference);
+  // this->lblSquaredDifference->setNum(squaredDifference);
 }
 
-
-
-
-
-void Form::SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image)
+void InteractivePatchComparisonWidget::SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image)
 {
   itk::ImageRegionIterator<Mask> maskIterator(this->MaskImage, targetRegion);
 
@@ -513,7 +498,7 @@ void Form::SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkIm
     }  
 }
 
-void Form::on_chkShowMask_clicked()
+void InteractivePatchComparisonWidget::on_chkShowMask_clicked()
 {
   Refresh();
 }

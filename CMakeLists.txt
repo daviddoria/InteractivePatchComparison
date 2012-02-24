@@ -10,8 +10,8 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})
 
-QT4_WRAP_UI(UISrcs Form.ui)
-QT4_WRAP_CPP(MOCSrcs Form.h)
+QT4_WRAP_UI(InteractivePatchComparisonWidgetUISrcs InteractivePatchComparisonWidget.ui)
+QT4_WRAP_CPP(InteractivePatchComparisonWidgetMOCSrcs InteractivePatchComparisonWidget.h)
 
 FIND_PACKAGE(VTK REQUIRED)
 INCLUDE(${VTK_USE_FILE})
@@ -19,21 +19,18 @@ INCLUDE(${VTK_USE_FILE})
 FIND_PACKAGE(ITK REQUIRED)
 INCLUDE(${ITK_USE_FILE})
 
-add_library(PatchComparison
-Helpers.cpp
-SelfPatchCompare.cpp
-)
+add_library(PatchComparison Helpers.cpp)
 
 ADD_EXECUTABLE(InteractivePatchComparison
-Form.cxx 
+InteractivePatchComparisonWidget.cxx
 Interactive.cpp 
 SwitchBetweenStyle.cxx
 CustomImageStyle.cxx
 CustomTrackballStyle.cxx
-${UISrcs} ${MOCSrcs})
+${InteractivePatchComparisonWidgetUISrcs} ${InteractivePatchComparisonWidgetMOCSrcs})
 TARGET_LINK_LIBRARIES(InteractivePatchComparison PatchComparison ${VTK_LIBRARIES} QVTK ${ITK_LIBRARIES} ${QT_LIBRARIES})
 INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )
 
-
-ADD_EXECUTABLE(ExamplePatchDifference ExamplePatchDifference.cpp)
-TARGET_LINK_LIBRARIES(ExamplePatchDifference PatchComparison ${VTK_LIBRARIES} QVTK ${ITK_LIBRARIES} ${QT_LIBRARIES})
+# 
+# ADD_EXECUTABLE(ExamplePatchDifference ExamplePatchDifference.cpp)
+# TARGET_LINK_LIBRARIES(ExamplePatchDifference PatchComparison ${VTK_LIBRARIES} QVTK ${ITK_LIBRARIES} ${QT_LIBRARIES})

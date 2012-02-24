@@ -16,10 +16,10 @@
  *
  *=========================================================================*/
 
-#ifndef FORM_H
-#define FORM_H
+#ifndef InteractivePatchComparisonWidget_H
+#define InteractivePatchComparisonWidget_H
 
-#include "ui_Form.h"
+#include "ui_InteractivePatchComparisonWidget.h"
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -40,14 +40,14 @@ class vtkImageSliceMapper;
 
 class SwitchBetweenStyle;
 
-class Form : public QMainWindow, public Ui::Form
+class InteractivePatchComparisonWidget : public QMainWindow, public Ui::InteractivePatchComparisonWidget
 {
-  Q_OBJECT
+Q_OBJECT
 public:
 
   // Constructor/Destructor
-  Form();
-  ~Form() {};
+  InteractivePatchComparisonWidget();
+  ~InteractivePatchComparisonWidget() {};
   
   // These function deal with flipping the image
   void SetCameraPosition(const double leftToRight[3], const double bottomToTop[3]);
@@ -131,4 +131,4 @@ protected:
   QImage FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx);
 };
 
-#endif // Form_H
+#endif // InteractivePatchComparisonWidget_H
