@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 PROJECT(InteractivePatchComparison)
 
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
+
 # Where to copy executables when 'make install' is run
 SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX} )
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) #fix the dynamic linking error (RPATH) that would occur without this
@@ -19,7 +21,7 @@ INCLUDE(${VTK_USE_FILE})
 FIND_PACKAGE(ITK REQUIRED)
 INCLUDE(${ITK_USE_FILE})
 
-add_library(PatchComparison Helpers.cpp)
+add_library(PatchComparison Helpers.cpp Mask.cpp)
 
 ADD_EXECUTABLE(InteractivePatchComparison
 InteractivePatchComparisonWidget.cxx

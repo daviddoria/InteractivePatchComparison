@@ -26,13 +26,156 @@
 
 // Custom
 #include "Mask.h"
+#include "TypeTraits.h"
+#include "Statistics.h"
 
 namespace Helpers
 {
 
+template<typename TImage>
+void DeepCopyInRegion(const TImage* input, const itk::ImageRegion<2>& region, TImage* output)
+{
+  // This function assumes that the size of input and output are the same.
+
+  itk::ImageRegionConstIterator<TImage> inputIterator(input, region);
+  itk::ImageRegionIterator<TImage> outputIterator(output, region);
+
+  while(!inputIterator.IsAtEnd())
+    {
+    outputIterator.Set(inputIterator.Get());
+    ++inputIterator;
+    ++outputIterator;
+    }
+}
+
+// Index functions
+template<typename T>
+typename std::enable_if<std::is_fundamental<T>::value, T&>::type index(T& t, size_t)
+{
+  return t;
+}
+
+template<typename T>
+typename std::enable_if<std::is_fundamental<T>::value, T>::type index(const T& t, size_t)
+{
+  return t;
+}
+
+template<typename T>
+typename std::enable_if<!std::is_fundamental<T>::value, typename T::value_type&>::type index(T& v, size_t i)
+{
+  return v[i];
+}
+
+template<typename T>
+typename std::enable_if<!std::is_fundamental<T>::value, typename T::value_type>::type index(const T& v, size_t i)
+{
+  return v[i];
+}
+
+// Length functions
+template<typename T>
+typename std::enable_if<std::is_fundamental<T>::value, unsigned int>::type length(const T& t)
+{
+  return 1;
+}
+
+template<typename T>
+unsigned int length(const std::vector<T>& v)
+{
+  return v.size();
+}
+
+template<typename T>
+unsigned int length(const itk::VariableLengthVector<T>& v)
+{
+  return v.GetSize();
+}
+
+// template<typename T>
+// T& index(itk::VariableLengthVector<T>& v, size_t i)
+// {
+//   return v[i];
+// }
+// 
+// template<typename T>
+// T index(const itk::VariableLengthVector<T>& v, size_t i)
+// {
+//   return v[i];
+// }
+
+template<typename T>
+void SetObjectToZero(T& object)
+{
+  for(unsigned int i = 0; i < Helpers::length(object); ++i)
+    {
+    Helpers::index(object, i) = 0;
+    }
+}
+
+template<typename T>
+itk::Index<2> CreateIndex(const T& v)
+{
+  itk::Index<2> index = {{v[0], v[1]}};
+  return index;
+}
+
+template<typename TImage>
+std::vector<typename TImage::PixelType> GetPixelValues(const TImage* const image, const std::vector<itk::Index<2> >& indices)
+{
+  std::vector<typename TImage::PixelType> values;
+  for(std::vector<itk::Index<2> >::const_iterator iter = indices.begin(); iter != indices.end(); ++iter)
+  {
+    values.push_back(image->GetPixel(*iter));
+  }
+
+  return values;
+}
+
+struct AverageFunctor
+{
+  template <typename TPixel>
+  typename TypeTraits<TPixel>::LargerType operator()(const std::vector<TPixel>& pixels) const
+  {
+    typename TypeTraits<TPixel>::LargerType allChannelsAverage = Statistics::Average(pixels);
+    // std::cout << "AverageFunctor() : allChannelsAverage " << allChannelsAverage << std::endl;
+
+    return allChannelsAverage;
+  }
+};
+
+struct VarianceFunctor
+{
+  template <typename TPixel>
+  typename TypeTraits<TPixel>::LargerType operator()(const std::vector<TPixel>& pixels) const
+  {
+    assert(pixels.size() > 0);
+//     if(pixels.size() <= 0)
+//     {
+//       throw std::runtime_error("Must have more than 0 items to use VarianceFunctor!");
+//     }
+    typename TypeTraits<TPixel>::LargerType allChannelsVariance = Statistics::Variance(pixels);
+    return allChannelsVariance;
+  }
+};
+
+template<typename TImage>
+void ExtractRegion(const TImage* const image, const itk::ImageRegion<2>& region,
+                   TImage* const output)
+{
+  typedef itk::RegionOfInterestImageFilter<TImage, TImage> ExtractFilterType;
+
+  typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+  extractFilter->SetRegionOfInterest(region);
+  extractFilter->SetInput(image);
+  extractFilter->Update();
+
+  DeepCopy(extractFilter->GetOutput(), output);
+}
+
 /** Copy the input to the output*/
 template<typename TImage>
-void DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output)
+void DeepCopy(const TImage* const input, TImage* const output)
 {
   output->SetRegions(input->GetLargestPossibleRegion());
   output->Allocate();
@@ -50,7 +193,7 @@ void DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output)
 
 /** Copy the input to the output*/
 template<typename TImage>
-void DeepCopyVectorImage(typename TImage::Pointer input, typename TImage::Pointer output)
+void DeepCopyVectorImage(const TImage* const input, TImage* const output)
 {
   output->SetRegions(input->GetLargestPossibleRegion());
   output->SetNumberOfComponentsPerPixel(input->GetNumberOfComponentsPerPixel());
@@ -89,7 +232,7 @@ void DeepCopyVectorImage(typename TImage::Pointer input, typename TImage::Pointe
 // }
 
 template<typename T>
-void ReplaceValue(typename T::Pointer image, const typename T::PixelType queryValue, const typename T::PixelType replacementValue)
+void ReplaceValue(const T* const image, const typename T::PixelType queryValue, const typename T::PixelType replacementValue)
 {
   // This function replaces all pixels in 'image' equal to 'queryValue' with 'replacementValue'
   itk::ImageRegionIterator<T> imageIterator(image, image->GetLargestPossibleRegion());
@@ -105,7 +248,7 @@ void ReplaceValue(typename T::Pointer image, const typename T::PixelType queryVa
 }
 
 template<typename T>
-void WriteImage(typename T::Pointer image, std::string filename)
+void WriteImage(const T* const image, std::string filename)
 {
   // This is a convenience function so that images can be written in 1 line instead of 4.
   typename itk::ImageFileWriter<T>::Pointer writer = itk::ImageFileWriter<T>::New();
@@ -116,7 +259,7 @@ void WriteImage(typename T::Pointer image, std::string filename)
 
 
 template<typename T>
-void WriteRGBImage(typename T::Pointer input, std::string filename)
+void WriteRGBImage(const T* const input, const std::string filename)
 {
   typedef itk::Image<itk::CovariantVector<unsigned char, 3>, 2> RGBImageType;
 
@@ -147,13 +290,13 @@ void WriteRGBImage(typename T::Pointer input, std::string filename)
 }
 
 template <class T>
-void CreateBlankPatch(typename T::Pointer patch, const unsigned int radius)
+void CreateBlankPatch(T* const patch, const unsigned int radius)
 {
   CreateConstantPatch<T>(patch, itk::NumericTraits< typename T::PixelType >::Zero, radius);
 }
 
 template <class T>
-void CreateConstantPatch(typename T::Pointer patch, typename T::PixelType value, unsigned int radius)
+void CreateConstantPatch(T* const patch, typename T::PixelType value, unsigned int radius)
 {
   try
   {
@@ -186,7 +329,7 @@ void CreateConstantPatch(typename T::Pointer patch, typename T::PixelType value,
 }
 
 template <class T>
-float MaxValue(typename T::Pointer image)
+float MaxValue(const T* const image)
 {
   typedef typename itk::MinimumMaximumImageCalculator<T>
           ImageCalculatorFilterType;
@@ -200,7 +343,7 @@ float MaxValue(typename T::Pointer image)
 }
 
 template <class T>
-float MaxValueLocation(typename T::Pointer image)
+float MaxValueLocation(const T* const image)
 {
   typedef typename itk::MinimumMaximumImageCalculator<T>
           ImageCalculatorFilterType;
@@ -214,7 +357,7 @@ float MaxValueLocation(typename T::Pointer image)
 }
 
 template <class T>
-float MinValue(typename T::Pointer image)
+float MinValue(const T* const image)
 {
   typedef typename itk::MinimumMaximumImageCalculator<T>
           ImageCalculatorFilterType;
@@ -228,7 +371,7 @@ float MinValue(typename T::Pointer image)
 }
 
 template <class T>
-itk::Index<2> MinValueLocation(typename T::Pointer image)
+itk::Index<2> MinValueLocation(const T* const image)
 {
   typedef typename itk::MinimumMaximumImageCalculator<T>
           ImageCalculatorFilterType;
@@ -242,7 +385,7 @@ itk::Index<2> MinValueLocation(typename T::Pointer image)
 }
 
 template <class T>
-void CopyPatchIntoImage(typename T::Pointer patch, typename T::Pointer image, Mask::Pointer mask, itk::Index<2> position)
+void CopyPatchIntoImage(const T* const patch, T* const image, Mask* const mask, const itk::Index<2> position)
 {
   try
   {
@@ -288,8 +431,8 @@ void CopyPatchIntoImage(typename T::Pointer patch, typename T::Pointer image, Ma
 
 
 template <class T>
-void CopySelfPatchIntoValidRegion(typename T::Pointer image, const Mask::Pointer mask,
-                                  itk::ImageRegion<2> sourceRegion, itk::ImageRegion<2> destinationRegion)
+void CopySelfPatchIntoValidRegion(T* const image, const Mask* const mask,
+                                  const itk::ImageRegion<2> sourceRegion, const itk::ImageRegion<2> destinationRegion)
 {
   try
   {
@@ -333,7 +476,7 @@ void CopySelfPatchIntoValidRegion(typename T::Pointer image, const Mask::Pointer
 }
 
 template <class T>
-void CopyPatchIntoImage(typename T::Pointer patch, typename T::Pointer image, itk::Index<2> position)
+void CopyPatchIntoImage(const T* const patch, T* const image, const itk::Index<2> position)
 {
   try
   {
@@ -365,8 +508,8 @@ void CopyPatchIntoImage(typename T::Pointer patch, typename T::Pointer image, it
 }
 
 template <class T>
-void CopyPatch(typename T::Pointer sourceImage, typename T::Pointer targetImage,
-               itk::Index<2> sourcePosition, itk::Index<2> targetPosition, unsigned int radius)
+void CopyPatch(const T* const sourceImage, T* const targetImage,
+               const itk::Index<2> sourcePosition, const itk::Index<2> targetPosition, const unsigned int radius)
 {
   try
   {
@@ -390,7 +533,7 @@ void CopyPatch(typename T::Pointer sourceImage, typename T::Pointer targetImage,
 
 
 template <class T>
-void WriteScaledScalarImage(typename T::Pointer image, std::string filename)
+void WriteScaledScalarImage(const T* const image, const std::string filename)
 {
   if(T::PixelType::Dimension > 1)
     {
@@ -414,7 +557,7 @@ void WriteScaledScalarImage(typename T::Pointer image, std::string filename)
 
 
 template <typename TImage>
-void ColorToGrayscale(typename TImage::Pointer colorImage, UnsignedCharScalarImageType::Pointer grayscaleImage)
+void ColorToGrayscale(const TImage* const colorImage, UnsignedCharScalarImageType* const grayscaleImage)
 {
   grayscaleImage->SetRegions(colorImage->GetLargestPossibleRegion());
   grayscaleImage->Allocate();
@@ -437,7 +580,7 @@ void ColorToGrayscale(typename TImage::Pointer colorImage, UnsignedCharScalarIma
 }
 
 template <typename TImageType>
-void DebugWriteSequentialImage(typename TImageType::Pointer image, const std::string& filePrefix, const unsigned int iteration)
+void DebugWriteSequentialImage(const TImageType* const image, const std::string& filePrefix, const unsigned int iteration)
 {
   std::stringstream padded;
   padded << "Debug/" << filePrefix << "_" << std::setfill('0') << std::setw(4) << iteration << ".mha";
@@ -455,7 +598,7 @@ void DebugWriteImageConditional(typename TImageType::Pointer image, const std::s
 
 
 template <typename TImage>
-void ITKScalarImageToScaledVTKImage(typename TImage::Pointer image, vtkImageData* outputImage)
+void ITKScalarImageToScaledVTKImage(const TImage* const image, vtkImageData* outputImage)
 {
   //std::cout << "ITKScalarImagetoVTKImage()" << std::endl;
   

@@ -61,6 +61,7 @@
 #include "SwitchBetweenStyle.h"
 #include "Mask.h"
 #include "Types.h"
+#include "CorrelationScore.hpp"
 #include "AveragePixelDifference.hpp"
 #include "PixelDifferences.hpp"
 
@@ -492,12 +493,15 @@ void InteractivePatchComparisonWidget::PatchesMoved()
   AveragePixelDifference<SumOfAbsoluteDifferences> averagePixelDifferenceFunctor;
   float averagePixelDifference = averagePixelDifferenceFunctor(this->Image.GetPointer(), this->MaskImage, sourceRegion, targetRegion);
 
+  CorrelationScore correlationScoreFunctor;
+  float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), this->MaskImage, sourceRegion, targetRegion);
+
   Refresh();
 
   //SetMaskedPixelsToGreen(targetRegion, this->TargetPatchDisplay);
 
   this->lblAbsoluteDifference->setNum(averagePixelDifference);
-  // this->lblSquaredDifference->setNum(squaredDifference);
+  this->lblSquaredDifference->setNum(correlationScore);
 }
 
 void InteractivePatchComparisonWidget::SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image)

@@ -195,7 +195,9 @@ class Mask : public itk::Image< unsigned char, 2>
     this->SetHoleValue(inputMask->GetHoleValue());
     this->SetValidValue(inputMask->GetValidValue());
   }
-  
+
+  std::vector<itk::Offset<2> > GetValidOffsetsInRegion(itk::ImageRegion<2> region) const;
+    
 protected:
   Mask()
   {
@@ -207,7 +209,7 @@ protected:
   unsigned char ValidValue; // Pixels with this value will not be filled - they are the source region.
   
 private:
-
+  
   Mask(const Self &);    //purposely not implemented
   void operator=(const Self &); //purposely not implemented
 };

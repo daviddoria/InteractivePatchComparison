@@ -36,7 +36,18 @@
 namespace Helpers
 {
 
-void RGBImageToCIELabImage(RGBImageType::Pointer rgbImage, VectorImageType::Pointer cielabImage)
+std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets)
+{
+  std::vector<itk::Index<2> > indices;
+  for(unsigned int i = 0; i < offsets.size(); ++i)
+  {
+    indices.push_back(CreateIndex(offsets[i]));
+  }
+  return indices;
+}
+
+// This input cannot be const because of how the RGBToLabColorSpacePixelAccessor works
+void RGBImageToCIELabImage(RGBImageType* const rgbImage, VectorImageType* const cielabImage)
 {
   // Convert RGB image to Lab color space
 
@@ -75,7 +86,7 @@ void RGBImageToCIELabImage(RGBImageType::Pointer rgbImage, VectorImageType::Poin
   reassembler->Update();
   
   // Copy to the output
-  DeepCopyVectorImage<VectorImageType>(reassembler->GetOutput(), cielabImage);
+  DeepCopyVectorImage(reassembler->GetOutput(), cielabImage);
 }
 
 itk::Index<2> GetIndexFromImageSlice(vtkImageSlice* slice)
@@ -113,7 +124,7 @@ itk::Index<2> GetIndexFromImageSlice(vtkImageSlice* slice)
   return index;
 }
 
-void ITKRegionToVTKImage(VectorImageType::Pointer image, const itk::ImageRegion<2>& region, vtkImageData* outputImage)
+void ITKRegionToVTKImage(const VectorImageType* const image, const itk::ImageRegion<2>& region, vtkImageData* outputImage)
 {
   // Setup and allocate the VTK image
   outputImage->SetNumberOfScalarComponents(3);
@@ -145,7 +156,7 @@ void ITKRegionToVTKImage(VectorImageType::Pointer image, const itk::ImageRegion<
   outputImage->Modified();
 }
 
-void SetMaskTransparencyBinary(Mask::Pointer input, vtkImageData* outputImage)
+void SetMaskTransparencyBinary(Mask* const input, vtkImageData* outputImage)
 {
   // Setup and allocate the VTK image
   outputImage->SetNumberOfScalarComponents(2);
@@ -181,7 +192,7 @@ void SetMaskTransparencyBinary(Mask::Pointer input, vtkImageData* outputImage)
   outputImage->Modified();
 }
 
-void SetMaskTransparency(Mask::Pointer input, vtkImageData* outputImage)
+void SetMaskTransparency(Mask* const input, vtkImageData* outputImage)
 {
   // Setup and allocate the VTK image
   outputImage->SetNumberOfScalarComponents(4);
@@ -226,7 +237,7 @@ void SetMaskTransparency(Mask::Pointer input, vtkImageData* outputImage)
   outputImage->Modified();
 }
 
-void VectorImageToRGBImage(VectorImageType::Pointer image, RGBImageType::Pointer rgbImage)
+void VectorImageToRGBImage(const VectorImageType* const image, RGBImageType* const rgbImage)
 {
   // Only the first 3 components are used (assumed to be RGB)
   rgbImage->SetRegions(image->GetLargestPossibleRegion());
@@ -279,7 +290,7 @@ itk::Index<2> GetRegionCenter(const itk::ImageRegion<2> region)
 
 
 // Convert a vector ITK image to a VTK image for display
-void ITKImagetoVTKImage(VectorImageType::Pointer image, vtkImageData* outputImage)
+void ITKImagetoVTKImage(const VectorImageType* const image, vtkImageData* outputImage)
 {
   //std::cout << "ITKImagetoVTKImage()" << std::endl;
   if(image->GetNumberOfComponentsPerPixel() >= 3)
@@ -294,7 +305,7 @@ void ITKImagetoVTKImage(VectorImageType::Pointer image, vtkImageData* outputImag
   outputImage->Modified();
 }
 
-void NormalizeVectorImage(FloatVector2ImageType::Pointer image)
+void NormalizeVectorImage(FloatVector2ImageType* const image)
 {
   itk::ImageRegionIterator<FloatVector2ImageType> imageIterator(image, image->GetLargestPossibleRegion());
 
@@ -307,7 +318,7 @@ void NormalizeVectorImage(FloatVector2ImageType::Pointer image)
     }
 }
 
-void ITKImagetoVTKVectorFieldImage(FloatVector2ImageType::Pointer image, vtkImageData* outputImage)
+void ITKImagetoVTKVectorFieldImage(FloatVector2ImageType* const image, vtkImageData* outputImage)
 {
   //std::cout << "ITKImagetoVTKVectorFieldImage()" << std::endl;
 
@@ -341,7 +352,7 @@ void ITKImagetoVTKVectorFieldImage(FloatVector2ImageType::Pointer image, vtkImag
 }
 
 // Convert a vector ITK image to a VTK image for display
-void ITKImagetoVTKRGBImage(VectorImageType::Pointer image, vtkImageData* outputImage)
+void ITKImagetoVTKRGBImage(const VectorImageType* const image, vtkImageData* outputImage)
 {
   // This function assumes an ND (with N>3) image has the first 3 channels as RGB and extra information in the remaining channels.
   
@@ -381,7 +392,7 @@ void ITKImagetoVTKRGBImage(VectorImageType::Pointer image, vtkImageData* outputI
 
 
 // Convert a vector ITK image to a VTK image for display
-void ITKImagetoVTKMagnitudeImage(VectorImageType::Pointer image, vtkImageData* outputImage)
+void ITKImagetoVTKMagnitudeImage(const VectorImageType* const image, vtkImageData* outputImage)
 {
   //std::cout << "ITKImagetoVTKMagnitudeImage()" << std::endl;
   // Compute the magnitude of the ITK image
@@ -478,7 +489,7 @@ void OutlineImage(vtkImageData* image, const unsigned char color[3])
   image->Modified();
 }
 
-QImage ITKImageToQImage(VectorImageType::Pointer itkimage, const itk::ImageRegion<2>& region)
+QImage ITKImageToQImage(const VectorImageType* const itkimage, const itk::ImageRegion<2>& region)
 {
   typedef itk::RegionOfInterestImageFilter< VectorImageType, VectorImageType > FilterType;
   FilterType::Pointer filter = FilterType::New();
@@ -489,7 +500,7 @@ QImage ITKImageToQImage(VectorImageType::Pointer itkimage, const itk::ImageRegio
   return ITKImageToQImage(filter->GetOutput());
 }
 
-QImage ITKImageToQImage(VectorImageType::Pointer itkimage)
+QImage ITKImageToQImage(const VectorImageType* const itkimage)
 {
   int width = itkimage->GetLargestPossibleRegion().GetSize()[0];
   int height = itkimage->GetLargestPossibleRegion().GetSize()[1];

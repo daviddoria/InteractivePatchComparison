@@ -42,63 +42,69 @@ class vtkImageSlice;
 
 namespace Helpers
 {
-  
+
+template<typename TImage>
+void DeepCopy(const TImage* const input, TImage* const output);
+
+/** Extract a region of an image. */
+template<typename TImage>
+void ExtractRegion(const TImage* const image, const itk::ImageRegion<2>& region,
+                   TImage* const output);
+
 void RGBImageToCIELabImage(RGBImageType::Pointer rgbImage, VectorImageType::Pointer cielabImage);
   
 void NormalizeVectorImage(FloatVector2ImageType::Pointer image);
 
-template<typename TImage>
-void DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output);
 
-void SetMaskTransparency(Mask::Pointer input, vtkImageData* outputImage);
+void SetMaskTransparency(Mask* const input, vtkImageData* outputImage);
 
 void ITKRegionToVTKImage(VectorImageType::Pointer image, const itk::ImageRegion<2>& region, vtkImageData* outputImage);
 
 template<typename TImage>
-void DeepCopyVectorImage(typename TImage::Pointer input, typename TImage::Pointer output);
+void DeepCopyVectorImage(const TImage* const input, TImage* const output);
 
-void ITKImagetoVTKImage(VectorImageType::Pointer image, vtkImageData* outputImage); // This function simply drives ITKImagetoVTKRGBImage or ITKImagetoVTKMagnitudeImage
-void ITKImagetoVTKRGBImage(VectorImageType::Pointer image, vtkImageData* outputImage);
-void ITKImagetoVTKMagnitudeImage(VectorImageType::Pointer image, vtkImageData* outputImage);
+void ITKImagetoVTKImage(const VectorImageType* const image, vtkImageData* outputImage); // This function simply drives ITKImagetoVTKRGBImage or ITKImagetoVTKMagnitudeImage
+void ITKImagetoVTKRGBImage(const VectorImageType* const image, vtkImageData* outputImage);
+void ITKImagetoVTKMagnitudeImage(const VectorImageType* const image, vtkImageData* outputImage);
 
-void ITKImagetoVTKVectorFieldImage(FloatVector2ImageType::Pointer image, vtkImageData* outputImage);
+void ITKImagetoVTKVectorFieldImage(const FloatVector2ImageType* const image, vtkImageData* outputImage);
 
-void VectorImageToRGBImage(VectorImageType::Pointer image, RGBImageType::Pointer rgbImage);
+void VectorImageToRGBImage(const VectorImageType* const image, RGBImageType* const rgbImage);
 
 template <typename TImage>
-void ITKScalarImageToScaledVTKImage(typename TImage::Pointer image, vtkImageData* outputImage);
+void ITKScalarImageToScaledVTKImage(TImage* const image, vtkImageData* outputImage);
 
 itk::Index<2> GetRegionCenter(const itk::ImageRegion<2> region);
 
 template <typename TDebugImageType>
-void DebugWriteSequentialImage(typename TDebugImageType::Pointer image, const std::string& filePrefix, const unsigned int iteration);
+void DebugWriteSequentialImage(TDebugImageType* const image, const std::string& filePrefix, const unsigned int iteration);
 
 template <typename TDebugImageType>
-void DebugWriteImageConditional(typename TDebugImageType::Pointer image, const std::string& fileName, const bool condition);
+void DebugWriteImageConditional(TDebugImageType* const image, const std::string& fileName, const bool condition);
 
 template <class T>
-void WriteScaledScalarImage(typename T::Pointer image, std::string filename);
+void WriteScaledScalarImage(T* const image, std::string filename);
 
 template <class T>
-void CopyPatch(typename T::Pointer sourceImage, typename T::Pointer targetImage, itk::Index<2> sourcePosition, itk::Index<2> targetPosition, unsigned int radius);
+void CopyPatch(T* const sourceImage, T* const targetImage, itk::Index<2> sourcePosition, itk::Index<2> targetPosition, unsigned int radius);
 
 template <class T>
-void CreateConstantPatch(typename T::Pointer patch, typename T::PixelType value, unsigned int radius);
+void CreateConstantPatch(T* const patch, T* const value, unsigned int radius);
 
 template<typename T>
-void ReplaceValue(typename T::Pointer image, const typename T::PixelType queryValue, const typename T::PixelType replacementValue);
+void ReplaceValue(T* const image, const T* const queryValue, const T* const replacementValue);
 
 template<typename T>
-void WriteImage(typename T::Pointer image, std::string filename);
+void WriteImage(T* const image, std::string filename);
 
 template <class T>
-void CopyPatchIntoImage(typename T::Pointer patch, typename T::Pointer image, itk::Index<2> position);
+void CopyPatchIntoImage(T* const patch, T* const image, itk::Index<2> position);
 
 template <class T>
-void CreateBlankPatch(typename T::Pointer patch, const unsigned int radius);
+void CreateBlankPatch(T* const patch, const unsigned int radius);
 
 template <class T>
-void CopySelfPatchIntoValidRegion(typename T::Pointer image, const UnsignedCharScalarImageType::Pointer mask,
+void CopySelfPatchIntoValidRegion(T* const image, const UnsignedCharScalarImageType* const mask,
                                   itk::ImageRegion<2> sourceRegion, itk::ImageRegion<2> destinationRegion);
 
 // Non template function declarations
@@ -110,9 +116,42 @@ void BlankAndOutlineImage(vtkImageData*, const unsigned char color[3]);
 
 void OutlineImage(vtkImageData*, const unsigned char color[3]);
 
-QImage ITKImageToQImage(VectorImageType::Pointer itkimage);
+QImage ITKImageToQImage(const VectorImageType* const itkimage);
 
-QImage ITKImageToQImage(VectorImageType::Pointer itkimage, const itk::ImageRegion<2>& region);
+QImage ITKImageToQImage(const VectorImageType* const itkimage, const itk::ImageRegion<2>& region);
+
+template<typename T>
+void SetObjectToZero(T& object);
+
+
+template<typename T>
+unsigned int length(const std::vector<T>& v);
+
+template<typename T>
+unsigned int length(const itk::VariableLengthVector<T>& v);
+
+template<typename T>
+typename std::enable_if<std::is_fundamental<T>::value, unsigned int>::type length(const T& t);
+
+std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets);
+
+// template<typename T>
+// T& index(itk::VariableLengthVector<T>& v, size_t i);
+// 
+// template<typename T>
+// T index(const itk::VariableLengthVector<T>& v, size_t i);
+
+template<typename T>
+typename std::enable_if<std::is_fundamental<T>::value, T&>::type index(T& t, size_t);
+
+template<typename T>
+typename std::enable_if<std::is_fundamental<T>::value, T>::type index(const T& t, size_t);
+
+template<typename T>
+typename std::enable_if<!std::is_fundamental<T>::value, typename T::value_type&>::type index(T& v, size_t i);
+
+template<typename T>
+typename std::enable_if<!std::is_fundamental<T>::value, typename T::value_type>::type index(const T& v, size_t i);
 
 }// end namespace
 
