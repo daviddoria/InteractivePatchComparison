@@ -83,6 +83,9 @@ public slots:
   void RefreshSlot();
   
 protected:
+
+  void OpenImage(const std::string& filename);
+  void OpenMask(const std::string& filename);
   
   void SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image);
   

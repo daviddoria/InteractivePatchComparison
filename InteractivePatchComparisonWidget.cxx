@@ -82,6 +82,8 @@ void InteractivePatchComparisonWidget::on_actionHelp_activated()
 InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(const std::string& imageFileName, const std::string& maskFileName)
 {
   SharedConstructor();
+  OpenImage(imageFileName);
+  OpenMask(maskFileName);
 }
 
 void InteractivePatchComparisonWidget::SharedConstructor()
@@ -177,6 +179,75 @@ void InteractivePatchComparisonWidget::on_actionQuit_activated()
   exit(0);
 }
 
+void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
+{
+  // Set the working directory
+  QFileInfo fileInfo(fileName.c_str());
+  std::string workingDirectory = fileInfo.absoluteDir().absolutePath().toStdString() + "/";
+  std::cout << "Working directory set to: " << workingDirectory << std::endl;
+  QDir::setCurrent(QString(workingDirectory.c_str()));
+
+  typedef itk::ImageFileReader<VectorImageType> ReaderType;
+  ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName(fileName);
+  reader->Update();
+
+  //this->Image = reader->GetOutput();
+  this->Image = VectorImageType::New();
+  Helpers::DeepCopyVectorImage<VectorImageType>(reader->GetOutput(), this->Image);
+
+  Helpers::ITKImagetoVTKImage(this->Image, this->VTKImage);
+
+  this->statusBar()->showMessage("Opened image.");
+  actionOpenMask->setEnabled(true);
+
+
+  GetPatchSize();
+
+  // Initialize
+  this->SourcePatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2, this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
+  this->TargetPatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2 + this->PatchSize[0], this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
+
+  SetupPatches();
+
+
+  PatchesMoved();
+
+  this->Renderer->ResetCamera();
+
+  Refresh();
+}
+
+void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
+{
+  typedef itk::ImageFileReader<Mask> ReaderType;
+  ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName(fileName);
+  reader->Update();
+
+  if(this->Image->GetLargestPossibleRegion() != reader->GetOutput()->GetLargestPossibleRegion())
+    {
+    std::cerr << "Image and mask must be the same size!" << std::endl;
+    return;
+    }
+  this->MaskImage = Mask::New();
+  Helpers::DeepCopy<Mask>(reader->GetOutput(), this->MaskImage);
+
+  // For this program, we ALWAYS assume the hole to be filled is white, and the valid/source region is black.
+  // This is not simply reversible because of some subtle erosion operations that are performed.
+  // For this reason, we provide an "load inverted mask" action in the file menu.
+  this->MaskImage->SetValidValue(0);
+  this->MaskImage->SetHoleValue(255);
+
+  this->MaskImage->Cleanup();
+
+  Helpers::SetMaskTransparency(this->MaskImage, this->VTKMaskImage);
+
+  this->statusBar()->showMessage("Opened mask.");
+
+  Refresh();
+}
+
 void InteractivePatchComparisonWidget::on_actionOpenImage_activated()
 {
   // Get a filename to open
@@ -189,42 +260,7 @@ void InteractivePatchComparisonWidget::on_actionOpenImage_activated()
     return;
     }
 
-  // Set the working directory
-  QFileInfo fileInfo(fileName);
-  std::string workingDirectory = fileInfo.absoluteDir().absolutePath().toStdString() + "/";
-  std::cout << "Working directory set to: " << workingDirectory << std::endl;
-  QDir::setCurrent(QString(workingDirectory.c_str()));
-    
-  typedef itk::ImageFileReader<VectorImageType> ReaderType;
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(fileName.toStdString());
-  reader->Update();
-
-  //this->Image = reader->GetOutput();
-  this->Image = VectorImageType::New();
-  Helpers::DeepCopyVectorImage<VectorImageType>(reader->GetOutput(), this->Image);
-  
-  Helpers::ITKImagetoVTKImage(this->Image, this->VTKImage);
-  
-  this->statusBar()->showMessage("Opened image.");
-  actionOpenMask->setEnabled(true);
-
-  
-  GetPatchSize();
-  
-  // Initialize
-  this->SourcePatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2, this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
-  this->TargetPatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2 + this->PatchSize[0], this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
-  
-  SetupPatches();
-  
-
-  PatchesMoved();
-  
-  this->Renderer->ResetCamera();
-  
-  Refresh();
-  
+  OpenImage(fileName.toStdString());
 }
 
 void InteractivePatchComparisonWidget::on_txtPatchRadius_returnPressed()
@@ -318,32 +354,7 @@ void InteractivePatchComparisonWidget::on_actionOpenMask_activated()
     return;
     }
 
-  typedef itk::ImageFileReader<Mask> ReaderType;
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(fileName.toStdString());
-  reader->Update();
-  
-  if(this->Image->GetLargestPossibleRegion() != reader->GetOutput()->GetLargestPossibleRegion())
-    {
-    std::cerr << "Image and mask must be the same size!" << std::endl;
-    return;
-    }
-  this->MaskImage = Mask::New();
-  Helpers::DeepCopy<Mask>(reader->GetOutput(), this->MaskImage);
-  
-  // For this program, we ALWAYS assume the hole to be filled is white, and the valid/source region is black.
-  // This is not simply reversible because of some subtle erosion operations that are performed.
-  // For this reason, we provide an "load inverted mask" action in the file menu.
-  this->MaskImage->SetValidValue(0);
-  this->MaskImage->SetHoleValue(255);
-  
-  this->MaskImage->Cleanup();
-  
-  Helpers::SetMaskTransparency(this->MaskImage, this->VTKMaskImage);
-
-  this->statusBar()->showMessage("Opened mask.");
-  
-  Refresh();
+  OpenMask(fileName.toStdString());
 }
 
 void InteractivePatchComparisonWidget::RefreshSlot()
