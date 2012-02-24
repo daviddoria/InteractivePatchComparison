@@ -186,20 +186,20 @@
           <widget class="QLabel" name="label_8">
            <property name="geometry">
             <rect>
-             <x>20</x>
+             <x>10</x>
              <y>330</y>
              <width>91</width>
              <height>17</height>
             </rect>
            </property>
            <property name="text">
-            <string>Difference:</string>
+            <string>Abs Diff:</string>
            </property>
           </widget>
-          <widget class="QLabel" name="lblDifference">
+          <widget class="QLabel" name="lblAbsoluteDifference">
            <property name="geometry">
             <rect>
-             <x>110</x>
+             <x>80</x>
              <y>330</y>
              <width>101</width>
              <height>17</height>
@@ -222,15 +222,48 @@
             <string>Show mask</string>
            </property>
           </widget>
+          <widget class="QLabel" name="label_11">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>360</y>
+             <width>67</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Sq Diff:</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="lblSquaredDifference">
+           <property name="geometry">
+            <rect>
+             <x>70</x>
+             <y>360</y>
+             <width>67</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
          </widget>
         </item>
        </layout>
       </item>
       <item>
-       <widget class="QVTKWidget" name="qvtkWidget" native="true"/>
+       <widget class="QVTKWidget" name="qvtkWidget"/>
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Source Patch</string>
+          </property>
+         </widget>
+        </item>
         <item>
          <widget class="QGraphicsView" name="gfxPatch1"/>
         </item>
@@ -246,6 +279,13 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>Target Patch</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QGraphicsView" name="gfxPatch2"/>

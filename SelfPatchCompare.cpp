@@ -84,7 +84,7 @@ float SelfPatchCompare::PixelDifference(const VectorType &a, const VectorType &b
 }
 
 
-float SelfPatchCompare::SlowDifference()
+float SelfPatchCompare::SlowTotalAbsoluteDifference()
 {
   // This function assumes that all pixels in the source region are unmasked.
   
@@ -100,7 +100,7 @@ float SelfPatchCompare::SlowDifference()
   itk::ImageRegionConstIterator<Mask> maskIterator(this->MaskImage, this->TargetRegion);
 
   float sumDifferences = 0;
-  float sumSquaredDifferences = 0;
+
   unsigned int validPixelCounter = 0;
   
   while(!sourcePatchIterator.IsAtEnd())
@@ -113,15 +113,13 @@ float SelfPatchCompare::SlowDifference()
       VectorImageType::PixelType targetPixel = targetPatchIterator.Get();
             
       float difference = PixelDifference(sourcePixel, targetPixel);
-      float squaredDifference = PixelSquaredDifference(sourcePixel, targetPixel);
-    
+
 //       std::cout << "Source pixel: " << static_cast<unsigned int>(sourcePixel)
 //                 << " target pixel: " << static_cast<unsigned int>(targetPixel)
 //                 << "Difference: " << difference << " squaredDifference: " << squaredDifference << std::endl;
 
       sumDifferences +=  difference;
-      sumSquaredDifferences +=  squaredDifference;
-      
+
       validPixelCounter++;
       }
 
@@ -131,14 +129,69 @@ float SelfPatchCompare::SlowDifference()
     } // end while iterate over sourcePatch
 
   //std::cout << "totalDifference: " << sum << std::endl;
-  std::cout << "Valid pixels: " << validPixelCounter << std::endl;
+  //std::cout << "Valid pixels: " << validPixelCounter << std::endl;
 
   if(validPixelCounter == 0)
     {
     return 0;
     }
-  //float averageDifference = sum/static_cast<float>(validPixelCounter);
-  //return averageDifference;
+
   return sumDifferences;
+
+}
+
+
+float SelfPatchCompare::SlowTotalSquaredDifference()
+{
+  // This function assumes that all pixels in the source region are unmasked.
+
+  // This method uses 3 iterators - one for the mask, and one for each image patch.
+  // The entire mask is traversed looking for valid pixels, and then comparing the image pixels.
+  // This is very inefficient because, since the target region stays constant for many thousands of patch
+  // comparisons, the mask need only be traversed once. This method is performed by ComputeOffsets()
+  // and PatchDifference*(). This function is only here for comparison purposes (to ensure the result of the other functions
+  // is correct).
+
+  itk::ImageRegionConstIterator<VectorImageType> sourcePatchIterator(this->Image, this->SourceRegion);
+  itk::ImageRegionConstIterator<VectorImageType> targetPatchIterator(this->Image, this->TargetRegion);
+  itk::ImageRegionConstIterator<Mask> maskIterator(this->MaskImage, this->TargetRegion);
+
+  float sumSquaredDifferences = 0;
+  unsigned int validPixelCounter = 0;
+
+  while(!sourcePatchIterator.IsAtEnd())
+    {
+    itk::Index<2> currentPixel = maskIterator.GetIndex();
+    if(this->MaskImage->IsValid(currentPixel))
+      {
+      //std::cout << "Offset from iterator: " << this->Image->ComputeOffset(maskIterator.GetIndex()) * componentsPerPixel;
+      VectorImageType::PixelType sourcePixel = sourcePatchIterator.Get();
+      VectorImageType::PixelType targetPixel = targetPatchIterator.Get();
+
+      float squaredDifference = PixelSquaredDifference(sourcePixel, targetPixel);
+
+//       std::cout << "Source pixel: " << static_cast<unsigned int>(sourcePixel)
+//                 << " target pixel: " << static_cast<unsigned int>(targetPixel)
+//                 << "Difference: " << difference << " squaredDifference: " << squaredDifference << std::endl;
+
+      sumSquaredDifferences +=  squaredDifference;
+
+      validPixelCounter++;
+      }
+
+    ++sourcePatchIterator;
+    ++targetPatchIterator;
+    ++maskIterator;
+    } // end while iterate over sourcePatch
+
+  //std::cout << "totalDifference: " << sum << std::endl;
+  //std::cout << "Valid pixels: " << validPixelCounter << std::endl;
+
+  if(validPixelCounter == 0)
+    {
+    return 0;
+    }
+
+  return sumSquaredDifferences;
 
 }

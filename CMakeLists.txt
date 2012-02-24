@@ -19,14 +19,21 @@ INCLUDE(${VTK_USE_FILE})
 FIND_PACKAGE(ITK REQUIRED)
 INCLUDE(${ITK_USE_FILE})
 
+add_library(PatchComparison
+Helpers.cpp
+SelfPatchCompare.cpp
+)
+
 ADD_EXECUTABLE(InteractivePatchComparison
 Form.cxx 
-Helpers.cpp 
 Interactive.cpp 
 SwitchBetweenStyle.cxx
 CustomImageStyle.cxx
 CustomTrackballStyle.cxx
-SelfPatchCompare.cpp
 ${UISrcs} ${MOCSrcs})
-TARGET_LINK_LIBRARIES(InteractivePatchComparison ${VTK_LIBRARIES} QVTK ${ITK_LIBRARIES} ${QT_LIBRARIES})
+TARGET_LINK_LIBRARIES(InteractivePatchComparison PatchComparison ${VTK_LIBRARIES} QVTK ${ITK_LIBRARIES} ${QT_LIBRARIES})
 INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )
+
+
+ADD_EXECUTABLE(ExamplePatchDifference ExamplePatchDifference.cpp)
+TARGET_LINK_LIBRARIES(ExamplePatchDifference PatchComparison ${VTK_LIBRARIES} QVTK ${ITK_LIBRARIES} ${QT_LIBRARIES})

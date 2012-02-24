@@ -393,11 +393,11 @@ QImage Form::FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx)
   // The -5's are fudge factors so that the scroll bars do not appear
   if(gfx->height() < gfx->width())
     {
-    return qimage.scaledToHeight(this->gfxPatch2->height() - 5);
+    return qimage.scaledToHeight(gfx->height() - 5);
     }
   else
     {
-    return qimage.scaledToWidth(this->gfxPatch2->width() - 5);
+    return qimage.scaledToWidth(gfx->width() - 5);
     }
 }
 
@@ -422,7 +422,8 @@ void Form::PatchesMoved()
   this->txtSourceY->setText(QString::number(sourceIndex[1]));
 
   itk::ImageRegion<2> sourceRegion(sourceIndex, this->PatchSize);
-
+  std::cout << "sourceRegion: " << sourceRegion << std::endl;
+  
   // Patch 2
   double targetPosition[3];
   this->TargetPatchSlice->GetPosition(targetPosition);
@@ -441,6 +442,7 @@ void Form::PatchesMoved()
   this->txtTargetY->setText(QString::number(targetIndex[1]));
   
   itk::ImageRegion<2> targetRegion(targetIndex, this->PatchSize);
+  std::cout << "targetRegion: " << targetRegion << std::endl;
 
   // Get data
   //Helpers::ITKRegionToVTKImage(this->Image, sourceRegion, this->SourcePatchDisplay);
@@ -480,9 +482,11 @@ void Form::PatchesMoved()
     
   //SetMaskedPixelsToGreen(targetRegion, this->TargetPatchDisplay);
 
-  float difference = patchCompare.SlowDifference();
+  float absoluteDifference = patchCompare.SlowTotalAbsoluteDifference();
+  float squaredDifference = patchCompare.SlowTotalSquaredDifference();
   
-  this->lblDifference->setNum(difference);
+  this->lblAbsoluteDifference->setNum(absoluteDifference);
+  this->lblSquaredDifference->setNum(squaredDifference);
 }
 
 

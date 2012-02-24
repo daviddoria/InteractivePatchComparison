@@ -53,7 +53,8 @@ public:
 
   void SetSourceRegion(const itk::ImageRegion<2>&);
 
-  float SlowDifference();
+  float SlowTotalAbsoluteDifference();
+  float SlowTotalSquaredDifference();
   
   bool IsReady();
   //float PatchDifferenceManual(const itk::ImageRegion<2>& sourceRegion);
