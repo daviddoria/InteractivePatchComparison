@@ -47,6 +47,8 @@ public:
 
   // Constructor/Destructor
   InteractivePatchComparisonWidget();
+  InteractivePatchComparisonWidget(const std::string& imageFileName, const std::string& maskFileName);
+  void SharedConstructor();
   ~InteractivePatchComparisonWidget() {};
   
   // These function deal with flipping the image

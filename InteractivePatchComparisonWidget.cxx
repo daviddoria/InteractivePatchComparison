@@ -74,22 +74,26 @@ void InteractivePatchComparisonWidget::on_actionHelp_activated()
   help->setReadOnly(true);
   help->append("<h1>Interactive Patch Comparison</h1>\
   Position the two patches. <br/>\
-  Their difference will be displayed.<br/> <p/>"\
-  );
+  Their difference will be displayed.<br/> <p/>");
   help->show();
 }
 
-// Constructor
-InteractivePatchComparisonWidget::InteractivePatchComparisonWidget()
+// Constructors
+InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(const std::string& imageFileName, const std::string& maskFileName)
+{
+  SharedConstructor();
+}
+
+void InteractivePatchComparisonWidget::SharedConstructor()
 {
   this->setupUi(this);
-  
+
   this->PatchScale = 5;
-  
+
   // Setup icons
   QIcon openIcon = QIcon::fromTheme("document-open");
   QIcon saveIcon = QIcon::fromTheme("document-save");
-  
+
   // Setup toolbar
   actionOpenImage->setIcon(openIcon);
   this->toolBar->addAction(actionOpenImage);
@@ -102,9 +106,9 @@ InteractivePatchComparisonWidget::InteractivePatchComparisonWidget()
   this->toolBar->addAction(actionSaveResult);
 
   this->Flipped = false;
-  
+
   this->InteractorStyle = vtkSmartPointer<SwitchBetweenStyle>::New();
-  
+
   // Initialize and link the image display objects
   this->VTKImage = vtkSmartPointer<vtkImageData>::New();
   this->ImageSlice = vtkSmartPointer<vtkImageSlice>::New();
@@ -114,7 +118,7 @@ InteractivePatchComparisonWidget::InteractivePatchComparisonWidget()
   this->ImageSliceMapper->SetInputConnection(this->VTKImage->GetProducerPort());
   this->ImageSlice->SetMapper(this->ImageSliceMapper);
   this->ImageSlice->GetProperty()->SetInterpolationTypeToNearest();
-  
+
   // Initialize and link the mask image display objects
   this->VTKMaskImage = vtkSmartPointer<vtkImageData>::New();
   this->MaskImageSlice = vtkSmartPointer<vtkImageSlice>::New();
@@ -124,7 +128,7 @@ InteractivePatchComparisonWidget::InteractivePatchComparisonWidget()
   this->MaskImageSliceMapper->SetInputConnection(this->VTKMaskImage->GetProducerPort());
   this->MaskImageSlice->SetMapper(this->MaskImageSliceMapper);
   this->MaskImageSlice->GetProperty()->SetInterpolationTypeToNearest();
-  
+
   // Initialize patches
   this->SourcePatch = vtkSmartPointer<vtkImageData>::New();
   this->SourcePatchSlice = vtkSmartPointer<vtkImageSlice>::New();
@@ -133,7 +137,7 @@ InteractivePatchComparisonWidget::InteractivePatchComparisonWidget()
   this->SourcePatchSliceMapper->SetInputConnection(this->SourcePatch->GetProducerPort());
   this->SourcePatchSlice->SetMapper(this->SourcePatchSliceMapper);
   this->SourcePatchSlice->GetProperty()->SetInterpolationTypeToNearest();
-  
+
   this->TargetPatch = vtkSmartPointer<vtkImageData>::New();
   this->TargetPatchSlice = vtkSmartPointer<vtkImageSlice>::New();
   this->TargetPatchSliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
@@ -141,11 +145,11 @@ InteractivePatchComparisonWidget::InteractivePatchComparisonWidget()
   this->TargetPatchSliceMapper->SetInputConnection(this->TargetPatch->GetProducerPort());
   this->TargetPatchSlice->SetMapper(this->TargetPatchSliceMapper);
   this->TargetPatchSlice->GetProperty()->SetInterpolationTypeToNearest();
-  
+
   // Add objects to the renderer
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
   this->qvtkWidget->GetRenderWindow()->AddRenderer(this->Renderer);
-  
+
   this->Renderer->AddViewProp(this->ImageSlice);
   this->Renderer->AddViewProp(this->MaskImageSlice);
   this->Renderer->AddViewProp(this->SourcePatchSlice);
@@ -154,13 +158,18 @@ InteractivePatchComparisonWidget::InteractivePatchComparisonWidget()
   this->InteractorStyle->SetCurrentRenderer(this->Renderer);
   this->qvtkWidget->GetRenderWindow()->GetInteractor()->SetInteractorStyle(this->InteractorStyle);
   this->InteractorStyle->Init();
-    
+
   //this->Image = FloatVectorImageType::New();
   //this->MaskImage = Mask::New();
   this->Image = NULL;
   this->MaskImage = NULL;
-  
+
   this->InteractorStyle->TrackballStyle->AddObserver(CustomTrackballStyle::PatchesMovedEvent, this, &InteractivePatchComparisonWidget::PatchesMoved);
+}
+  
+InteractivePatchComparisonWidget::InteractivePatchComparisonWidget()
+{
+  SharedConstructor();
 };
 
 void InteractivePatchComparisonWidget::on_actionQuit_activated()

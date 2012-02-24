@@ -27,8 +27,24 @@ int main( int argc, char** argv )
 
   QApplication::setStyle(new QCleanlooksStyle);
 
-  InteractivePatchComparisonWidget interactivePatchComparisonWidget;
-  interactivePatchComparisonWidget.show();
+  InteractivePatchComparisonWidget* interactivePatchComparisonWidget;
+
+  if(argc == 1)
+  {
+    interactivePatchComparisonWidget = new InteractivePatchComparisonWidget;
+  }
+  else if(argc == 3)
+  {
+    std::string imageFileName = argv[1];
+    std::string maskFileName = argv[2];
+
+    std::cout << "imageFileName: " << imageFileName << std::endl;
+    std::cout << "maskFileName: " << maskFileName << std::endl;
+    
+    interactivePatchComparisonWidget = new InteractivePatchComparisonWidget(imageFileName, maskFileName);
+  }
+  
+  interactivePatchComparisonWidget->show();
 
   return app.exec();
 }
