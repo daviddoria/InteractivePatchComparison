@@ -179,6 +179,24 @@ void InteractivePatchComparisonWidget::on_actionQuit_activated()
   exit(0);
 }
 
+void InteractivePatchComparisonWidget::showEvent(QShowEvent* event)
+{
+  GetPatchSize();
+
+  // Initialize
+  this->SourcePatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2, this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
+  this->TargetPatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2 + this->PatchSize[0], this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
+
+  SetupPatches();
+
+
+  PatchesMoved();
+
+  this->Renderer->ResetCamera();
+
+  Refresh();
+}
+
 void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
 {
   // Set the working directory
@@ -200,22 +218,6 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
 
   this->statusBar()->showMessage("Opened image.");
   actionOpenMask->setEnabled(true);
-
-
-  GetPatchSize();
-
-  // Initialize
-  this->SourcePatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2, this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
-  this->TargetPatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2 + this->PatchSize[0], this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
-
-  SetupPatches();
-
-
-  PatchesMoved();
-
-  this->Renderer->ResetCamera();
-
-  Refresh();
 }
 
 void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)

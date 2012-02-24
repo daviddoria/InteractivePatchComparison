@@ -84,6 +84,8 @@ public slots:
   
 protected:
 
+  void showEvent(QShowEvent* event);
+  
   void OpenImage(const std::string& filename);
   void OpenMask(const std::string& filename);
   
