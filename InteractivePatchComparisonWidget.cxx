@@ -447,6 +447,11 @@ void InteractivePatchComparisonWidget::PatchesMoved()
 
   itk::ImageRegion<2> sourceRegion(sourceIndex, this->PatchSize);
   std::cout << "sourceRegion: " << sourceRegion << std::endl;
+
+  if(!Image->GetLargestPossibleRegion().IsInside(sourceRegion))
+  {
+    return;
+  }
   
   // Patch 2
   double targetPosition[3];
@@ -468,6 +473,11 @@ void InteractivePatchComparisonWidget::PatchesMoved()
   itk::ImageRegion<2> targetRegion(targetIndex, this->PatchSize);
   std::cout << "targetRegion: " << targetRegion << std::endl;
 
+  if(!Image->GetLargestPossibleRegion().IsInside(targetRegion))
+  {
+    return;
+  }
+  
   // Get data
   //Helpers::ITKRegionToVTKImage(this->Image, sourceRegion, this->SourcePatchDisplay);
   //Helpers::ITKRegionToVTKImage(this->Image, targetRegion, this->TargetPatchDisplay);
