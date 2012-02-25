@@ -12,8 +12,11 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})
 
-QT4_WRAP_UI(InteractivePatchComparisonWidgetUISrcs InteractivePatchComparisonWidget.ui)
-QT4_WRAP_CPP(InteractivePatchComparisonWidgetMOCSrcs InteractivePatchComparisonWidget.h)
+QT4_WRAP_UI(InteractivePatchComparisonWidgetUISrcs
+InteractivePatchComparisonWidget.ui PatchInfoWidget.ui)
+QT4_WRAP_CPP(InteractivePatchComparisonWidgetMOCSrcs
+InteractivePatchComparisonWidget.h
+PatchInfoWidget.h)
 
 FIND_PACKAGE(VTK REQUIRED)
 INCLUDE(${VTK_USE_FILE})
@@ -30,6 +33,7 @@ SwitchBetweenStyle.cxx
 CustomImageStyle.cxx
 CustomTrackballStyle.cxx
 VarianceScore.hpp
+PatchInfoWidget.cxx
 ${InteractivePatchComparisonWidgetUISrcs} ${InteractivePatchComparisonWidgetMOCSrcs})
 TARGET_LINK_LIBRARIES(InteractivePatchComparison PatchComparison ${VTK_LIBRARIES} QVTK ${ITK_LIBRARIES} ${QT_LIBRARIES})
 INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )

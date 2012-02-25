@@ -21,6 +21,9 @@
 // STL
 #include <iomanip> // for setfill()
 
+// Qt
+#include <QColor>
+
 // VTK
 #include <vtkImageData.h>
 
@@ -211,25 +214,63 @@ void DeepCopyVectorImage(const TImage* const input, TImage* const output)
     
 }
 
-// template <typename TPixelType>
-// float PixelSquaredDifference(const TPixelType& pixel1, const TPixelType& pixel2)
-// {
-//   
-// //   std::cout << "pixel1: " << pixel1 << " pixel2: " << pixel2
-// //             << " pixel1-pixel2: " << pixel1-pixel2
-// //             << " squared norm: " << (pixel1-pixel2).GetSquaredNorm() << std::endl;
-//   
-//   //return (pixel1-pixel2).GetSquaredNorm();
-//   
-//   float difference = 0;
-//   unsigned int componentsPerPixel = pixel1.GetSize();
-//   for(unsigned int i = 0; i < componentsPerPixel; ++i)
-//     {
-//     difference += (pixel1[i] - pixel2[i]) * 
-// 		  (pixel1[i] - pixel2[i]);
-//     }
-//   return difference;
-// }
+
+template <typename TImage>
+QImage GetQImageMasked(const TImage* image, const Mask* const mask, const itk::ImageRegion<2>& region, const QColor& color)
+{
+  // Call the stronger function with the same 'region' for both the image and mask.
+  return GetQImageMasked(image, region, mask, region, color);
+}
+
+template <typename TImage>
+QImage GetQImageMasked(const TImage* image, const itk::ImageRegion<2>& imageRegion, const Mask* const mask,
+                       const itk::ImageRegion<2>& maskRegion, const QColor& holeColor)
+{
+  assert(imageRegion.GetSize() == maskRegion.GetSize());
+
+  QImage qimage(imageRegion.GetSize()[0], imageRegion.GetSize()[1], QImage::Format_RGB888);
+
+  typedef itk::RegionOfInterestImageFilter< TImage, TImage > RegionOfInterestImageFilterType;
+  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
+  regionOfInterestImageFilter->SetRegionOfInterest(imageRegion);
+  regionOfInterestImageFilter->SetInput(image);
+  regionOfInterestImageFilter->Update();
+
+  typedef itk::RegionOfInterestImageFilter< Mask, Mask> RegionOfInterestMaskFilterType;
+  typename RegionOfInterestMaskFilterType::Pointer regionOfInterestMaskFilter = RegionOfInterestMaskFilterType::New();
+  regionOfInterestMaskFilter->SetRegionOfInterest(maskRegion);
+  regionOfInterestMaskFilter->SetInput(mask);
+  regionOfInterestMaskFilter->Update();
+
+  itk::ImageRegionIterator<TImage> imageIterator(regionOfInterestImageFilter->GetOutput(),
+                                                 regionOfInterestImageFilter->GetOutput()->GetLargestPossibleRegion());
+
+  unsigned int numberOfHolePixels = 0;
+  while(!imageIterator.IsAtEnd())
+    {
+    typename TImage::PixelType pixel = imageIterator.Get();
+
+    itk::Index<2> index = imageIterator.GetIndex();
+
+    if(regionOfInterestMaskFilter->GetOutput()->IsHole(index))
+      {
+      qimage.setPixel(index[0], index[1], holeColor.rgb());
+      numberOfHolePixels++;
+      }
+    else
+      {
+      QColor pixelColor(static_cast<int>(pixel[0]), static_cast<int>(pixel[1]), static_cast<int>(pixel[2]));
+      qimage.setPixel(index[0], index[1], pixelColor.rgb());
+      }
+
+    ++imageIterator;
+    }
+
+  // std::cout << "There were " << numberOfHolePixels << " hole pixels." << std::endl;
+
+  //return qimage; // The actual image region
+  return qimage.mirrored(false, true); // The flipped image region
+}
 
 template<typename T>
 void ReplaceValue(const T* const image, const typename T::PixelType queryValue, const typename T::PixelType replacementValue)
@@ -634,5 +675,82 @@ void ITKScalarImageToScaledVTKImage(const TImage* const image, vtkImageData* out
     
   outputImage->Modified();
 }
+
+
+template<typename TImage>
+typename TypeTraits<typename TImage::PixelType>::LargerType AverageInRegion(const TImage* const image,
+                                                                            const itk::ImageRegion<2>& region)
+{
+  typename itk::ImageRegionConstIterator<TImage> imageIterator(image, region);
+  std::vector<typename TImage::PixelType> pixels;
+  while(!imageIterator.IsAtEnd())
+    {
+    pixels.push_back(imageIterator.Get());
+    ++imageIterator;
+    }
+
+  using Statistics::Average;
+  //using ITKHelpers::Average;
+  return Average(pixels);
+}
+
+template<typename TImage>
+typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegion(const TImage* const image,
+                                                                             const itk::ImageRegion<2>& region)
+{
+  typename itk::ImageRegionConstIterator<TImage> imageIterator(image, region);
+  std::vector<typename TImage::PixelType> pixels;
+  while(!imageIterator.IsAtEnd())
+    {
+    pixels.push_back(imageIterator.Get());
+    ++imageIterator;
+    }
+
+  return Statistics::Variance(pixels);
+}
+
+
+/** Compute the average of all unmasked pixels in a region.*/
+template<typename TImage>
+typename TypeTraits<typename TImage::PixelType>::LargerType AverageInRegionMasked(const TImage* const image,
+                                                                                  const Mask* const mask,
+                                                                            const itk::ImageRegion<2>& region)
+{
+  typename itk::ImageRegionConstIteratorWithIndex<Mask> maskIterator(mask, region);
+  std::vector<typename TImage::PixelType> pixels;
+  while(!maskIterator.IsAtEnd())
+    {
+    if(mask->IsValid(maskIterator.GetIndex()))
+      {
+      pixels.push_back(image->GetPixel(maskIterator.GetIndex()));
+      }
+    ++maskIterator;
+    }
+
+  using Statistics::Average;
+  //using ITKHelpers::Average;
+  return Average(pixels);
+}
+
+/** Compute the average of all unmasked pixels in a region.*/
+template<typename TImage>
+typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegionMasked(const TImage* const image,
+                                                                                   const Mask* const mask,
+                                                                             const itk::ImageRegion<2>& region)
+{
+  typename itk::ImageRegionConstIterator<Mask> maskIterator(mask, region);
+  std::vector<typename TImage::PixelType> pixels;
+  while(!maskIterator.IsAtEnd())
+    {
+    if(mask->IsValid(maskIterator.GetIndex()))
+      {
+      pixels.push_back(image->GetPixel(maskIterator.GetIndex()));
+      }
+    ++maskIterator;
+    }
+
+  return Statistics::Variance(pixels);
+}
+
 
 }// end namespace

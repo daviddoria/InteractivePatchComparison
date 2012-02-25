@@ -1,12 +1,12 @@
-#ifndef VarianceScore_HPP
-#define VarianceScore_HPP
+#ifndef AverageScore_HPP
+#define AverageScore_HPP
 
 // Custom
 #include "Helpers.h"
 /**
 
  */
-struct VarianceScore
+struct AverageScore
 {
   template <typename TImage>
   float operator()(const TImage* const image, const Mask* const mask,
@@ -20,25 +20,25 @@ struct VarianceScore
     }
     else
     {
-      std::cout << "VarianceScore with " << validOffsets.size() << " pixels." << std::endl;
+      std::cout << "AverageScore with " << validOffsets.size() << " pixels." << std::endl;
     }
-    
+
     std::vector<itk::Index<2> > validIndices = Helpers::OffsetsToIndices(validOffsets, targetRegion.GetIndex());
 
-    Helpers::VarianceFunctor varianceFunctor;
-    
+    Helpers::AverageFunctor averageFunctor;
+
     /////////// Target region //////////
     std::vector<typename TImage::PixelType> validPixelsTargetRegion = Helpers::GetPixelValues(image, validIndices);
     std::cout << "pixel 0: " << static_cast<int>(validPixelsTargetRegion[0][0]) << std::endl;
-    
-    typename TypeTraits<typename TImage::PixelType>::LargerType targetVariance = varianceFunctor(validPixelsTargetRegion);
 
-    std::cout << "targetVariance: " << targetVariance << std::endl;
+    typename TypeTraits<typename TImage::PixelType>::LargerType targetAverage = averageFunctor(validPixelsTargetRegion);
+
+    std::cout << "targetAverage: " << targetAverage << std::endl;
 
     float variance = 0.0f;
-    for(unsigned int i = 0; i < targetVariance.GetSize(); ++i)
+    for(unsigned int i = 0; i < targetAverage.GetSize(); ++i)
     {
-      variance += targetVariance[i];
+      variance += targetAverage[i];
     }
     return variance;
   }

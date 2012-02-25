@@ -16,7 +16,7 @@
  *
  *=========================================================================*/
 
-#include "ui_Form.h"
+#include "ui_InteractivePatchComparisonWidget.h"
 #include "InteractivePatchComparisonWidget.h"
 
 // ITK
@@ -61,8 +61,9 @@
 #include "SwitchBetweenStyle.h"
 #include "Mask.h"
 #include "Types.h"
+
 #include "CorrelationScore.hpp"
-#include "VarianceScore.hpp"
+
 #include "AveragePixelDifference.hpp"
 #include "PixelDifferences.hpp"
 
@@ -81,7 +82,8 @@ void InteractivePatchComparisonWidget::on_actionHelp_activated()
 }
 
 // Constructors
-InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(const std::string& imageFileName, const std::string& maskFileName)
+InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(const std::string& imageFileName,
+                                                                   const std::string& maskFileName)
 {
   SharedConstructor();
   OpenImage(imageFileName);
@@ -168,7 +170,19 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->Image = NULL;
   this->MaskImage = NULL;
 
-  this->InteractorStyle->TrackballStyle->AddObserver(CustomTrackballStyle::PatchesMovedEvent, this, &InteractivePatchComparisonWidget::PatchesMoved);
+  this->InteractorStyle->TrackballStyle->AddObserver(CustomTrackballStyle::PatchesMovedEvent, this,
+                                                     &InteractivePatchComparisonWidget::PatchesMovedEventHandler);
+
+  connect(TargetPatchInfoWidget, SIGNAL(signal_PatchMoved(const itk::ImageRegion<2>&)),
+          this, SLOT(slot_TargetPatchMoved(const itk::ImageRegion<2>&)));
+  connect(SourcePatchInfoWidget, SIGNAL(signal_PatchMoved(const itk::ImageRegion<2>&)),
+          this, SLOT(slot_SourcePatchMoved(const itk::ImageRegion<2>&)));
+
+  connect(this, SIGNAL(signal_TargetPatchMoved(const itk::ImageRegion<2>&)),
+          TargetPatchInfoWidget, SLOT(slot_Update(const itk::ImageRegion<2>& )));
+
+  connect(this, SIGNAL(signal_SourcePatchMoved(const itk::ImageRegion<2>&)),
+          SourcePatchInfoWidget, SLOT(slot_Update(const itk::ImageRegion<2>& )));
 }
   
 InteractivePatchComparisonWidget::InteractivePatchComparisonWidget()
@@ -186,13 +200,14 @@ void InteractivePatchComparisonWidget::showEvent(QShowEvent* event)
   GetPatchSize();
 
   // Initialize
-  this->SourcePatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2, this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
-  this->TargetPatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2 + this->PatchSize[0], this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
+  this->SourcePatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2,
+                                      this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
+  this->TargetPatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2 + this->PatchSize[0],
+                                      this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
 
   SetupPatches();
 
-
-  PatchesMoved();
+  PatchesMovedEventHandler();
 
   this->Renderer->ResetCamera();
 
@@ -220,6 +235,9 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
 
   this->statusBar()->showMessage("Opened image.");
   actionOpenMask->setEnabled(true);
+
+  TargetPatchInfoWidget->SetImage(this->Image);
+  SourcePatchInfoWidget->SetImage(this->Image);
 }
 
 void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
@@ -249,6 +267,9 @@ void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
 
   this->statusBar()->showMessage("Opened mask.");
 
+  TargetPatchInfoWidget->SetMask(this->MaskImage);
+  SourcePatchInfoWidget->SetMask(this->MaskImage);
+  
   Refresh();
 }
 
@@ -272,42 +293,6 @@ void InteractivePatchComparisonWidget::on_txtPatchRadius_returnPressed()
   SetupPatches();
 }
 
-void InteractivePatchComparisonWidget::on_txtSourceX_returnPressed()
-{
-  double position[3];
-  this->SourcePatchSlice->GetPosition(position);
-  position[0] = txtSourceX->text().toUInt();
-  this->SourcePatchSlice->SetPosition(position);
-  PatchesMoved();
-}
-
-void InteractivePatchComparisonWidget::on_txtSourceY_returnPressed()
-{
-  double position[3];
-  this->SourcePatchSlice->GetPosition(position);
-  position[1] = txtSourceY->text().toUInt();
-  this->SourcePatchSlice->SetPosition(position);  
-  PatchesMoved();
-}
-
-void InteractivePatchComparisonWidget::on_txtTargetX_returnPressed()
-{
-  double position[3];
-  this->TargetPatchSlice->GetPosition(position);
-  position[0] = txtTargetX->text().toUInt();
-  this->TargetPatchSlice->SetPosition(position);
-  PatchesMoved();
-}
-
-void InteractivePatchComparisonWidget::on_txtTargetY_returnPressed()
-{
-  double position[3];
-  this->TargetPatchSlice->GetPosition(position);
-  position[1] = txtTargetY->text().toUInt();
-  this->TargetPatchSlice->SetPosition(position);
-  PatchesMoved();
-}
-
 void InteractivePatchComparisonWidget::GetPatchSize()
 {
   // The edge length of the patch is the (radius*2) + 1
@@ -323,7 +308,7 @@ void InteractivePatchComparisonWidget::SetupPatches()
   
   InitializePatch(this->TargetPatch, this->Red);
   
-  PatchesMoved();
+  PatchesMovedEventHandler();
   Refresh();
 }
 
@@ -369,7 +354,7 @@ void InteractivePatchComparisonWidget::RefreshSlot()
 void InteractivePatchComparisonWidget::Refresh()
 {
   //std::cout << "Refresh()" << std::endl;
-  this->MaskImageSlice->SetVisibility(this->chkShowMask->isChecked());
+  // this->MaskImageSlice->SetVisibility(this->chkShowMask->isChecked());
   
   this->qvtkWidget->GetRenderWindow()->Render();
   
@@ -413,134 +398,77 @@ void InteractivePatchComparisonWidget::on_actionFlipImage_activated()
   this->Flipped = !this->Flipped;
 }
 
-QImage InteractivePatchComparisonWidget::FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx)
+void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageRegion<2>& patchRegion)
 {
-  // The -5's are fudge factors so that the scroll bars do not appear
-  if(gfx->height() < gfx->width())
-    {
-    return qimage.scaledToHeight(gfx->height() - 5);
-    }
-  else
-    {
-    return qimage.scaledToWidth(gfx->width() - 5);
-    }
+  double targetPosition[3];
+  this->TargetPatchSlice->GetPosition(targetPosition);
+
+  targetPosition[0] = patchRegion.GetIndex()[0];
+  targetPosition[1] = patchRegion.GetIndex()[1];
+  this->SourcePatchSlice->SetPosition(targetPosition);
 }
 
-void InteractivePatchComparisonWidget::PatchesMoved()
+void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageRegion<2>& patchRegion)
 {
-  //std::cout << "Patches moved." << std::endl;
+  double sourcePosition[3];
+  this->SourcePatchSlice->GetPosition(sourcePosition);
 
-  // Patch 1
+  sourcePosition[0] = patchRegion.GetIndex()[0];
+  sourcePosition[1] = patchRegion.GetIndex()[1];
+  this->SourcePatchSlice->SetPosition(sourcePosition);
+}
+  
+void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
+{
+  // Source patch
   double sourcePosition[3];
   this->SourcePatchSlice->GetPosition(sourcePosition);
   
-  itk::Index<2> sourceIndex;
-  sourceIndex[0] = sourcePosition[0];
-  sourceIndex[1] = sourcePosition[1];
+  itk::Index<2> sourceCorner;
+  sourceCorner[0] = sourcePosition[0];
+  sourceCorner[1] = sourcePosition[1];
   
   // Snap to grid
-  sourcePosition[0] = sourceIndex[0];
-  sourcePosition[1] = sourceIndex[1];
+  sourcePosition[0] = sourceCorner[0];
+  sourcePosition[1] = sourceCorner[1];
   this->SourcePatchSlice->SetPosition(sourcePosition);
-  
-  this->txtSourceX->setText(QString::number(sourceIndex[0]));
-  this->txtSourceY->setText(QString::number(sourceIndex[1]));
 
-  itk::ImageRegion<2> sourceRegion(sourceIndex, this->PatchSize);
-  std::cout << "sourceRegion: " << sourceRegion << std::endl;
+  itk::ImageRegion<2> sourceRegion(sourceCorner, this->PatchSize);
 
-  if(!Image->GetLargestPossibleRegion().IsInside(sourceRegion))
-  {
-    return;
-  }
-  
+  emit signal_SourcePatchMoved(sourceRegion);
+
   // Patch 2
   double targetPosition[3];
   this->TargetPatchSlice->GetPosition(targetPosition);
       
-  itk::Index<2> targetIndex;
-  targetIndex[0] = targetPosition[0];
-  targetIndex[1] = targetPosition[1];
+  itk::Index<2> targetCorner;
+  targetCorner[0] = targetPosition[0];
+  targetCorner[1] = targetPosition[1];
   
   // Snap to grid
-  targetPosition[0] = targetIndex[0];
-  targetPosition[1] = targetIndex[1];
+  targetPosition[0] = targetCorner[0];
+  targetPosition[1] = targetCorner[1];
   this->TargetPatchSlice->SetPosition(targetPosition);
 
-  
-  this->txtTargetX->setText(QString::number(targetIndex[0]));
-  this->txtTargetY->setText(QString::number(targetIndex[1]));
-  
-  itk::ImageRegion<2> targetRegion(targetIndex, this->PatchSize);
-  std::cout << "targetRegion: " << targetRegion << std::endl;
+  itk::ImageRegion<2> targetRegion(targetCorner, this->PatchSize);
 
-  if(!Image->GetLargestPossibleRegion().IsInside(targetRegion))
+  emit signal_TargetPatchMoved(targetRegion);
+
+  if(!(Image->GetLargestPossibleRegion().IsInside(targetRegion) &&
+    Image->GetLargestPossibleRegion().IsInside(sourceRegion)))
   {
     return;
   }
-  
-  // Get data
-  //Helpers::ITKRegionToVTKImage(this->Image, sourceRegion, this->SourcePatchDisplay);
-  //Helpers::ITKRegionToVTKImage(this->Image, targetRegion, this->TargetPatchDisplay);
 
-  // Source display
-  QImage sourcePatchImage = Helpers::ITKImageToQImage(this->Image, sourceRegion);
-  //sourcePatchImage = sourcePatchImage.scaledToHeight(this->gfxPatch1->height());
-  sourcePatchImage = FitToGraphicsView(sourcePatchImage, this->gfxPatch1);
-  
-  QGraphicsScene* sourceScene = new QGraphicsScene();
-  sourceScene->addPixmap(QPixmap::fromImage(sourcePatchImage));
-  this->gfxPatch1->setScene(sourceScene);
-
-  // Target display
-  QImage targetPatchImage = Helpers::ITKImageToQImage(this->Image, targetRegion);
-  //targetPatchImage = targetPatchImage.scaledToHeight(this->gfxPatch2->height());
-  targetPatchImage = FitToGraphicsView(targetPatchImage, this->gfxPatch2);
-
-  QGraphicsScene* targetScene = new QGraphicsScene();
-  targetScene->addPixmap(QPixmap::fromImage(targetPatchImage));
-  this->gfxPatch2->setScene(targetScene);
-  
   AveragePixelDifference<SumOfAbsoluteDifferences> averagePixelDifferenceFunctor;
-  float averagePixelDifference = averagePixelDifferenceFunctor(this->Image.GetPointer(), this->MaskImage, sourceRegion, targetRegion);
+  float averagePixelDifference = averagePixelDifferenceFunctor(this->Image.GetPointer(),
+                                                               this->MaskImage, sourceRegion, targetRegion);
 
   CorrelationScore correlationScoreFunctor;
   float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), this->MaskImage, sourceRegion, targetRegion);
 
-  VarianceScore varianceScore;
-  float variance = varianceScore(this->Image.GetPointer(), this->MaskImage, sourceRegion, targetRegion);
-
   Refresh();
-
-  
-  //SetMaskedPixelsToGreen(targetRegion, this->TargetPatchDisplay);
 
   this->lblSumAbsolutePixelDifference->setNum(averagePixelDifference);
   this->lblCorrelation->setNum(correlationScore);
-  this->lblVariance->setNum(variance);
-}
-
-void InteractivePatchComparisonWidget::SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image)
-{
-  itk::ImageRegionIterator<Mask> maskIterator(this->MaskImage, targetRegion);
-
-  while(!maskIterator.IsAtEnd())
-    {
-    if(this->MaskImage->IsHole(maskIterator.GetIndex()))
-      {
-      itk::Index<2> index = maskIterator.GetIndex();
-      index[0] -= targetRegion.GetIndex()[0];
-      index[1] -= targetRegion.GetIndex()[1];
-      unsigned char* pixel = static_cast<unsigned char*>(image->GetScalarPointer(index[0], index[1],0));
-      pixel[0] = 0;
-      pixel[1] = 255;
-      pixel[2] = 0;
-      }
-    ++maskIterator;
-    }  
-}
-
-void InteractivePatchComparisonWidget::on_chkShowMask_clicked()
-{
-  Refresh();
 }

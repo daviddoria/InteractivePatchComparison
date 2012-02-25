@@ -22,6 +22,7 @@
 // Custom
 #include "Mask.h"
 #include "Types.h"
+#include "TypeTraits.h"
 
 // ITK
 #include "itkConstNeighborhoodIterator.h"
@@ -39,9 +40,12 @@ class vtkImageSlice;
 
 // Qt
 #include <QImage>
+#include <QGraphicsView>
 
 namespace Helpers
 {
+
+QImage FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx);
 
 template<typename TImage>
 void DeepCopy(const TImage* const input, TImage* const output);
@@ -50,6 +54,8 @@ void DeepCopy(const TImage* const input, TImage* const output);
 template<typename TImage>
 void ExtractRegion(const TImage* const image, const itk::ImageRegion<2>& region,
                    TImage* const output);
+
+std::string VectorToString(const VectorImageType::PixelType& vec);
 
 void RGBImageToCIELabImage(RGBImageType::Pointer rgbImage, VectorImageType::Pointer cielabImage);
   
@@ -123,6 +129,14 @@ QImage ITKImageToQImage(const VectorImageType* const itkimage, const itk::ImageR
 template<typename T>
 void SetObjectToZero(T& object);
 
+/** Convert an image to a QImage, but changed the corresponding masked pixels to the specified 'color'.*/
+template <typename TImage>
+QImage GetQImageMasked(const TImage* const image, const Mask* const mask,
+                       const itk::ImageRegion<2>& region, const QColor& color = QColor(0, 255, 0));
+
+template <typename TImage>
+QImage GetQImageMasked(const TImage* image, const itk::ImageRegion<2>& imageRegion, const Mask* const mask,
+                       const itk::ImageRegion<2>& maskRegion, const QColor& holeColor);
 
 template<typename T>
 unsigned int length(const std::vector<T>& v);
@@ -154,6 +168,26 @@ typename std::enable_if<!std::is_fundamental<T>::value, typename T::value_type&>
 
 template<typename T>
 typename std::enable_if<!std::is_fundamental<T>::value, typename T::value_type>::type index(const T& v, size_t i);
+
+template<typename TImage>
+typename TypeTraits<typename TImage::PixelType>::LargerType AverageInRegion(const TImage* const image,
+                                                                            const itk::ImageRegion<2>& region);
+
+template<typename TImage>
+typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegion(const TImage* const image,
+                                                                             const itk::ImageRegion<2>& region);
+
+/** Compute the average of all unmasked pixels in a region.*/
+template<typename TImage>
+typename TypeTraits<typename TImage::PixelType>::LargerType AverageInRegionMasked(const TImage* const image,
+                                                                                  const Mask* const mask,
+                                                                            const itk::ImageRegion<2>& region);
+
+/** Compute the average of all unmasked pixels in a region.*/
+template<typename TImage>
+typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegionMasked(const TImage* const image,
+                                                                                   const Mask* const mask,
+                                                                             const itk::ImageRegion<2>& region);
 
 }// end namespace
 

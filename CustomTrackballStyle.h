@@ -12,21 +12,22 @@ class CustomImageStyle;
 // Define interaction style
 class CustomTrackballStyle : public vtkInteractorStyleTrackballActor
 {
-  public:
-    const static unsigned int PatchesMovedEvent = vtkCommand::UserEvent + 1;
-    
-    static CustomTrackballStyle* New();
-    vtkTypeMacro(CustomTrackballStyle,vtkInteractorStyleTrackballActor);
+public:
+  const static unsigned int PatchesMovedEvent = vtkCommand::UserEvent + 1;
 
-    void OnLeftButtonDown();
+  static CustomTrackballStyle* New();
+  
+  vtkTypeMacro(CustomTrackballStyle,vtkInteractorStyleTrackballActor);
 
-    void OnLeftButtonUp();
+  void OnLeftButtonDown();
 
-    void OnMiddleButtonDown();
+  void OnLeftButtonUp();
 
-    void OnRightButtonDown();
+  void OnMiddleButtonDown();
 
-    void SetOtherStyle(CustomImageStyle* style);
+  void OnRightButtonDown();
+
+  void SetOtherStyle(CustomImageStyle* style);
 
 private:
   CustomImageStyle* OtherStyle;

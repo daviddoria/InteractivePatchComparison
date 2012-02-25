@@ -10,13 +10,13 @@ class CustomTrackballStyle;
 // Define interaction style
 class CustomImageStyle : public vtkInteractorStyleImage
 {
-  public:
-    static CustomImageStyle* New();
-    vtkTypeMacro(CustomImageStyle,vtkInteractorStyleImage);
+public:
+  static CustomImageStyle* New();
+  vtkTypeMacro(CustomImageStyle,vtkInteractorStyleImage);
 
-    void OnLeftButtonDown();
+  void OnLeftButtonDown();
 
-    void SetOtherStyle(CustomTrackballStyle* style);
+  void SetOtherStyle(CustomTrackballStyle* style);
 
   
 private:

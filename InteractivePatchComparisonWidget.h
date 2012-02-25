@@ -57,7 +57,11 @@ public:
   void SetCameraPosition2();
   
   void Refresh();
-  
+
+signals:
+  void signal_TargetPatchMoved(const itk::ImageRegion<2>&);
+  void signal_SourcePatchMoved(const itk::ImageRegion<2>&);
+
 public slots:
   
   void on_actionOpenImage_activated();
@@ -70,26 +74,22 @@ public slots:
   void on_actionFlipImage_activated();
   
   void on_txtPatchRadius_returnPressed();
-  
-  void on_txtSourceX_returnPressed();
-  void on_txtSourceY_returnPressed();
-  
-  void on_txtTargetX_returnPressed();
-  void on_txtTargetY_returnPressed();
-  
-  void on_chkShowMask_clicked();
-  
-  
+
   void RefreshSlot();
-  
+
+  void slot_TargetPatchMoved(const itk::ImageRegion<2>&);
+  void slot_SourcePatchMoved(const itk::ImageRegion<2>&);
+
 protected:
 
+  void PatchesMovedEventHandler();
+  
   void showEvent(QShowEvent* event);
   
   void OpenImage(const std::string& filename);
   void OpenMask(const std::string& filename);
   
-  void SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image);
+  //void SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image);
   
   static const unsigned char Green[3];
   static const unsigned char Red[3];
@@ -98,7 +98,6 @@ protected:
   
   void InitializePatch(vtkImageData* image, const unsigned char color[3]);
   
-  void PatchesMoved();
   void SetupPatches();
   
   // Allow us to interact with the objects as we would like.
@@ -135,7 +134,7 @@ protected:
   itk::Size<2> PatchSize;
   unsigned int PatchScale;
   
-  QImage FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx);
+  
 };
 
 #endif // InteractivePatchComparisonWidget_H

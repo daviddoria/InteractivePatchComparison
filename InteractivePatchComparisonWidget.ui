@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,3,1">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0,0">
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
@@ -43,80 +43,22 @@
         <item>
          <widget class="QLabel" name="label_2">
           <property name="text">
-           <string>&lt;font color=&quot;green&quot;&gt;Source Patch Corner&lt;/font&gt;</string>
+           <string>&lt;font color=&quot;green&quot;&gt;Source Patch&lt;/font&gt;</string>
           </property>
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>X</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="txtSourceX">
-            <property name="text">
-             <string>0</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Y</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="txtSourceY">
-            <property name="text">
-             <string>0</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="PatchInfoWidget" name="SourcePatchInfoWidget" native="true"/>
         </item>
         <item>
          <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>&lt;font color=&quot;red&quot;&gt;Target Patch Corner&lt;/font&gt;</string>
+           <string>&lt;font color=&quot;red&quot;&gt;Target Patch&lt;/font&gt;</string>
           </property>
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>X</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="txtTargetX">
-            <property name="text">
-             <string>0</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Y</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="txtTargetY">
-            <property name="text">
-             <string>0</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="PatchInfoWidget" name="TargetPatchInfoWidget" native="true"/>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -154,72 +96,13 @@
           </item>
          </layout>
         </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_7">
-          <item>
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>Variance</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="lblVariance">
-            <property name="text">
-             <string>0</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="chkShowMask">
-          <property name="text">
-           <string>Show mask</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </item>
       <item>
        <widget class="QVTKWidget" name="qvtkWidget"/>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QLabel" name="label_9">
-          <property name="text">
-           <string>Source Patch</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGraphicsView" name="gfxPatch1"/>
-        </item>
-        <item>
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_10">
-          <property name="text">
-           <string>Target Patch</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGraphicsView" name="gfxPatch2"/>
-        </item>
-       </layout>
+       <layout class="QVBoxLayout" name="verticalLayout_2"/>
       </item>
      </layout>
     </item>
@@ -231,7 +114,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>28</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuLeft_Pane">
@@ -346,6 +229,12 @@
    <class>QVTKWidget</class>
    <extends>QWidget</extends>
    <header>QVTKWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>PatchInfoWidget</class>
+   <extends>QWidget</extends>
+   <header>PatchInfoWidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -36,6 +36,38 @@
 namespace Helpers
 {
 
+QImage FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx)
+{
+  // The -5's are fudge factors so that the scroll bars do not appear
+  if(gfx->height() < gfx->width())
+    {
+    return qimage.scaledToHeight(gfx->height() - 5);
+    }
+  else
+    {
+    return qimage.scaledToWidth(gfx->width() - 5);
+    }
+}
+
+std::string VectorToString(const VectorImageType::PixelType& vec)
+{
+  std::stringstream ss;
+  ss << "(";
+  for(unsigned int i = 0; i < vec.GetSize(); ++i)
+  {
+    ss << vec[i];
+    if(i == vec.GetSize() - 1)
+    {
+      ss << ")";
+    }
+    else
+    {
+      ss << ", ";
+    }
+  }
+  return ss.str();
+}
+
 std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets, const itk::Index<2>& index)
 {
   std::vector<itk::Index<2> > indices;
