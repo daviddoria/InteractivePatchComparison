@@ -135,11 +135,13 @@ typename std::enable_if<std::is_fundamental<T>::value, unsigned int>::type lengt
 
 std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets);
 
-// template<typename T>
-// T& index(itk::VariableLengthVector<T>& v, size_t i);
-// 
-// template<typename T>
-// T index(const itk::VariableLengthVector<T>& v, size_t i);
+std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets, const itk::Index<2>& index);
+
+template<typename T>
+T& index(itk::VariableLengthVector<T>& v, size_t i);
+
+template<typename T>
+T index(const itk::VariableLengthVector<T>& v, size_t i);
 
 template<typename T>
 typename std::enable_if<std::is_fundamental<T>::value, T&>::type index(T& t, size_t);

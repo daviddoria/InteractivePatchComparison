@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,3,1">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0">
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0,0">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
@@ -123,12 +123,12 @@
           <item>
            <widget class="QLabel" name="label_8">
             <property name="text">
-             <string>Abs Diff:</string>
+             <string>Sum Abs.Pixel Diff:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="lblAbsoluteDifference">
+           <widget class="QLabel" name="lblSumAbsolutePixelDifference">
             <property name="text">
              <string>0</string>
             </property>
@@ -141,12 +141,30 @@
           <item>
            <widget class="QLabel" name="label_11">
             <property name="text">
-             <string>Sq Diff:</string>
+             <string>Correlation:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="lblSquaredDifference">
+           <widget class="QLabel" name="lblCorrelation">
+            <property name="text">
+             <string>0</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>Variance</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblVariance">
             <property name="text">
              <string>0</string>
             </property>

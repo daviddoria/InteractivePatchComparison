@@ -36,6 +36,16 @@
 namespace Helpers
 {
 
+std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets, const itk::Index<2>& index)
+{
+  std::vector<itk::Index<2> > indices;
+  for(unsigned int i = 0; i < offsets.size(); ++i)
+  {
+    indices.push_back(index + offsets[i]);
+  }
+  return indices;
+}
+
 std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets)
 {
   std::vector<itk::Index<2> > indices;
