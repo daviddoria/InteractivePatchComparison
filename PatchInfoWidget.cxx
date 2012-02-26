@@ -84,14 +84,22 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   this->txtXCenter->setText(QString::number(patchCenter[0]));
   this->txtYCenter->setText(QString::number(patchCenter[1]));
 
+  VectorImageType::PixelType average;
+  average.SetSize(Image->GetNumberOfComponentsPerPixel());
+  average.Fill(0);
+  
+  VectorImageType::PixelType variance;
+  variance.SetSize(Image->GetNumberOfComponentsPerPixel());
+  variance.Fill(0);
+  
   if(MaskImage->CountValidPixels(patchRegion) > 0)
   {
-    VectorImageType::PixelType average = Helpers::AverageInRegionMasked(Image.GetPointer(),
+    average = Helpers::AverageInRegionMasked(Image.GetPointer(),
                                                                         MaskImage.GetPointer(), patchRegion);
 
     lblPixelMean->setText(Helpers::VectorToString(average).c_str());
 
-    VectorImageType::PixelType variance = Helpers::VarianceInRegionMasked(this->Image.GetPointer(),
+    variance = Helpers::VarianceInRegionMasked(this->Image.GetPointer(),
                                                                           this->MaskImage, patchRegion);
 
     lblPixelVariance->setText(Helpers::VectorToString(variance).c_str());
@@ -102,10 +110,7 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
     lblPixelVariance->setText("Invalid");
   }
 
-
-  // Display
-
-  // Source display
+  // Patch display
   QImage sourcePatchImage = Helpers::GetQImageMasked(this->Image.GetPointer(), this->MaskImage,
                             patchRegion);
 
@@ -114,5 +119,25 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   QGraphicsScene* sourceScene = new QGraphicsScene();
   sourceScene->addPixmap(QPixmap::fromImage(sourcePatchImage));
   this->graphicsView->setScene(sourceScene);
+
+  // Average color display
+  VectorImageType::Pointer averageColorImage = VectorImageType::New();
+  itk::Index<2> corner = {{0,0}};
+  itk::Size<2> size = {{10,10}};
+  itk::ImageRegion<2> averageColorRegion(corner,size);
+  
+  averageColorImage->SetRegions(averageColorRegion);
+  averageColorImage->SetNumberOfComponentsPerPixel(Image->GetNumberOfComponentsPerPixel());
+  averageColorImage->Allocate();
+
+  Helpers::SetImageToConstant(averageColorImage.GetPointer(), average);
+  
+  QImage averageColorQImage = Helpers::ITKImageToQImage(averageColorImage.GetPointer());
+
+  averageColorQImage = Helpers::FitToGraphicsView(averageColorQImage, this->graphicsView_AverageColor);
+
+  QGraphicsScene* averageColorScene = new QGraphicsScene();
+  averageColorScene->addPixmap(QPixmap::fromImage(averageColorQImage));
+  this->graphicsView_AverageColor->setScene(averageColorScene);
 
 }

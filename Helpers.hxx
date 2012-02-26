@@ -752,5 +752,16 @@ typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegionMask
   return Statistics::Variance(pixels);
 }
 
+template<typename TImage>
+void SetImageToConstant(TImage* const image, const typename TImage::PixelType& value)
+{
+  typename itk::ImageRegionIterator<TImage> imageIterator(image, image->GetLargestPossibleRegion());
+  
+  while(!imageIterator.IsAtEnd())
+    {
+    imageIterator.Set(value);
+    ++imageIterator;
+    }
+}
 
 }// end namespace

@@ -151,6 +151,9 @@ std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >&
 
 std::vector<itk::Index<2> > OffsetsToIndices(const std::vector<itk::Offset<2> >& offsets, const itk::Index<2>& index);
 
+template<typename TImage>
+void SetImageToConstant(TImage* const image, const typename TImage::PixelType& value);
+
 template<typename T>
 T& index(itk::VariableLengthVector<T>& v, size_t i);
 
