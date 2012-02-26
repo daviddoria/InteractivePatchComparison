@@ -19,6 +19,9 @@
 #include "ui_InteractivePatchComparisonWidget.h"
 #include "InteractivePatchComparisonWidget.h"
 
+// Eigen
+#include <Eigen/Dense>
+
 // ITK
 #include "itkCastImageFilter.h"
 #include "itkImageFileReader.h"
@@ -297,11 +300,16 @@ void InteractivePatchComparisonWidget::on_txtPatchRadius_returnPressed()
   SetupPatches();
 }
 
+unsigned int InteractivePatchComparisonWidget::GetPatchRadius()
+{
+  return this->txtPatchRadius->text().toUInt();
+}
+
 void InteractivePatchComparisonWidget::GetPatchSize()
 {
   // The edge length of the patch is the (radius*2) + 1
-  this->PatchSize[0] = this->txtPatchRadius->text().toUInt() * 2 + 1;
-  this->PatchSize[1] = this->txtPatchRadius->text().toUInt() * 2 + 1;
+  this->PatchSize[0] = GetPatchRadius() * 2 + 1;
+  this->PatchSize[1] = GetPatchRadius() * 2 + 1;
 }
 
 void InteractivePatchComparisonWidget::SetupPatches()
@@ -479,4 +487,81 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
 
   this->lblSumAbsolutePixelDifference->setNum(averagePixelDifference);
   this->lblCorrelation->setNum(correlationScore);
+}
+
+void InteractivePatchComparisonWidget::on_btnSavePatches_clicked()
+{
+  TargetPatchInfoWidget->Save("target");
+  SourcePatchInfoWidget->Save("source");
+
+  itk::ImageRegion<2> sourceRegion = SourcePatchInfoWidget->GetRegion();
+  itk::ImageRegion<2> targetRegion = TargetPatchInfoWidget->GetRegion();
+  
+  AveragePixelDifference<SumOfAbsoluteDifferences> averagePixelDifferenceFunctor;
+  float averagePixelDifference = averagePixelDifferenceFunctor(this->Image.GetPointer(),
+                                                               this->MaskImage, sourceRegion, targetRegion);
+
+  std::ofstream fout("score.txt");
+  fout << averagePixelDifference << std::endl;
+  fout.close();
+}
+
+void InteractivePatchComparisonWidget::ComputeFeatureMatrix()
+{
+  // Compute average (N components), variance (N components), average gradient (N components)
+  unsigned int numberOfImageComponents = Image->GetNumberOfComponentsPerPixel();
+  
+  //Eigen::MatrixXd m(3*N,3*N);
+
+  // Count valid patches
+  unsigned int numberOfValidPatches = Helpers::CountValidPatches(MaskImage, GetPatchRadius());
+
+  unsigned int numberOfFeatures = 2*numberOfImageComponents;
+  Eigen::MatrixXd featureMatrix(numberOfValidPatches, numberOfFeatures);
+  
+  itk::ImageRegionConstIteratorWithIndex<VectorImageType> imageIterator(Image, Image->GetLargestPossibleRegion());
+
+  unsigned int rowCounter = 0;
+  while(!imageIterator.IsAtEnd())
+    {
+    itk::ImageRegion<2> region = Helpers::GetRegionInRadiusAroundPixel(imageIterator.GetIndex(), GetPatchRadius());
+
+    if(MaskImage->IsValid(region))
+    {
+      VectorImageType::PixelType pixelAverage = Helpers::AverageInRegion(Image.GetPointer(), region);
+      for(unsigned int component = 0; component < numberOfImageComponents; ++component)
+        {
+        featureMatrix(rowCounter, component) = pixelAverage[component];
+        }
+      
+      VectorImageType::PixelType pixelVariance = Helpers::VarianceInRegion(Image.GetPointer(), region);
+      for(unsigned int component = 0; component < numberOfImageComponents; ++component)
+        {
+        featureMatrix(rowCounter, numberOfImageComponents + component) = pixelVariance[component];
+        }
+
+      rowCounter++;
+    }
+    
+    ++imageIterator;
+    }
+
+  // Normalize feature matrix
+  Eigen::VectorXd featureMeans(numberOfFeatures);
+  Eigen::VectorXd featureStandardDeviations(numberOfFeatures);
+  
+  // Extract a column at a time (each column consists of the same computed value)
+  for(unsigned int feature = 0; feature < numberOfFeatures; ++feature)
+  {
+    Eigen::VectorXd eigenFeatures = featureMatrix.col(feature);
+    std::vector<float> stdFeatures = Helpers::EigenVectorToSTDVector(eigenFeatures);
+    float featureAverage = Statistics::Average(stdFeatures);
+    featureMeans[feature] = featureAverage;
+    
+    float featureStandardDeviation = sqrt(Statistics::Variance(stdFeatures));
+    featureStandardDeviations[feature] = featureStandardDeviation;
+  }
+
+  std::cout << "featureMeans: " << featureMeans << std::endl;
+  std::cout << "featureStandardDeviations: " << featureStandardDeviations << std::endl;
 }

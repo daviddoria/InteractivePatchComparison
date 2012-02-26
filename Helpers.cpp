@@ -553,4 +553,32 @@ QImage ITKImageToQImage(const VectorImageType* const itkimage)
   return image.mirrored(false, true);
 }
 
+unsigned int CountValidPatches(const Mask* const mask, const unsigned int patchRadius)
+{
+  itk::ImageRegionConstIteratorWithIndex<Mask> maskIterator(mask, mask->GetLargestPossibleRegion());
+
+  unsigned int counter = 0;
+  while(!maskIterator.IsAtEnd())
+    {
+    itk::ImageRegion<2> region = Helpers::GetRegionInRadiusAroundPixel(maskIterator.GetIndex(), patchRadius);
+
+    if(mask->IsValid(region))
+      {
+      counter++;
+      }
+    }
+
+  return counter;
+}
+
+std::vector<float> EigenVectorToSTDVector(const Eigen::VectorXd& vec)
+{
+  std::vector<float> stdvector(vec.size());
+  for(unsigned int i = 0; i < static_cast<unsigned int>(vec.size()); ++i)
+  {
+    stdvector[i] = vec[i];
+  }
+  return stdvector;
+}
+
 } // end namespace

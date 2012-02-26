@@ -40,6 +40,10 @@ public:
   void SetImage(VectorImageType* const image);
   void SetMask(Mask* const mask);
 
+  void Save(const std::string& prefix);
+
+  itk::ImageRegion<2> GetRegion() const;
+  
 signals:
   void signal_PatchMoved(const itk::ImageRegion<2>& patchRegion);
   

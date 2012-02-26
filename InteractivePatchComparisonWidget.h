@@ -51,7 +51,7 @@ public:
   void SharedConstructor();
   ~InteractivePatchComparisonWidget() {};
   
-  // These function deal with flipping the image
+  // These functions deal with flipping the image
   void SetCameraPosition(const double leftToRight[3], const double bottomToTop[3]);
   void SetCameraPosition1();
   void SetCameraPosition2();
@@ -67,6 +67,8 @@ public slots:
   void on_actionOpenImage_activated();
   void on_actionOpenMask_activated();
   void on_actionOpenMaskInverted_activated();
+
+  void on_btnSavePatches_clicked();
   
   void on_actionHelp_activated();
   void on_actionQuit_activated();
@@ -80,8 +82,12 @@ public slots:
   void slot_TargetPatchMoved(const itk::ImageRegion<2>&);
   void slot_SourcePatchMoved(const itk::ImageRegion<2>&);
 
-protected:
+private:
 
+  unsigned int GetPatchRadius();
+  
+  void ComputeFeatureMatrix();
+  
   void PatchesMovedEventHandler();
   
   void showEvent(QShowEvent* event);

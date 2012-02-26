@@ -42,8 +42,15 @@ class vtkImageSlice;
 #include <QImage>
 #include <QGraphicsView>
 
+// Eigen
+#include <Eigen/Dense>
+
 namespace Helpers
 {
+
+std::vector<float> EigenVectorToSTDVector(const Eigen::VectorXd& vec);
+  
+unsigned int CountValidPatches(const Mask* const mask, const unsigned int patchRadius);
 
 QImage FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx);
 
@@ -57,14 +64,14 @@ void ExtractRegion(const TImage* const image, const itk::ImageRegion<2>& region,
 
 std::string VectorToString(const VectorImageType::PixelType& vec);
 
-void RGBImageToCIELabImage(RGBImageType::Pointer rgbImage, VectorImageType::Pointer cielabImage);
+void RGBImageToCIELabImage(RGBImageType* const rgbImage, VectorImageType* const cielabImage);
   
-void NormalizeVectorImage(FloatVector2ImageType::Pointer image);
+void NormalizeVectorImage(FloatVector2ImageType* const image);
 
 
 void SetMaskTransparency(Mask* const input, vtkImageData* outputImage);
 
-void ITKRegionToVTKImage(VectorImageType::Pointer image, const itk::ImageRegion<2>& region, vtkImageData* outputImage);
+void ITKRegionToVTKImage(VectorImageType* const image, const itk::ImageRegion<2>& region, vtkImageData* outputImage);
 
 template<typename TImage>
 void DeepCopyVectorImage(const TImage* const input, TImage* const output);
@@ -88,30 +95,31 @@ void DebugWriteSequentialImage(TDebugImageType* const image, const std::string& 
 template <typename TDebugImageType>
 void DebugWriteImageConditional(TDebugImageType* const image, const std::string& fileName, const bool condition);
 
-template <class T>
-void WriteScaledScalarImage(T* const image, std::string filename);
+template <class TImage>
+void WriteScaledScalarImage(const TImage* const image, const std::string filename);
+
+template <class TImage>
+void CopyPatch(const TImage* const sourceImage, TImage* const targetImage, const itk::Index<2> sourcePosition,
+               const itk::Index<2> targetPosition, const unsigned int radius);
 
 template <class T>
-void CopyPatch(T* const sourceImage, T* const targetImage, itk::Index<2> sourcePosition, itk::Index<2> targetPosition, unsigned int radius);
-
-template <class T>
-void CreateConstantPatch(T* const patch, T* const value, unsigned int radius);
+void CreateConstantPatch(T* const patch, T* const value, const unsigned int radius);
 
 template<typename T>
 void ReplaceValue(T* const image, const T* const queryValue, const T* const replacementValue);
 
-template<typename T>
-void WriteImage(T* const image, std::string filename);
+template<typename TImage>
+void WriteImage(const TImage* const image, const std::string filename);
 
 template <class T>
-void CopyPatchIntoImage(T* const patch, T* const image, itk::Index<2> position);
+void CopyPatchIntoImage(T* const patch, T* const image, const itk::Index<2> position);
 
 template <class T>
 void CreateBlankPatch(T* const patch, const unsigned int radius);
 
-template <class T>
-void CopySelfPatchIntoValidRegion(T* const image, const UnsignedCharScalarImageType* const mask,
-                                  itk::ImageRegion<2> sourceRegion, itk::ImageRegion<2> destinationRegion);
+template <class TImage>
+void CopySelfPatchIntoValidRegion(TImage* const image, const UnsignedCharScalarImageType* const mask,
+                                  const itk::ImageRegion<2> sourceRegion, const itk::ImageRegion<2> destinationRegion);
 
 // Non template function declarations
 itk::ImageRegion<2> GetRegionInRadiusAroundPixel(const itk::Index<2> pixel, const unsigned int radius);

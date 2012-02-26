@@ -25,6 +25,11 @@
 #include "Helpers.h"
 #include "AverageScore.hpp"
 #include "VarianceScore.hpp"
+#include "AveragePixelDifference.hpp"
+#include "PixelDifferences.hpp"
+
+// ITK
+#include "itkRegionOfInterestImageFilter.h"
 
 PatchInfoWidget::PatchInfoWidget(QWidget* parent) : QWidget(parent)
 {
@@ -94,13 +99,14 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   
   if(MaskImage->CountValidPixels(patchRegion) > 0)
   {
-    average = Helpers::AverageInRegionMasked(Image.GetPointer(),
-                                                                        MaskImage.GetPointer(), patchRegion);
+    //average = Helpers::AverageInRegionMasked(Image.GetPointer(), MaskImage.GetPointer(), patchRegion);
+
+    // This assumes both patches are fully valid (often the case when exploring)
+    average = Helpers::AverageInRegion(Image.GetPointer(), patchRegion);
 
     lblPixelMean->setText(Helpers::VectorToString(average).c_str());
 
-    variance = Helpers::VarianceInRegionMasked(this->Image.GetPointer(),
-                                                                          this->MaskImage, patchRegion);
+    variance = Helpers::VarianceInRegionMasked(this->Image.GetPointer(), this->MaskImage, patchRegion);
 
     lblPixelVariance->setText(Helpers::VectorToString(variance).c_str());
   }
@@ -140,4 +146,22 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   averageColorScene->addPixmap(QPixmap::fromImage(averageColorQImage));
   this->graphicsView_AverageColor->setScene(averageColorScene);
 
+}
+
+void PatchInfoWidget::Save(const std::string& prefix)
+{
+  typedef itk::RegionOfInterestImageFilter< VectorImageType, VectorImageType> RegionOfInterestImageFilterType;
+  RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
+  regionOfInterestImageFilter->SetRegionOfInterest(this->Region);
+  regionOfInterestImageFilter->SetInput(Image);
+  regionOfInterestImageFilter->Update();
+
+  std::stringstream ss;
+  ss << prefix << "_patch.png";
+  Helpers::WriteImage(regionOfInterestImageFilter->GetOutput(), ss.str());
+}
+
+itk::ImageRegion<2> PatchInfoWidget::GetRegion() const
+{
+  return Region;
 }
