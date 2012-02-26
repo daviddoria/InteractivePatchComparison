@@ -59,6 +59,9 @@ float SumOfRow(const Eigen::MatrixXf& m, const unsigned int rowId);
 
 float SumOfVector(const Eigen::VectorXf& v);
 
+template <typename TImage>
+Eigen::VectorXf GetRegionAsVector(const TImage* const image, const itk::ImageRegion<2>& region);
+
 float SumOfAbsoluteDifferences(const Eigen::VectorXf& a, const Eigen::VectorXf& b);
   
 unsigned int CountValidPatches(const Mask* const mask, const unsigned int patchRadius);

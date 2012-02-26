@@ -509,24 +509,45 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
   float featuresDifference = Helpers::SumOfAbsoluteDifferences(sourceFeatures, targetFeatures);
   std::cout << "Features difference: " << featuresDifference << std::endl;
 
-  // Diffusion distance
+  // Diffusion distance of feature vectors
+//   std::vector<Eigen::VectorXf> allPoints;
+//   itk::Index<2> targetCenter = Helpers::GetRegionCenter(targetRegion);
+//   itk::ImageRegion<2> neighborhoodRegion = Helpers::GetRegionInRadiusAroundPixel(targetCenter, 4);
+//   itk::ImageRegionConstIterator<Mask> neighborhoodIterator(MaskImage, neighborhoodRegion);
+// 
+//   while(!neighborhoodIterator.IsAtEnd())
+//     {
+//     itk::ImageRegion<2> nearbyRegion = Helpers::GetRegionInRadiusAroundPixel(neighborhoodIterator.GetIndex(), GetPatchRadius());
+//     Eigen::VectorXf nearbyFeatures = ComputeNormalizedFeatures(nearbyRegion);
+//     allPoints.push_back(nearbyFeatures);
+//     ++neighborhoodIterator;
+//     }
+// 
+//   allPoints.push_back(sourceFeatures);
+// 
+//   DiffusionDistance diffusionDistanceFunctor;
+//   float diffusionDistance = diffusionDistanceFunctor(targetFeatures, sourceFeatures, allPoints);
+//   std::cout << "diffusionDistance: " << diffusionDistance << std::endl;
+
+  // Diffusion distance of pixel values directly
   std::vector<Eigen::VectorXf> allPoints;
   itk::Index<2> targetCenter = Helpers::GetRegionCenter(targetRegion);
-  itk::ImageRegion<2> neighborhoodRegion = Helpers::GetRegionInRadiusAroundPixel(targetCenter, 2);
+  itk::ImageRegion<2> neighborhoodRegion = Helpers::GetRegionInRadiusAroundPixel(targetCenter, 4);
   itk::ImageRegionConstIterator<Mask> neighborhoodIterator(MaskImage, neighborhoodRegion);
 
   while(!neighborhoodIterator.IsAtEnd())
     {
     itk::ImageRegion<2> nearbyRegion = Helpers::GetRegionInRadiusAroundPixel(neighborhoodIterator.GetIndex(), GetPatchRadius());
-    Eigen::VectorXf nearbyFeatures = ComputeNormalizedFeatures(nearbyRegion);
+    Eigen::VectorXf nearbyFeatures = Helpers::GetRegionAsVector(Image.GetPointer(), nearbyRegion);
     allPoints.push_back(nearbyFeatures);
     ++neighborhoodIterator;
     }
-
-  allPoints.push_back(sourceFeatures);
+  Eigen::VectorXf sourceRegionVectorized = Helpers::GetRegionAsVector(Image.GetPointer(), sourceRegion);
+  Eigen::VectorXf targetRegionVectorized = Helpers::GetRegionAsVector(Image.GetPointer(), targetRegion);
+  allPoints.push_back(sourceRegionVectorized);
 
   DiffusionDistance diffusionDistanceFunctor;
-  float diffusionDistance = diffusionDistanceFunctor(targetFeatures, sourceFeatures, allPoints);
+  float diffusionDistance = diffusionDistanceFunctor(sourceRegionVectorized, targetRegionVectorized, allPoints);
   std::cout << "diffusionDistance: " << diffusionDistance << std::endl;
 
   Refresh();

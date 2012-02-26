@@ -69,15 +69,17 @@ float DiffusionDistance::operator()(const TPoint& a, const TPoint& b,
   Eigen::VectorXf a_eigen = Helpers::ConvertVector<Eigen::VectorXf, TPoint>(a);
   Eigen::VectorXf b_eigen = Helpers::ConvertVector<Eigen::VectorXf, TPoint>(b);
 
-  std::cout << "a_eigen: " << a_eigen << std::endl;
+  //std::cout << "a_eigen: " << a_eigen << std::endl;
   //std::cout << "sortedEigenvectorMatrix: " << sortedEigenvectorMatrix << std::endl;
-  std::cout << "sortedEigenvectorMatrix size: " << sortedEigenvectorMatrix.rows() << " "
-            << sortedEigenvectorMatrix.cols() << std::endl;
+//   std::cout << "sortedEigenvectorMatrix size: " << sortedEigenvectorMatrix.rows() << " "
+//             << sortedEigenvectorMatrix.cols() << std::endl;
 
-  Eigen::VectorXf a_transformed = sortedEigenvectorMatrix * a_eigen;
-
-  Eigen::VectorXf b_transformed = sortedEigenvectorMatrix * b_eigen;
-
+  Eigen::VectorXf a_transformed = sortedEigenvectorMatrix * a_transformed;
+  std::cout << "a_transformed: " << a_transformed << std::endl;
+  
+  Eigen::VectorXf b_transformed = sortedEigenvectorMatrix * b_transformed;
+  std::cout << "b_transformed: " << b_transformed << std::endl;
+  
   float finalDistance = SumOfAbsoluteDifference(a_transformed, b_transformed);
 
   return finalDistance;

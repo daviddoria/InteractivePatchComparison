@@ -781,4 +781,24 @@ TVecTo ConvertVector(const TVecFrom& vec)
   return newvector;
 }
 
+template <typename TImage>
+Eigen::VectorXf GetRegionAsVector(const TImage* const image, const itk::ImageRegion<2>& region)
+{
+  Eigen::VectorXf vec(image->GetNumberOfComponentsPerPixel() * region.GetNumberOfPixels());
+  
+  typename itk::ImageRegionConstIterator<TImage> imageIterator(image, image->GetLargestPossibleRegion());
+
+  unsigned int counter = 0;
+  while(!imageIterator.IsAtEnd())
+    {
+    typename TImage::PixelType pixel = imageIterator.Get();
+    for(unsigned int component = 0; component < image->GetNumberOfComponentsPerPixel(); ++component)
+      {
+      vec[image->GetNumberOfComponentsPerPixel() * counter + component] = pixel[component];
+      }
+    ++imageIterator;
+    }
+  return vec;
+}
+
 }// end namespace
