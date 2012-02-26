@@ -36,6 +36,22 @@
 namespace Helpers
 {
 
+float SumOfAbsoluteDifferences(const Eigen::VectorXd& a, const Eigen::VectorXd& b)
+{
+  if(a.size() != b.size())
+  {
+    throw std::runtime_error("SumOfAbsoluteDifferences: vectors must be the same size!");
+  }
+
+  float total = 0.0f;
+  for(unsigned int i = 0; i < static_cast<unsigned int>(a.size()); ++i)
+  {
+    total += fabs(a[i] - b[i]);
+  }
+
+  return total;
+}
+
 QImage FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx)
 {
   // The -5's are fudge factors so that the scroll bars do not appear
@@ -558,6 +574,7 @@ unsigned int CountValidPatches(const Mask* const mask, const unsigned int patchR
   itk::ImageRegionConstIteratorWithIndex<Mask> maskIterator(mask, mask->GetLargestPossibleRegion());
 
   unsigned int counter = 0;
+  std::cout << "CountValidPatches (patch radius " << patchRadius << ")..." << std::endl;
   while(!maskIterator.IsAtEnd())
     {
     itk::ImageRegion<2> region = Helpers::GetRegionInRadiusAroundPixel(maskIterator.GetIndex(), patchRadius);
@@ -566,8 +583,10 @@ unsigned int CountValidPatches(const Mask* const mask, const unsigned int patchR
       {
       counter++;
       }
+    ++maskIterator;
     }
 
+  std::cout << "There were " << counter << " valid patches." << std::endl;
   return counter;
 }
 
@@ -593,6 +612,8 @@ itk::ImageRegion<2> FindFirstValidPatch(const Mask* const mask, const unsigned i
       {
       return region;
       }
+
+    ++maskIterator;
     }
 
   throw std::runtime_error("No valid patches found!");

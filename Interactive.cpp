@@ -27,7 +27,7 @@ int main( int argc, char** argv )
 
   QApplication::setStyle(new QCleanlooksStyle);
 
-  InteractivePatchComparisonWidget* interactivePatchComparisonWidget;
+  InteractivePatchComparisonWidget* interactivePatchComparisonWidget = NULL;
 
   if(argc == 1)
   {
@@ -42,6 +42,11 @@ int main( int argc, char** argv )
     std::cout << "maskFileName: " << maskFileName << std::endl;
     
     interactivePatchComparisonWidget = new InteractivePatchComparisonWidget(imageFileName, maskFileName);
+  }
+  else
+  {
+    std::cerr << "Input arguments invalid!" << std::endl;
+    return EXIT_FAILURE;
   }
   
   interactivePatchComparisonWidget->show();

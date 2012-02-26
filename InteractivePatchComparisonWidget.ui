@@ -34,7 +34,7 @@
              <string>Sets the width/height of a square patch</string>
             </property>
             <property name="text">
-             <string>10</string>
+             <string>15</string>
             </property>
            </widget>
           </item>

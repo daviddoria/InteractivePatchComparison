@@ -92,6 +92,8 @@ InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(const std::st
   SharedConstructor();
   OpenImage(imageFileName);
   OpenMask(maskFileName);
+
+  ComputeFeatureMatrixStatistics();
 }
 
 void InteractivePatchComparisonWidget::SharedConstructor()
@@ -483,6 +485,12 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
   CorrelationScore correlationScoreFunctor;
   float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), this->MaskImage, sourceRegion, targetRegion);
 
+  Eigen::VectorXd sourceFeatures = ComputeNormalizedFeatures(sourceRegion);
+  Eigen::VectorXd targetFeatures = ComputeNormalizedFeatures(targetRegion);
+
+  float featuresDifference = Helpers::SumOfAbsoluteDifferences(sourceFeatures, targetFeatures);
+  std::cout << "Features difference: " << featuresDifference << std::endl;
+  
   Refresh();
 
   this->lblSumAbsolutePixelDifference->setNum(averagePixelDifference);
@@ -504,6 +512,18 @@ void InteractivePatchComparisonWidget::on_btnSavePatches_clicked()
   std::ofstream fout("score.txt");
   fout << averagePixelDifference << std::endl;
   fout.close();
+}
+
+Eigen::VectorXd InteractivePatchComparisonWidget::ComputeNormalizedFeatures(const itk::ImageRegion<2>& region)
+{
+  Eigen::VectorXd features = ComputeFeatures(region);
+  for(unsigned int i = 0; i < static_cast<unsigned int>(features.size()); ++i)
+  {
+    features[i] -= FeatureMeans[i];
+    features[i] /= FeatureStandardDeviations[i];
+  }
+
+  return features;
 }
 
 Eigen::VectorXd InteractivePatchComparisonWidget::ComputeFeatures(const itk::ImageRegion<2>& region)
@@ -549,8 +569,13 @@ void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
   unsigned int rowCounter = 0;
   while(!imageIterator.IsAtEnd())
     {
-    itk::ImageRegion<2> region = Helpers::GetRegionInRadiusAroundPixel(imageIterator.GetIndex(), GetPatchRadius());
+    if(rowCounter % 10000 == 0)
+    {
+      std::cout << "Computed " << rowCounter << " out of " << Image->GetLargestPossibleRegion().GetNumberOfPixels()
+                << " features." << std::endl;
+    }
 
+    itk::ImageRegion<2> region = Helpers::GetRegionInRadiusAroundPixel(imageIterator.GetIndex(), GetPatchRadius());
     if(MaskImage->IsValid(region))
     {
       Eigen::VectorXd feature = ComputeFeatures(region);
@@ -566,8 +591,8 @@ void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
     }
 
   // Normalize feature matrix
-  featureMeans.resize(numberOfFeatures);
-  featureStandardDeviations.resize(numberOfFeatures);
+  FeatureMeans.resize(numberOfFeatures);
+  FeatureStandardDeviations.resize(numberOfFeatures);
   
   // Extract a column at a time (each column consists of the same computed value)
   for(unsigned int feature = 0; feature < numberOfFeatures; ++feature)
@@ -575,12 +600,12 @@ void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
     Eigen::VectorXd eigenFeatures = featureMatrix.col(feature);
     std::vector<float> stdFeatures = Helpers::EigenVectorToSTDVector(eigenFeatures);
     float featureAverage = Statistics::Average(stdFeatures);
-    featureMeans[feature] = featureAverage;
+    FeatureMeans[feature] = featureAverage;
     
     float featureStandardDeviation = sqrt(Statistics::Variance(stdFeatures));
-    featureStandardDeviations[feature] = featureStandardDeviation;
+    FeatureStandardDeviations[feature] = featureStandardDeviation;
   }
 
-  std::cout << "featureMeans: " << featureMeans << std::endl;
-  std::cout << "featureStandardDeviations: " << featureStandardDeviations << std::endl;
+  std::cout << "featureMeans: " << FeatureMeans << std::endl;
+  std::cout << "featureStandardDeviations: " << FeatureStandardDeviations << std::endl;
 }

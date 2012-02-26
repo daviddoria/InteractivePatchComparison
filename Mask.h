@@ -80,7 +80,10 @@ class Mask : public itk::Image< unsigned char, 2>
   bool IsValid(const itk::ImageRegion<2> region) const
   {
     // If any of the pixels in the region are invalid, the region is invalid.
-    
+    if(!this->GetLargestPossibleRegion().IsInside(region))
+    {
+      return false;
+    }
     itk::ImageRegionConstIterator<Mask> maskIterator(this, region);
 
     while(!maskIterator.IsAtEnd())

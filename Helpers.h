@@ -49,6 +49,8 @@ namespace Helpers
 {
 
 std::vector<float> EigenVectorToSTDVector(const Eigen::VectorXd& vec);
+
+float SumOfAbsoluteDifferences(const Eigen::VectorXd& a, const Eigen::VectorXd& b);
   
 unsigned int CountValidPatches(const Mask* const mask, const unsigned int patchRadius);
 
