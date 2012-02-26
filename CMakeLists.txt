@@ -45,6 +45,6 @@ INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )
 # ADD_EXECUTABLE(ExamplePatchDifference ExamplePatchDifference.cpp)
 # TARGET_LINK_LIBRARIES(ExamplePatchDifference PatchComparison ${VTK_LIBRARIES} QVTK ${ITK_LIBRARIES} ${QT_LIBRARIES})
 
-# ADD_EXECUTABLE(DiffusionDistanceTest DiffusionDistanceTest.cpp DiffusionDistance.cpp Helpers.cpp)
-# TARGET_LINK_LIBRARIES(DiffusionDistanceTest ${VTK_LIBRARIES} QVTK ${ITK_LIBRARIES} ${QT_LIBRARIES})
-## these libraries are required because Helpers has many other things, even though we don't use them in this executable
+ADD_EXECUTABLE(DiffusionDistanceTest DiffusionDistanceTest.cpp DiffusionDistance.cpp Helpers.cpp)
+TARGET_LINK_LIBRARIES(DiffusionDistanceTest ${VTK_LIBRARIES} QVTK ${ITK_LIBRARIES} ${QT_LIBRARIES})
+# these libraries are required because Helpers has many other things, even though we don't use them in this executable

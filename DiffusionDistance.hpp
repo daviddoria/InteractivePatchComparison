@@ -4,7 +4,7 @@
 #include "DiffusionDistance.h" // Appease syntax parser
 
 #include "Helpers.h"
-
+/*
 template <typename TPoint>
 float DiffusionDistance::operator()(const TPoint& a, const TPoint& b,
                  const std::vector<TPoint> allPoints)
@@ -35,8 +35,9 @@ float DiffusionDistance::operator()(const TPoint& a, const TPoint& b,
   Eigen::MatrixXf M = D.inverse() * L;
 
   // Compute the eigenvectors of M
-
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXf> eigensolver(M);
+  std::cout << "Size of M: " << M.rows() << " " << M.cols() << std::endl;
+  
+  Eigen::EigenSolver<Eigen::MatrixXf> eigensolver(M);
   if (eigensolver.info() != Eigen::Success)
   {
     throw std::runtime_error("Computing eigenvectors failed!");
@@ -83,6 +84,6 @@ float DiffusionDistance::operator()(const TPoint& a, const TPoint& b,
   float finalDistance = SumOfAbsoluteDifference(a_transformed, b_transformed);
 
   return finalDistance;
-}
+}*/
 
 #endif

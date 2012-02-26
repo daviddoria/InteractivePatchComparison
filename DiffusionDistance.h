@@ -7,9 +7,12 @@
 
 struct DiffusionDistance
 {
-  template <typename TPoint>
-  float operator()(const TPoint& a, const TPoint& b,
-                   const std::vector<TPoint> allPoints);
+//   template <typename TPoint>
+//   float operator()(const TPoint& a, const TPoint& b,
+//                    const std::vector<TPoint> allPoints);
+
+  float operator()(const Eigen::VectorXf& a, const Eigen::VectorXf& b,
+                   const std::vector<Eigen::VectorXf> allPoints);
 
   float SumOfAbsoluteDifference(const std::vector<float>& a, const std::vector<float>& b);
 

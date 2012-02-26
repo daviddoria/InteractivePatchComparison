@@ -84,6 +84,11 @@ void RGBImageToCIELabImage(RGBImageType* const rgbImage, VectorImageType* const 
   
 void NormalizeVectorImage(FloatVector2ImageType* const image);
 
+template <typename T>
+void Output(const T& vec);
+
+template <typename T>
+void OutputFirst(const T& vec);
 
 void SetMaskTransparency(Mask* const input, vtkImageData* outputImage);
 
@@ -217,7 +222,10 @@ typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegionMask
                                                                              const itk::ImageRegion<2>& region);
 
 template <typename TPair>
-bool SortByFirst(TPair object1, TPair object2);
+bool SortByFirstAccending(TPair object1, TPair object2);
+
+template <typename TPair>
+bool SortByFirstDescending(TPair object1, TPair object2);
 
 }// end namespace
 

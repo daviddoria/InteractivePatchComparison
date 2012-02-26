@@ -765,9 +765,15 @@ void SetImageToConstant(TImage* const image, const typename TImage::PixelType& v
 }
 
 template <typename TPair>
-bool SortByFirst(TPair object1, TPair object2)
+bool SortByFirstAccending(TPair object1, TPair object2)
 {
   return object1.first < object2.first;
+}
+
+template <typename TPair>
+bool SortByFirstDescending(TPair object1, TPair object2)
+{
+  return !(object1.first < object2.first);
 }
 
 template <typename TVecTo, typename TVecFrom>
@@ -786,7 +792,7 @@ Eigen::VectorXf GetRegionAsVector(const TImage* const image, const itk::ImageReg
 {
   Eigen::VectorXf vec(image->GetNumberOfComponentsPerPixel() * region.GetNumberOfPixels());
   
-  typename itk::ImageRegionConstIterator<TImage> imageIterator(image, image->GetLargestPossibleRegion());
+  typename itk::ImageRegionConstIterator<TImage> imageIterator(image, region);
 
   unsigned int counter = 0;
   while(!imageIterator.IsAtEnd())
@@ -796,9 +802,30 @@ Eigen::VectorXf GetRegionAsVector(const TImage* const image, const itk::ImageReg
       {
       vec[image->GetNumberOfComponentsPerPixel() * counter + component] = pixel[component];
       }
+    counter++;
     ++imageIterator;
     }
   return vec;
+}
+
+template <typename T>
+void Output(const T& vec)
+{
+  for(unsigned int i = 0; i < vec.size(); ++i)
+  {
+    std::cout << vec[i] << " ";
+  }
+  std::cout << std::endl;
+}
+
+template <typename T>
+void OutputFirst(const T& vec)
+{
+  for(unsigned int i = 0; i < vec.size(); ++i)
+  {
+    std::cout << vec[i].first << " ";
+  }
+  std::cout << std::endl;
 }
 
 }// end namespace
