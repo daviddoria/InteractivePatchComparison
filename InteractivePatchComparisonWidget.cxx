@@ -93,7 +93,23 @@ InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(const std::st
   OpenImage(imageFileName);
   OpenMask(maskFileName);
 
-  ComputeFeatureMatrixStatistics();
+  // ComputeFeatureMatrixStatistics();
+  FeatureMeans.resize(6);
+  FeatureMeans[0] = 84.5227;
+  FeatureMeans[1] = 83.7242;
+  FeatureMeans[2] = 66.7671;
+  FeatureMeans[3] = 124.39;
+  FeatureMeans[4] = 124.645;
+  FeatureMeans[5] = 126.41;
+
+  FeatureStandardDeviations.resize(6);
+  FeatureStandardDeviations[0] = 26.4461;
+  FeatureStandardDeviations[1] = 25.3215;
+  FeatureStandardDeviations[2] = 22.657;
+  FeatureStandardDeviations[3] = 74.04;
+  FeatureStandardDeviations[4] = 73.3509;
+  FeatureStandardDeviations[5] = 72.8899;
+
 }
 
 void InteractivePatchComparisonWidget::SharedConstructor()
@@ -486,7 +502,10 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
   float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), this->MaskImage, sourceRegion, targetRegion);
 
   Eigen::VectorXd sourceFeatures = ComputeNormalizedFeatures(sourceRegion);
+  std::cout << "sourceFeatures " << std::endl << sourceFeatures << std::endl;
+  
   Eigen::VectorXd targetFeatures = ComputeNormalizedFeatures(targetRegion);
+  std::cout << "targetFeatures " << std::endl << targetFeatures << std::endl;
 
   float featuresDifference = Helpers::SumOfAbsoluteDifferences(sourceFeatures, targetFeatures);
   std::cout << "Features difference: " << featuresDifference << std::endl;
@@ -606,6 +625,6 @@ void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
     FeatureStandardDeviations[feature] = featureStandardDeviation;
   }
 
-  std::cout << "featureMeans: " << FeatureMeans << std::endl;
-  std::cout << "featureStandardDeviations: " << FeatureStandardDeviations << std::endl;
+  std::cout << "featureMeans: " << std::endl <<  FeatureMeans << std::endl;
+  std::cout << "featureStandardDeviations: " << std::endl << FeatureStandardDeviations << std::endl;
 }

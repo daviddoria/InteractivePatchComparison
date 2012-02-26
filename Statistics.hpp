@@ -29,7 +29,9 @@ typename TypeTraits<TVector>::LargerComponentType RunningAverage(const TVector& 
   typedef typename TypeTraits<TVector>::LargerComponentType AverageType;
   //typedef typename TypeTraits<TVector>::ComponentType ItemType;
   //std::cout << "Helpers::RunningAverage" << std::endl;
-  AverageType vectorRunningAverage = v[0]; // We do this because if the length is not known until runtime (std::vector, itk::VariableLengthVector, etc), we want the output to be the right length.
+  // We do this because if the length is not known until runtime (std::vector, itk::VariableLengthVector, etc),
+  // we want the output to be the right length.
+  AverageType vectorRunningAverage = v[0];
   Helpers::SetObjectToZero(vectorRunningAverage);
 
   for(unsigned int i = 0; i < Helpers::length(v); ++i)
@@ -40,7 +42,8 @@ typename TypeTraits<TVector>::LargerComponentType RunningAverage(const TVector& 
 //     for(unsigned int component = 0; component < length(object); ++component);
 //       {
 //       // std::cout << "Average: Adding value " << v[i] << std::endl;
-//       vectorRunningAverage = (static_cast<AverageType>(v[i]) + static_cast<float>(i)*vectorRunningAverage)/static_cast<float>(i+1);
+//       vectorRunningAverage = (static_cast<AverageType>(v[i]) +
+//                              static_cast<float>(i)*vectorRunningAverage)/static_cast<float>(i+1);
 //       //std::cout << "RunningAverage: current average: " << vectorRunningAverage << std::endl;
 //       }
     }
@@ -98,11 +101,16 @@ typename TypeTraits<TVector>::LargerComponentType Variance(const TVector& v)
   VarianceType average = Average(v);
   // std::cout << "Variance: average = " << average << std::endl;
   //VarianceType variance = itk::NumericTraits<VarianceType>::Zero; // I don't understand why this doesn't work
-  VarianceType variance = v[0]; // We do this because if the length is not known until runtime (std::vector, itk::VariableLengthVector, etc), we want the output to be the right length.
+
+  // We do this because if the length is not known until runtime (std::vector, itk::VariableLengthVector, etc),
+  // we want the output to be the right length.
+  VarianceType variance = v[0];
+  
   Helpers::SetObjectToZero(variance);
   // Variance = 1/NumPixels * sum_i (x_i - u)^2
 
-  // std::cout << "Variance: elements have " << itk::NumericTraits<typename TVector::value_type>::GetLength() << " components." << std::endl;
+  // std::cout << "Variance: elements have " << itk::NumericTraits<typename TVector::value_type>::GetLength()
+//             << " components." << std::endl;
 
   for(unsigned int component = 0; component < Helpers::length(variance); ++component)
   {
@@ -112,7 +120,9 @@ typename TypeTraits<TVector>::LargerComponentType Variance(const TVector& v)
       channelVarianceSummation += pow(Helpers::index(v[i], component) -
                                       Helpers::index(average, component), 2);
     }
-    float channelVariance = channelVarianceSummation / static_cast<float>(Helpers::length(v) - 1); // This (N-1) term in the denominator is for the "unbiased" sample variance. This is what is used by Matlab, Wolfram alpha, etc.
+    // This (N-1) term in the denominator is for the "unbiased" sample variance.
+    // This is what is used by Matlab, Wolfram alpha, etc.
+    float channelVariance = channelVarianceSummation / static_cast<float>(Helpers::length(v) - 1);
     Helpers::index(variance, component) = channelVariance;
   }
   return variance;
