@@ -69,6 +69,7 @@
 
 const unsigned char InteractivePatchComparisonWidget::Green[3] = {0,255,0};
 const unsigned char InteractivePatchComparisonWidget::Red[3] = {255,0,0};
+const unsigned char InteractivePatchComparisonWidget::Blue[3] = {0,0,255};
 
 void InteractivePatchComparisonWidget::on_actionHelp_activated()
 {
@@ -183,6 +184,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
 
   connect(this, SIGNAL(signal_SourcePatchMoved(const itk::ImageRegion<2>&)),
           SourcePatchInfoWidget, SLOT(slot_Update(const itk::ImageRegion<2>& )));
+
 }
   
 InteractivePatchComparisonWidget::InteractivePatchComparisonWidget()
@@ -219,6 +221,7 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
   // Set the working directory
   QFileInfo fileInfo(fileName.c_str());
   std::string workingDirectory = fileInfo.absoluteDir().absolutePath().toStdString() + "/";
+
   std::cout << "Working directory set to: " << workingDirectory << std::endl;
   QDir::setCurrent(QString(workingDirectory.c_str()));
 
@@ -238,6 +241,7 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
 
   TargetPatchInfoWidget->SetImage(this->Image);
   SourcePatchInfoWidget->SetImage(this->Image);
+
 }
 
 void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
@@ -306,7 +310,7 @@ void InteractivePatchComparisonWidget::SetupPatches()
 
   InitializePatch(this->SourcePatch, this->Green);
   
-  InitializePatch(this->TargetPatch, this->Red);
+  InitializePatch(this->TargetPatch, this->Blue);
   
   PatchesMovedEventHandler();
   Refresh();
@@ -405,7 +409,9 @@ void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageReg
 
   targetPosition[0] = patchRegion.GetIndex()[0];
   targetPosition[1] = patchRegion.GetIndex()[1];
-  this->SourcePatchSlice->SetPosition(targetPosition);
+  this->TargetPatchSlice->SetPosition(targetPosition);
+
+  Refresh();
 }
 
 void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageRegion<2>& patchRegion)
@@ -416,6 +422,8 @@ void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageReg
   sourcePosition[0] = patchRegion.GetIndex()[0];
   sourcePosition[1] = patchRegion.GetIndex()[1];
   this->SourcePatchSlice->SetPosition(sourcePosition);
+
+  Refresh();
 }
   
 void InteractivePatchComparisonWidget::PatchesMovedEventHandler()

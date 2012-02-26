@@ -22,6 +22,10 @@ typename TypeTraits<TVector>::LargerComponentType RunningAverage(const TVector& 
   // To remedy this, the average is computed during each step so overflow is always prevented.
   // From: http://en.wikipedia.org/wiki/Moving_average#Cumulative_moving_average
 
+  if(v.size() == 0)
+  {
+    throw std::runtime_error("Cannot compute RunningAverage of 0 points!");
+  }
   typedef typename TypeTraits<TVector>::LargerComponentType AverageType;
   //typedef typename TypeTraits<TVector>::ComponentType ItemType;
   //std::cout << "Helpers::RunningAverage" << std::endl;
@@ -48,6 +52,10 @@ typename TypeTraits<TVector>::LargerComponentType RunningAverage(const TVector& 
 template<typename TVector>
 typename TypeTraits<TVector>::LargerComponentType Average(const TVector& v)
 {
+  if(v.size() == 0)
+  {
+    throw std::runtime_error("Cannot compute Average of 0 points!");
+  }
   //std::cout << "Helpers::Average" << std::endl;
   typedef typename TypeTraits<TVector>::LargerComponentType AverageType;
   AverageType vectorSum = v[0]; // We do this because if the length is not known until runtime (std::vector, itk::VariableLengthVector, etc), we want the output to be the right length.

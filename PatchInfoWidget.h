@@ -35,7 +35,7 @@ class PatchInfoWidget : public QWidget, public Ui::PatchInfoWidget
 Q_OBJECT
 public:
 
-  PatchInfoWidget(QWidget* parent) : QWidget(parent){}
+  PatchInfoWidget(QWidget* parent);
 
   void SetImage(VectorImageType* const image);
   void SetMask(Mask* const mask);
@@ -45,8 +45,8 @@ signals:
   
 public slots:
 
-  void on_txtX_returnPressed();
-  void on_txtY_returnPressed();
+  void on_txtXCenter_returnPressed();
+  void on_txtYCenter_returnPressed();
 
   void slot_Update(const itk::ImageRegion<2>& patchRegion);
 

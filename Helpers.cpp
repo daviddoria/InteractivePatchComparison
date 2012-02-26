@@ -55,7 +55,7 @@ std::string VectorToString(const VectorImageType::PixelType& vec)
   ss << "(";
   for(unsigned int i = 0; i < vec.GetSize(); ++i)
   {
-    ss << vec[i];
+    ss << static_cast<float>(vec[i]);
     if(i == vec.GetSize() - 1)
     {
       ss << ")";

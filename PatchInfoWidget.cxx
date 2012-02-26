@@ -26,6 +26,11 @@
 #include "AverageScore.hpp"
 #include "VarianceScore.hpp"
 
+PatchInfoWidget::PatchInfoWidget(QWidget* parent) : QWidget(parent)
+{
+  setupUi(this);
+}
+
 void PatchInfoWidget::SetImage(VectorImageType* const image)
 {
   this->Image = image;
@@ -42,22 +47,26 @@ void PatchInfoWidget::SetMask(Mask* const mask)
   this->MaskImage = mask;
 }
   
-void PatchInfoWidget::on_txtX_returnPressed()
+void PatchInfoWidget::on_txtXCenter_returnPressed()
 {
-  itk::Index<2> index = this->Region.GetIndex();
-  index[0] = txtXCenter->text().toUInt();
+  itk::Index<2> currentCenter = Helpers::GetRegionCenter(this->Region);
 
-  this->Region = Helpers::GetRegionInRadiusAroundPixel(index, this->GetRadius());
+  itk::Index<2> newCenter = currentCenter;
+  newCenter[0] = txtXCenter->text().toUInt();
+
+  this->Region = Helpers::GetRegionInRadiusAroundPixel(newCenter, this->GetRadius());
 
   emit signal_PatchMoved(Region);
 }
 
-void PatchInfoWidget::on_txtY_returnPressed()
+void PatchInfoWidget::on_txtYCenter_returnPressed()
 {
-  itk::Index<2> index = this->Region.GetIndex();
-  index[1] = txtYCenter->text().toUInt();
+  itk::Index<2> currentCenter = Helpers::GetRegionCenter(this->Region);
 
-  this->Region = Helpers::GetRegionInRadiusAroundPixel(index, this->GetRadius());
+  itk::Index<2> newCenter = currentCenter;
+  newCenter[1] = txtYCenter->text().toUInt();
+
+  this->Region = Helpers::GetRegionInRadiusAroundPixel(newCenter, this->GetRadius());
 
   emit signal_PatchMoved(Region);
 }
@@ -75,15 +84,23 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   this->txtXCenter->setText(QString::number(patchCenter[0]));
   this->txtYCenter->setText(QString::number(patchCenter[1]));
 
-  VectorImageType::PixelType average = Helpers::AverageInRegionMasked(Image.GetPointer(),
-                                                                      MaskImage.GetPointer(), patchRegion);
+  if(MaskImage->CountValidPixels(patchRegion) > 0)
+  {
+    VectorImageType::PixelType average = Helpers::AverageInRegionMasked(Image.GetPointer(),
+                                                                        MaskImage.GetPointer(), patchRegion);
 
-  lblPixelMean->setText(Helpers::VectorToString(average).c_str());
-  
-  VectorImageType::PixelType variance = Helpers::VarianceInRegionMasked(this->Image.GetPointer(),
-                                                                        this->MaskImage, patchRegion);
+    lblPixelMean->setText(Helpers::VectorToString(average).c_str());
 
-  lblPixelVariance->setText(Helpers::VectorToString(variance).c_str());
+    VectorImageType::PixelType variance = Helpers::VarianceInRegionMasked(this->Image.GetPointer(),
+                                                                          this->MaskImage, patchRegion);
+
+    lblPixelVariance->setText(Helpers::VectorToString(variance).c_str());
+  }
+  else
+  {
+    lblPixelMean->setText("Invalid");
+    lblPixelVariance->setText("Invalid");
+  }
 
 
   // Display

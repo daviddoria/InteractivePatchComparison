@@ -105,6 +105,10 @@ class Mask : public itk::Image< unsigned char, 2>
       }
     return false;
   }
+
+  unsigned int CountMaskedPixels(const itk::ImageRegion<2>& region);
+
+  unsigned int CountValidPixels(const itk::ImageRegion<2>& region);
   
   void Invert()
   {

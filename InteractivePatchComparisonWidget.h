@@ -88,11 +88,10 @@ protected:
   
   void OpenImage(const std::string& filename);
   void OpenMask(const std::string& filename);
-  
-  //void SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image);
-  
+
   static const unsigned char Green[3];
   static const unsigned char Red[3];
+  static const unsigned char Blue[3];
   
   void GetPatchSize();
   
