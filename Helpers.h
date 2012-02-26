@@ -52,6 +52,8 @@ std::vector<float> EigenVectorToSTDVector(const Eigen::VectorXd& vec);
   
 unsigned int CountValidPatches(const Mask* const mask, const unsigned int patchRadius);
 
+itk::ImageRegion<2> FindFirstValidPatch(const Mask* const mask, const unsigned int patchRadius);
+
 QImage FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx);
 
 template<typename TImage>

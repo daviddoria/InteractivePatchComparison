@@ -506,17 +506,42 @@ void InteractivePatchComparisonWidget::on_btnSavePatches_clicked()
   fout.close();
 }
 
-void InteractivePatchComparisonWidget::ComputeFeatureMatrix()
+Eigen::VectorXd InteractivePatchComparisonWidget::ComputeFeatures(const itk::ImageRegion<2>& region)
 {
-  // Compute average (N components), variance (N components), average gradient (N components)
+  // Compute average (N components), variance (N components)
+
   unsigned int numberOfImageComponents = Image->GetNumberOfComponentsPerPixel();
+
+  Eigen::VectorXd feature(numberOfImageComponents * 2);
   
+  VectorImageType::PixelType pixelAverage = Helpers::AverageInRegion(Image.GetPointer(), region);
+  for(unsigned int component = 0; component < numberOfImageComponents; ++component)
+    {
+    feature[component] = pixelAverage[component];
+    }
+
+  VectorImageType::PixelType pixelVariance = Helpers::VarianceInRegion(Image.GetPointer(), region);
+  for(unsigned int component = 0; component < numberOfImageComponents; ++component)
+    {
+    feature[numberOfImageComponents + component] = pixelVariance[component];
+    }
+
+  return feature;
+}
+
+void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
+{
   //Eigen::MatrixXd m(3*N,3*N);
 
   // Count valid patches
   unsigned int numberOfValidPatches = Helpers::CountValidPatches(MaskImage, GetPatchRadius());
 
-  unsigned int numberOfFeatures = 2*numberOfImageComponents;
+  itk::ImageRegion<2> firstValidRegion = Helpers::FindFirstValidPatch(MaskImage, GetPatchRadius());
+
+  Eigen::VectorXd testFeature = ComputeFeatures(firstValidRegion);
+  
+  unsigned int numberOfFeatures = testFeature.size();
+  
   Eigen::MatrixXd featureMatrix(numberOfValidPatches, numberOfFeatures);
   
   itk::ImageRegionConstIteratorWithIndex<VectorImageType> imageIterator(Image, Image->GetLargestPossibleRegion());
@@ -528,27 +553,21 @@ void InteractivePatchComparisonWidget::ComputeFeatureMatrix()
 
     if(MaskImage->IsValid(region))
     {
-      VectorImageType::PixelType pixelAverage = Helpers::AverageInRegion(Image.GetPointer(), region);
-      for(unsigned int component = 0; component < numberOfImageComponents; ++component)
+      Eigen::VectorXd feature = ComputeFeatures(region);
+      for(unsigned int component = 0; component < numberOfFeatures; ++component)
         {
-        featureMatrix(rowCounter, component) = pixelAverage[component];
-        }
-      
-      VectorImageType::PixelType pixelVariance = Helpers::VarianceInRegion(Image.GetPointer(), region);
-      for(unsigned int component = 0; component < numberOfImageComponents; ++component)
-        {
-        featureMatrix(rowCounter, numberOfImageComponents + component) = pixelVariance[component];
+        featureMatrix(rowCounter, component) = feature[component];
         }
 
       rowCounter++;
     }
-    
+
     ++imageIterator;
     }
 
   // Normalize feature matrix
-  Eigen::VectorXd featureMeans(numberOfFeatures);
-  Eigen::VectorXd featureStandardDeviations(numberOfFeatures);
+  featureMeans.resize(numberOfFeatures);
+  featureStandardDeviations.resize(numberOfFeatures);
   
   // Extract a column at a time (each column consists of the same computed value)
   for(unsigned int feature = 0; feature < numberOfFeatures; ++feature)

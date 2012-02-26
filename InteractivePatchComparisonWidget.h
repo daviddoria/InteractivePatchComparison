@@ -21,6 +21,9 @@
 
 #include "ui_InteractivePatchComparisonWidget.h"
 
+// Eigen
+#include <Eigen/Dense>
+
 // VTK
 #include <vtkSmartPointer.h>
 
@@ -85,9 +88,13 @@ public slots:
 private:
 
   unsigned int GetPatchRadius();
-  
-  void ComputeFeatureMatrix();
-  
+
+  Eigen::VectorXd ComputeFeatures(const itk::ImageRegion<2>& region);
+  void ComputeFeatureMatrixStatistics();
+
+  Eigen::VectorXd featureMeans;
+  Eigen::VectorXd featureStandardDeviations;
+
   void PatchesMovedEventHandler();
   
   void showEvent(QShowEvent* event);

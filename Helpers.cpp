@@ -581,4 +581,25 @@ std::vector<float> EigenVectorToSTDVector(const Eigen::VectorXd& vec)
   return stdvector;
 }
 
+itk::ImageRegion<2> FindFirstValidPatch(const Mask* const mask, const unsigned int patchRadius)
+{
+  itk::ImageRegionConstIteratorWithIndex<Mask> maskIterator(mask, mask->GetLargestPossibleRegion());
+
+  while(!maskIterator.IsAtEnd())
+    {
+    itk::ImageRegion<2> region = Helpers::GetRegionInRadiusAroundPixel(maskIterator.GetIndex(), patchRadius);
+
+    if(mask->IsValid(region))
+      {
+      return region;
+      }
+    }
+
+  throw std::runtime_error("No valid patches found!");
+
+  // We should never reach this point
+  itk::ImageRegion<2> dummyRegion;
+  return dummyRegion;
+}
+
 } // end namespace
