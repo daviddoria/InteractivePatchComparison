@@ -36,7 +36,22 @@
 namespace Helpers
 {
 
-float SumOfAbsoluteDifferences(const Eigen::VectorXd& a, const Eigen::VectorXd& b)
+float SumOfRow(const Eigen::MatrixXf& m, const unsigned int rowId)
+{
+  return SumOfVector(m.row(rowId));
+}
+
+float SumOfVector(const Eigen::VectorXf& v)
+{
+  float sum = 0.0f;
+  for(unsigned int i = 0; i < static_cast<unsigned int>(v.size()); ++i)
+  {
+    sum += v[i];
+  }
+  return sum;
+}
+
+float SumOfAbsoluteDifferences(const Eigen::VectorXf& a, const Eigen::VectorXf& b)
 {
   if(a.size() != b.size())
   {
@@ -590,7 +605,7 @@ unsigned int CountValidPatches(const Mask* const mask, const unsigned int patchR
   return counter;
 }
 
-std::vector<float> EigenVectorToSTDVector(const Eigen::VectorXd& vec)
+std::vector<float> EigenVectorToSTDVector(const Eigen::VectorXf& vec)
 {
   std::vector<float> stdvector(vec.size());
   for(unsigned int i = 0; i < static_cast<unsigned int>(vec.size()); ++i)
@@ -598,6 +613,16 @@ std::vector<float> EigenVectorToSTDVector(const Eigen::VectorXd& vec)
     stdvector[i] = vec[i];
   }
   return stdvector;
+}
+
+Eigen::VectorXf STDVectorToEigenVector(const std::vector<float>& vec)
+{
+  Eigen::VectorXf eigen_vector(vec.size());
+  for(unsigned int i = 0; i < static_cast<unsigned int>(vec.size()); ++i)
+  {
+    eigen_vector[i] = vec[i];
+  }
+  return eigen_vector;
 }
 
 itk::ImageRegion<2> FindFirstValidPatch(const Mask* const mask, const unsigned int patchRadius)

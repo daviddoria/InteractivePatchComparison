@@ -89,12 +89,12 @@ private:
 
   unsigned int GetPatchRadius();
 
-  Eigen::VectorXd ComputeFeatures(const itk::ImageRegion<2>& region);
-  Eigen::VectorXd ComputeNormalizedFeatures(const itk::ImageRegion<2>& region);
+  Eigen::VectorXf ComputeFeatures(const itk::ImageRegion<2>& region);
+  Eigen::VectorXf ComputeNormalizedFeatures(const itk::ImageRegion<2>& region);
   void ComputeFeatureMatrixStatistics();
 
-  Eigen::VectorXd FeatureMeans;
-  Eigen::VectorXd FeatureStandardDeviations;
+  Eigen::VectorXf FeatureMeans;
+  Eigen::VectorXf FeatureStandardDeviations;
 
   void PatchesMovedEventHandler();
   

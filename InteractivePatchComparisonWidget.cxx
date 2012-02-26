@@ -501,10 +501,10 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
   CorrelationScore correlationScoreFunctor;
   float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), this->MaskImage, sourceRegion, targetRegion);
 
-  Eigen::VectorXd sourceFeatures = ComputeNormalizedFeatures(sourceRegion);
+  Eigen::VectorXf sourceFeatures = ComputeNormalizedFeatures(sourceRegion);
   std::cout << "sourceFeatures " << std::endl << sourceFeatures << std::endl;
   
-  Eigen::VectorXd targetFeatures = ComputeNormalizedFeatures(targetRegion);
+  Eigen::VectorXf targetFeatures = ComputeNormalizedFeatures(targetRegion);
   std::cout << "targetFeatures " << std::endl << targetFeatures << std::endl;
 
   float featuresDifference = Helpers::SumOfAbsoluteDifferences(sourceFeatures, targetFeatures);
@@ -533,9 +533,9 @@ void InteractivePatchComparisonWidget::on_btnSavePatches_clicked()
   fout.close();
 }
 
-Eigen::VectorXd InteractivePatchComparisonWidget::ComputeNormalizedFeatures(const itk::ImageRegion<2>& region)
+Eigen::VectorXf InteractivePatchComparisonWidget::ComputeNormalizedFeatures(const itk::ImageRegion<2>& region)
 {
-  Eigen::VectorXd features = ComputeFeatures(region);
+  Eigen::VectorXf features = ComputeFeatures(region);
   for(unsigned int i = 0; i < static_cast<unsigned int>(features.size()); ++i)
   {
     features[i] -= FeatureMeans[i];
@@ -545,13 +545,13 @@ Eigen::VectorXd InteractivePatchComparisonWidget::ComputeNormalizedFeatures(cons
   return features;
 }
 
-Eigen::VectorXd InteractivePatchComparisonWidget::ComputeFeatures(const itk::ImageRegion<2>& region)
+Eigen::VectorXf InteractivePatchComparisonWidget::ComputeFeatures(const itk::ImageRegion<2>& region)
 {
   // Compute average (N components), variance (N components)
 
   unsigned int numberOfImageComponents = Image->GetNumberOfComponentsPerPixel();
 
-  Eigen::VectorXd feature(numberOfImageComponents * 2);
+  Eigen::VectorXf feature(numberOfImageComponents * 2);
   
   VectorImageType::PixelType pixelAverage = Helpers::AverageInRegion(Image.GetPointer(), region);
   for(unsigned int component = 0; component < numberOfImageComponents; ++component)
@@ -570,18 +570,18 @@ Eigen::VectorXd InteractivePatchComparisonWidget::ComputeFeatures(const itk::Ima
 
 void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
 {
-  //Eigen::MatrixXd m(3*N,3*N);
+  //Eigen::MatrixXf m(3*N,3*N);
 
   // Count valid patches
   unsigned int numberOfValidPatches = Helpers::CountValidPatches(MaskImage, GetPatchRadius());
 
   itk::ImageRegion<2> firstValidRegion = Helpers::FindFirstValidPatch(MaskImage, GetPatchRadius());
 
-  Eigen::VectorXd testFeature = ComputeFeatures(firstValidRegion);
+  Eigen::VectorXf testFeature = ComputeFeatures(firstValidRegion);
   
   unsigned int numberOfFeatures = testFeature.size();
   
-  Eigen::MatrixXd featureMatrix(numberOfValidPatches, numberOfFeatures);
+  Eigen::MatrixXf featureMatrix(numberOfValidPatches, numberOfFeatures);
   
   itk::ImageRegionConstIteratorWithIndex<VectorImageType> imageIterator(Image, Image->GetLargestPossibleRegion());
 
@@ -597,7 +597,7 @@ void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
     itk::ImageRegion<2> region = Helpers::GetRegionInRadiusAroundPixel(imageIterator.GetIndex(), GetPatchRadius());
     if(MaskImage->IsValid(region))
     {
-      Eigen::VectorXd feature = ComputeFeatures(region);
+      Eigen::VectorXf feature = ComputeFeatures(region);
       for(unsigned int component = 0; component < numberOfFeatures; ++component)
         {
         featureMatrix(rowCounter, component) = feature[component];
@@ -616,7 +616,7 @@ void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
   // Extract a column at a time (each column consists of the same computed value)
   for(unsigned int feature = 0; feature < numberOfFeatures; ++feature)
   {
-    Eigen::VectorXd eigenFeatures = featureMatrix.col(feature);
+    Eigen::VectorXf eigenFeatures = featureMatrix.col(feature);
     std::vector<float> stdFeatures = Helpers::EigenVectorToSTDVector(eigenFeatures);
     float featureAverage = Statistics::Average(stdFeatures);
     FeatureMeans[feature] = featureAverage;
