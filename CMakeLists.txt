@@ -29,6 +29,7 @@ INCLUDE(${ITK_USE_FILE})
 add_library(PatchComparison Helpers.cpp Mask.cpp)
 
 ADD_EXECUTABLE(InteractivePatchComparison
+DiffusionDistance.cpp 
 InteractivePatchComparisonWidget.cxx
 Interactive.cpp 
 SwitchBetweenStyle.cxx

@@ -52,6 +52,9 @@ std::vector<float> EigenVectorToSTDVector(const Eigen::VectorXf& vec);
 
 Eigen::VectorXf STDVectorToEigenVector(const std::vector<float>& vec);
 
+template <typename TVecTo, typename TVecFrom>
+TVecTo ConvertVector(const TVecFrom& vec);
+
 float SumOfRow(const Eigen::MatrixXf& m, const unsigned int rowId);
 
 float SumOfVector(const Eigen::VectorXf& v);
@@ -209,6 +212,9 @@ template<typename TImage>
 typename TypeTraits<typename TImage::PixelType>::LargerType VarianceInRegionMasked(const TImage* const image,
                                                                                    const Mask* const mask,
                                                                              const itk::ImageRegion<2>& region);
+
+template <typename TPair>
+bool SortByFirst(TPair object1, TPair object2);
 
 }// end namespace
 

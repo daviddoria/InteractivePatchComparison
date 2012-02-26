@@ -64,11 +64,10 @@
 #include "SwitchBetweenStyle.h"
 #include "Mask.h"
 #include "Types.h"
-
 #include "CorrelationScore.hpp"
-
 #include "AveragePixelDifference.hpp"
 #include "PixelDifferences.hpp"
+#include "DiffusionDistance.h"
 
 const unsigned char InteractivePatchComparisonWidget::Green[3] = {0,255,0};
 const unsigned char InteractivePatchComparisonWidget::Red[3] = {255,0,0};
@@ -509,7 +508,27 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
 
   float featuresDifference = Helpers::SumOfAbsoluteDifferences(sourceFeatures, targetFeatures);
   std::cout << "Features difference: " << featuresDifference << std::endl;
-  
+
+  // Diffusion distance
+  std::vector<Eigen::VectorXf> allPoints;
+  itk::Index<2> targetCenter = Helpers::GetRegionCenter(targetRegion);
+  itk::ImageRegion<2> neighborhoodRegion = Helpers::GetRegionInRadiusAroundPixel(targetCenter, 2);
+  itk::ImageRegionConstIterator<Mask> neighborhoodIterator(MaskImage, neighborhoodRegion);
+
+  while(!neighborhoodIterator.IsAtEnd())
+    {
+    itk::ImageRegion<2> nearbyRegion = Helpers::GetRegionInRadiusAroundPixel(neighborhoodIterator.GetIndex(), GetPatchRadius());
+    Eigen::VectorXf nearbyFeatures = ComputeNormalizedFeatures(nearbyRegion);
+    allPoints.push_back(nearbyFeatures);
+    ++neighborhoodIterator;
+    }
+
+  allPoints.push_back(sourceFeatures);
+
+  DiffusionDistance diffusionDistanceFunctor;
+  float diffusionDistance = diffusionDistanceFunctor(targetFeatures, sourceFeatures, allPoints);
+  std::cout << "diffusionDistance: " << diffusionDistance << std::endl;
+
   Refresh();
 
   this->lblSumAbsolutePixelDifference->setNum(averagePixelDifference);

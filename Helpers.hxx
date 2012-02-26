@@ -764,4 +764,21 @@ void SetImageToConstant(TImage* const image, const typename TImage::PixelType& v
     }
 }
 
+template <typename TPair>
+bool SortByFirst(TPair object1, TPair object2)
+{
+  return object1.first < object2.first;
+}
+
+template <typename TVecTo, typename TVecFrom>
+TVecTo ConvertVector(const TVecFrom& vec)
+{
+  TVecTo newvector(vec.size());
+  for(unsigned int i = 0; i < static_cast<unsigned int>(vec.size()); ++i)
+  {
+    newvector[i] = vec[i];
+  }
+  return newvector;
+}
+
 }// end namespace
