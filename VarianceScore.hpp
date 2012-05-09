@@ -1,8 +1,11 @@
 #ifndef VarianceScore_HPP
 #define VarianceScore_HPP
 
-// Custom
-#include "Helpers.h"
+// Submodules
+#include "Helpers/Helpers.h"
+#include "ITKHelpers/ITKHelpers.h"
+#include "ITKHelpers/ITKStatistics.h"
+
 /**
 
  */
@@ -23,15 +26,13 @@ struct VarianceScore
       std::cout << "VarianceScore with " << validOffsets.size() << " pixels." << std::endl;
     }
     
-    std::vector<itk::Index<2> > validIndices = Helpers::OffsetsToIndices(validOffsets, targetRegion.GetIndex());
-
-    Helpers::VarianceFunctor varianceFunctor;
+    std::vector<itk::Index<2> > validIndices = ITKHelpers::OffsetsToIndices(validOffsets, targetRegion.GetIndex());
     
     /////////// Target region //////////
-    std::vector<typename TImage::PixelType> validPixelsTargetRegion = Helpers::GetPixelValues(image, validIndices);
+    std::vector<typename TImage::PixelType> validPixelsTargetRegion = ITKHelpers::GetPixelValues(image, validIndices);
     std::cout << "pixel 0: " << static_cast<int>(validPixelsTargetRegion[0][0]) << std::endl;
     
-    typename TypeTraits<typename TImage::PixelType>::LargerType targetVariance = varianceFunctor(validPixelsTargetRegion);
+    typename TypeTraits<typename TImage::PixelType>::LargerType targetVariance = ITKStatistics::Variance(validPixelsTargetRegion);
 
     std::cout << "targetVariance: " << targetVariance << std::endl;
 

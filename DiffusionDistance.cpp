@@ -1,6 +1,10 @@
 #include "DiffusionDistance.h"
 
-#include "Helpers.h"
+#include <stdexcept>
+
+#include "Helpers/Helpers.h"
+
+#include "EigenHelpers.h"
 
 float DiffusionDistance::SumOfAbsoluteDifference(const std::vector<float>& a, const std::vector<float>& b)
 {
@@ -62,7 +66,7 @@ float DiffusionDistance::operator()(const Eigen::VectorXf& a, const Eigen::Vecto
   // Sum the rows of L, and set the diagonal entries of D to these sums
   for(unsigned int row = 0; row < allPoints.size(); ++row)
   {
-    float sumOfRow = Helpers::SumOfRow(L, row);
+    float sumOfRow = EigenHelpers::SumOfRow(L, row);
     D(row, row) = sumOfRow;
   }
 

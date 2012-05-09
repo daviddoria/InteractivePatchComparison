@@ -8,7 +8,10 @@
 #include "itkVectorMagnitudeImageFilter.h"
 
 // Custom
-#include "Helpers.h"
+#include "Helpers/Helpers.h"
+#include "Helpers/Statistics.h"
+#include "ITKHelpers/ITKHelpers.h"
+
 /**
 
  */
@@ -29,28 +32,28 @@ struct CorrelationScore
     FloatImageType::Pointer sourceImage = FloatImageType::New();
 //     sourceImage->SetRegions(ITKHelpers::CornerRegion(sourceRegion.GetSize()));
 //     sourceImage->Allocate();
-    Helpers::ExtractRegion(magnitudeFilter->GetOutput(), sourceRegion, sourceImage.GetPointer());
+    ITKHelpers::ExtractRegion(magnitudeFilter->GetOutput(), sourceRegion, sourceImage.GetPointer());
 
     FloatImageType::Pointer targetImage = FloatImageType::New();
 //     sourceImage->SetRegions(ITKHelpers::CornerRegion(targetRegion.GetSize()));
 //     sourceImage->Allocate();
-    Helpers::ExtractRegion(magnitudeFilter->GetOutput(), targetRegion, targetImage.GetPointer());
+    ITKHelpers::ExtractRegion(magnitudeFilter->GetOutput(), targetRegion, targetImage.GetPointer());
 
-    std::vector<itk::Index<2> > validIndices = Helpers::OffsetsToIndices(validOffsets);
+    std::vector<itk::Index<2> > validIndices = ITKHelpers::OffsetsToIndices(validOffsets);
 
     if(validIndices.size() == 0)
     {
       std::cerr << "Warning: validIndices.size() = 0!" << std::endl;
       return 0.0f;
     }
-    Helpers::VarianceFunctor varianceFunctor;
-    Helpers::AverageFunctor averageFunctor;
+    //Helpers::VarianceFunctor varianceFunctor;
+    //Helpers::AverageFunctor averageFunctor;
     /////////// Target region //////////
-    std::vector<FloatImageType::PixelType> validPixelsTargetRegion = Helpers::GetPixelValues(targetImage.GetPointer(), validIndices);
+    std::vector<FloatImageType::PixelType> validPixelsTargetRegion = ITKHelpers::GetPixelValues(targetImage.GetPointer(), validIndices);
     //std::cout << "There are " << validPixelsTargetRegion.size() << " validPixelsTargetRegion" << std::endl;
     
-    typename TypeTraits<FloatImageType::PixelType>::LargerType targetMean = averageFunctor(validPixelsTargetRegion);
-    typename TypeTraits<FloatImageType::PixelType>::LargerType targetStandardDeviation = sqrt(varianceFunctor(validPixelsTargetRegion));
+    typename TypeTraits<FloatImageType::PixelType>::LargerType targetMean = Statistics::Average(validPixelsTargetRegion);
+    typename TypeTraits<FloatImageType::PixelType>::LargerType targetStandardDeviation = sqrt(Statistics::Variance(validPixelsTargetRegion));
 
     typedef itk::AddImageFilter <FloatImageType, FloatImageType, FloatImageType> AddImageFilterType;
     AddImageFilterType::Pointer targetAddImageFilter = AddImageFilterType::New();
@@ -65,9 +68,9 @@ struct CorrelationScore
     targetMultiplyImageFilter->Update();
 
     /////////// Source region //////////
-    std::vector<FloatImageType::PixelType> validPixelsSourceRegion = Helpers::GetPixelValues(sourceImage.GetPointer(), validIndices);
-    typename TypeTraits<FloatImageType::PixelType>::LargerType sourceMean = averageFunctor(validPixelsSourceRegion);
-    typename TypeTraits<FloatImageType::PixelType>::LargerType sourceStandardDeviation = sqrt(varianceFunctor(validPixelsSourceRegion));
+    std::vector<FloatImageType::PixelType> validPixelsSourceRegion = ITKHelpers::GetPixelValues(sourceImage.GetPointer(), validIndices);
+    typename TypeTraits<FloatImageType::PixelType>::LargerType sourceMean = Statistics::Average(validPixelsSourceRegion);
+    typename TypeTraits<FloatImageType::PixelType>::LargerType sourceStandardDeviation = sqrt(Statistics::Variance(validPixelsSourceRegion));
 
     AddImageFilterType::Pointer sourceAddImageFilter = AddImageFilterType::New();
     sourceAddImageFilter->SetInput(sourceImage);

@@ -21,8 +21,13 @@
 // Qt
 #include <QTextEdit>
 
+// Submodules
+#include "Helpers/Helpers.h"
+#include "Mask/MaskOperations.h"
+#include "QtHelpers/QtHelpers.h"
+#include "ITKQtHelpers/ITKQtHelpers.h"
+
 // Custom
-#include "Helpers.h"
 #include "AverageScore.hpp"
 #include "VarianceScore.hpp"
 #include "AveragePixelDifference.hpp"
@@ -54,24 +59,24 @@ void PatchInfoWidget::SetMask(Mask* const mask)
   
 void PatchInfoWidget::on_txtXCenter_returnPressed()
 {
-  itk::Index<2> currentCenter = Helpers::GetRegionCenter(this->Region);
+  itk::Index<2> currentCenter = ITKHelpers::GetRegionCenter(this->Region);
 
   itk::Index<2> newCenter = currentCenter;
   newCenter[0] = txtXCenter->text().toUInt();
 
-  this->Region = Helpers::GetRegionInRadiusAroundPixel(newCenter, this->GetRadius());
+  this->Region = ITKHelpers::GetRegionInRadiusAroundPixel(newCenter, this->GetRadius());
 
   emit signal_PatchMoved(Region);
 }
 
 void PatchInfoWidget::on_txtYCenter_returnPressed()
 {
-  itk::Index<2> currentCenter = Helpers::GetRegionCenter(this->Region);
+  itk::Index<2> currentCenter = ITKHelpers::GetRegionCenter(this->Region);
 
   itk::Index<2> newCenter = currentCenter;
   newCenter[1] = txtYCenter->text().toUInt();
 
-  this->Region = Helpers::GetRegionInRadiusAroundPixel(newCenter, this->GetRadius());
+  this->Region = ITKHelpers::GetRegionInRadiusAroundPixel(newCenter, this->GetRadius());
 
   emit signal_PatchMoved(Region);
 }
@@ -85,7 +90,7 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   }
 
   Region = patchRegion;
-  itk::Index<2> patchCenter = Helpers::GetRegionCenter(patchRegion);
+  itk::Index<2> patchCenter = ITKHelpers::GetRegionCenter(patchRegion);
   this->txtXCenter->setText(QString::number(patchCenter[0]));
   this->txtYCenter->setText(QString::number(patchCenter[1]));
 
@@ -102,13 +107,13 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
     //average = Helpers::AverageInRegionMasked(Image.GetPointer(), MaskImage.GetPointer(), patchRegion);
 
     // This assumes both patches are fully valid (often the case when exploring)
-    average = Helpers::AverageInRegion(Image.GetPointer(), patchRegion);
+    average = ITKHelpers::AverageInRegion(Image.GetPointer(), patchRegion);
 
-    lblPixelMean->setText(Helpers::VectorToString(average).c_str());
+    lblPixelMean->setText(ITKHelpers::VectorToString(average).c_str());
 
-    variance = Helpers::VarianceInRegionMasked(this->Image.GetPointer(), this->MaskImage, patchRegion);
+    variance = MaskOperations::VarianceInRegionMasked(this->Image.GetPointer(), this->MaskImage, patchRegion);
 
-    lblPixelVariance->setText(Helpers::VectorToString(variance).c_str());
+    lblPixelVariance->setText(ITKHelpers::VectorToString(variance).c_str());
   }
   else
   {
@@ -117,10 +122,10 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   }
 
   // Patch display
-  QImage sourcePatchImage = Helpers::GetQImageMasked(this->Image.GetPointer(), this->MaskImage,
+  QImage sourcePatchImage = MaskOperations::GetQImageMasked(this->Image.GetPointer(), this->MaskImage,
                             patchRegion);
 
-  sourcePatchImage = Helpers::FitToGraphicsView(sourcePatchImage, this->graphicsView);
+  sourcePatchImage = QtHelpers::FitToGraphicsView(sourcePatchImage, this->graphicsView);
 
   QGraphicsScene* sourceScene = new QGraphicsScene();
   sourceScene->addPixmap(QPixmap::fromImage(sourcePatchImage));
@@ -136,11 +141,11 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   averageColorImage->SetNumberOfComponentsPerPixel(Image->GetNumberOfComponentsPerPixel());
   averageColorImage->Allocate();
 
-  Helpers::SetImageToConstant(averageColorImage.GetPointer(), average);
+  ITKHelpers::SetImageToConstant(averageColorImage.GetPointer(), average);
   
-  QImage averageColorQImage = Helpers::ITKImageToQImage(averageColorImage.GetPointer());
+  QImage averageColorQImage = ITKQtHelpers::GetQImageColor(averageColorImage.GetPointer(), averageColorImage->GetLargestPossibleRegion());
 
-  averageColorQImage = Helpers::FitToGraphicsView(averageColorQImage, this->graphicsView_AverageColor);
+  averageColorQImage = QtHelpers::FitToGraphicsView(averageColorQImage, this->graphicsView_AverageColor);
 
   QGraphicsScene* averageColorScene = new QGraphicsScene();
   averageColorScene->addPixmap(QPixmap::fromImage(averageColorQImage));
@@ -158,7 +163,7 @@ void PatchInfoWidget::Save(const std::string& prefix)
 
   std::stringstream ss;
   ss << prefix << "_patch.png";
-  Helpers::WriteImage(regionOfInterestImageFilter->GetOutput(), ss.str());
+  ITKHelpers::WriteImage(regionOfInterestImageFilter->GetOutput(), ss.str());
 }
 
 itk::ImageRegion<2> PatchInfoWidget::GetRegion() const

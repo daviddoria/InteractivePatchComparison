@@ -12,6 +12,15 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) #fix the dynamic linking error (RPAT
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
+# Submodules
+add_subdirectory(Helpers)
+add_subdirectory(ITKHelpers)
+add_subdirectory(VTKHelpers)
+add_subdirectory(ITKVTKHelpers)
+add_subdirectory(Mask)
+add_subdirectory(QtHelpers)
+add_subdirectory(ITKQtHelpers)
+
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})
 
@@ -27,10 +36,9 @@ INCLUDE(${VTK_USE_FILE})
 FIND_PACKAGE(ITK REQUIRED)
 INCLUDE(${ITK_USE_FILE})
 
-add_library(PatchComparison Helpers.cpp Mask.cpp)
-
 ADD_EXECUTABLE(InteractivePatchComparison
-DiffusionDistance.cpp 
+DiffusionDistance.cpp
+EigenHelpers.cpp
 InteractivePatchComparisonWidget.cxx
 Interactive.cpp 
 SwitchBetweenStyle.cxx
@@ -39,7 +47,7 @@ CustomTrackballStyle.cxx
 VarianceScore.hpp
 PatchInfoWidget.cxx
 ${InteractivePatchComparisonWidgetUISrcs} ${InteractivePatchComparisonWidgetMOCSrcs})
-TARGET_LINK_LIBRARIES(InteractivePatchComparison PatchComparison ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
+TARGET_LINK_LIBRARIES(InteractivePatchComparison libQtHelpers libHelpers libVTKHelpers libITKHelpers libITKVTKHelpers libMask ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
 INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )
 
 # 

@@ -19,9 +19,11 @@
 #ifndef AveragePixelDifference_HPP
 #define AveragePixelDifference_HPP
 
+// Submodules
+#include "Helpers/Helpers.h"
+#include "Mask/Mask.h"
+
 // Custom
-#include "Helpers.h"
-#include "Mask.h"
 #include "Types.h"
 #include "PixelDifferences.hpp"
 

@@ -1,0 +1,21 @@
+[submodule "Helpers"]
+	path = Helpers
+	url = git@github.com:daviddoria/Helpers.git
+[submodule "ITKHelpers"]
+	path = ITKHelpers
+	url = git@github.com:daviddoria/ITKHelpers.git
+[submodule "ITKVTKHelpers"]
+	path = ITKVTKHelpers
+	url = git@github.com:daviddoria/ITKVTKHelpers.git
+[submodule "Mask"]
+	path = Mask
+	url = git@github.com:daviddoria/Mask.git
+[submodule "VTKHelpers"]
+	path = VTKHelpers
+	url = git@github.com:daviddoria/VTKHelpers.git
+[submodule "QtHelpers"]
+	path = QtHelpers
+	url = git@github.com:daviddoria/QtHelpers.git
+[submodule "ITKQtHelpers"]
+	path = ITKQtHelpers
+	url = git@github.com:daviddoria/ITKQtHelpers.git

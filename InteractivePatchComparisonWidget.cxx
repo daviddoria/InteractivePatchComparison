@@ -60,10 +60,16 @@
 #include <vtkXMLPolyDataReader.h>
 #include <vtkXMLImageDataWriter.h> // For debugging only
 
+// Submodules
+#include "ITKVTKHelpers/ITKVTKHelpers.h"
+#include "Helpers/Helpers.h"
+#include "Mask/Mask.h"
+#include "Mask/MaskOperations.h"
+#include "VTKHelpers/VTKHelpers.h"
+
 // Custom
-#include "Helpers.h"
+#include "EigenHelpers.h"
 #include "SwitchBetweenStyle.h"
-#include "Mask.h"
 #include "Types.h"
 #include "CorrelationScore.hpp"
 #include "AveragePixelDifference.hpp"
@@ -255,9 +261,9 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
 
   //this->Image = reader->GetOutput();
   this->Image = VectorImageType::New();
-  Helpers::DeepCopy(reader->GetOutput(), this->Image.GetPointer());
+  ITKHelpers::DeepCopy(reader->GetOutput(), this->Image.GetPointer());
 
-  Helpers::ITKImagetoVTKImage(this->Image.GetPointer(), this->VTKImage);
+  ITKVTKHelpers::ITKImageToVTKRGBImage(this->Image.GetPointer(), this->VTKImage);
 
   this->statusBar()->showMessage("Opened image.");
   actionOpenMask->setEnabled(true);
@@ -280,7 +286,7 @@ void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
     return;
     }
   this->MaskImage = Mask::New();
-  Helpers::DeepCopy(reader->GetOutput(), this->MaskImage.GetPointer());
+  ITKHelpers::DeepCopy(reader->GetOutput(), this->MaskImage.GetPointer());
 
   // For this program, we ALWAYS assume the hole to be filled is white, and the valid/source region is black.
   // This is not simply reversible because of some subtle erosion operations that are performed.
@@ -290,7 +296,7 @@ void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
 
   this->MaskImage->Cleanup();
 
-  Helpers::SetMaskTransparency(this->MaskImage, this->VTKMaskImage);
+  MaskOperations::SetMaskTransparency(this->MaskImage, this->VTKMaskImage);
 
   this->statusBar()->showMessage("Opened mask.");
 
@@ -353,7 +359,7 @@ void InteractivePatchComparisonWidget::InitializePatch(vtkImageData* image, cons
   //image->AllocateScalars();
   image->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
   
-  Helpers::BlankAndOutlineImage(image,color);
+  VTKHelpers::BlankAndOutlineImage(image,color);
 }
 
 void InteractivePatchComparisonWidget::on_actionOpenMaskInverted_activated()
@@ -516,7 +522,7 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
   Eigen::VectorXf targetFeatures = ComputeNormalizedFeatures(targetRegion);
   //std::cout << "targetFeatures " << std::endl << targetFeatures << std::endl;
 
-  float featuresDifference = Helpers::SumOfAbsoluteDifferences(sourceFeatures, targetFeatures);
+  float featuresDifference = EigenHelpers::SumOfAbsoluteDifferences(sourceFeatures, targetFeatures);
   std::cout << "Features difference: " << featuresDifference << std::endl;
 
   // Diffusion distance of feature vectors
@@ -655,11 +661,14 @@ void InteractivePatchComparisonWidget::on_btnSavePatches_clicked()
   float averagePixelDifference = averagePixelDifferenceFunctor(this->Image.GetPointer(),
                                                                this->MaskImage, sourceRegion, targetRegion);
 
-  Helpers::WriteRGBRegion(this->Image.GetPointer(), sourceRegion, "SourcePatch.png");
+  ITKHelpers::WriteVectorImageRegionAsRGB(this->Image.GetPointer(), sourceRegion, "SourcePatch.png");
   //Helpers::WriteRGBRegion(this->Image.GetPointer(), targetRegion, "TargetPatch.png");
-  Helpers::WriteRGBRegionMasked(this->Image.GetPointer(), targetRegion, this->MaskImage.GetPointer(), targetRegion, "TargetPatch.png");
+  VectorImageType::PixelType holeColor;
+  holeColor.SetSize(3);
+  holeColor.Fill(0);
+  MaskOperations::WriteMaskedRegionPNG(this->Image.GetPointer(), this->MaskImage.GetPointer(), targetRegion, "TargetPatch.png", holeColor);
 
-  Helpers::WriteScalarRegion(this->MaskImage.GetPointer(), targetRegion, "MaskPatch.png");
+  ITKHelpers::WriteRegion(this->MaskImage.GetPointer(), targetRegion, "MaskPatch.png");
   
   std::ofstream fout("score.txt");
   fout << averagePixelDifference << std::endl;
@@ -686,13 +695,13 @@ Eigen::VectorXf InteractivePatchComparisonWidget::ComputeFeatures(const itk::Ima
 
   Eigen::VectorXf feature(numberOfImageComponents * 2);
   
-  VectorImageType::PixelType pixelAverage = Helpers::AverageInRegion(Image.GetPointer(), region);
+  VectorImageType::PixelType pixelAverage = ITKHelpers::AverageInRegion(Image.GetPointer(), region);
   for(unsigned int component = 0; component < numberOfImageComponents; ++component)
     {
     feature[component] = pixelAverage[component];
     }
 
-  VectorImageType::PixelType pixelVariance = Helpers::VarianceInRegion(Image.GetPointer(), region);
+  VectorImageType::PixelType pixelVariance = ITKHelpers::VarianceInRegion(Image.GetPointer(), region);
   for(unsigned int component = 0; component < numberOfImageComponents; ++component)
     {
     feature[numberOfImageComponents + component] = pixelVariance[component];
@@ -706,9 +715,9 @@ void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
   //Eigen::MatrixXf m(3*N,3*N);
 
   // Count valid patches
-  unsigned int numberOfValidPatches = Helpers::CountValidPatches(MaskImage, GetPatchRadius());
+  unsigned int numberOfValidPatches = MaskImage->CountValidPatches(GetPatchRadius());
 
-  itk::ImageRegion<2> firstValidRegion = Helpers::FindFirstValidPatch(MaskImage, GetPatchRadius());
+  itk::ImageRegion<2> firstValidRegion = MaskImage->FindFirstValidPatch(GetPatchRadius());
 
   Eigen::VectorXf testFeature = ComputeFeatures(firstValidRegion);
   
@@ -727,7 +736,7 @@ void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
                 << " features." << std::endl;
     }
 
-    itk::ImageRegion<2> region = Helpers::GetRegionInRadiusAroundPixel(imageIterator.GetIndex(), GetPatchRadius());
+    itk::ImageRegion<2> region = ITKHelpers::GetRegionInRadiusAroundPixel(imageIterator.GetIndex(), GetPatchRadius());
     if(MaskImage->IsValid(region))
     {
       Eigen::VectorXf feature = ComputeFeatures(region);
@@ -750,7 +759,7 @@ void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
   for(unsigned int feature = 0; feature < numberOfFeatures; ++feature)
   {
     Eigen::VectorXf eigenFeatures = featureMatrix.col(feature);
-    std::vector<float> stdFeatures = Helpers::EigenVectorToSTDVector(eigenFeatures);
+    std::vector<float> stdFeatures = EigenHelpers::EigenVectorToSTDVector(eigenFeatures);
     float featureAverage = Statistics::Average(stdFeatures);
     FeatureMeans[feature] = featureAverage;
     
