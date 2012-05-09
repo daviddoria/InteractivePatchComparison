@@ -67,6 +67,22 @@ float SumOfAbsoluteDifferences(const Eigen::VectorXf& a, const Eigen::VectorXf& 
   return total;
 }
 
+// float SumOfSquaredDifferences(const Eigen::VectorXf& a, const Eigen::VectorXf& b)
+// {
+//   if(a.size() != b.size())
+//   {
+//     throw std::runtime_error("SumOfSquaredDifferences: vectors must be the same size!");
+//   }
+// 
+//   float total = 0.0f;
+//   for(unsigned int i = 0; i < static_cast<unsigned int>(a.size()); ++i)
+//   {
+//     total += pow(a[i] - b[i], 2);
+//   }
+// 
+//   return total;
+// }
+
 QImage FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx)
 {
   // The -5's are fudge factors so that the scroll bars do not appear
@@ -152,14 +168,14 @@ void RGBImageToCIELabImage(RGBImageType* const rgbImage, VectorImageType* const 
     channels.push_back(ScalarImageType::New());
     vectorIndexSelectionFilter->SetIndex(i);
     vectorIndexSelectionFilter->Update();
-    DeepCopy<ScalarImageType>(vectorIndexSelectionFilter->GetOutput(), channels[i]);
+    DeepCopy(vectorIndexSelectionFilter->GetOutput(), channels[i].GetPointer());
     reassembler->SetNthInput(i, channels[i]);
     }
  
   reassembler->Update();
   
   // Copy to the output
-  DeepCopyVectorImage(reassembler->GetOutput(), cielabImage);
+  DeepCopy(reassembler->GetOutput(), cielabImage);
 }
 
 itk::Index<2> GetIndexFromImageSlice(vtkImageSlice* slice)
@@ -200,13 +216,13 @@ itk::Index<2> GetIndexFromImageSlice(vtkImageSlice* slice)
 void ITKRegionToVTKImage(const VectorImageType* const image, const itk::ImageRegion<2>& region, vtkImageData* outputImage)
 {
   // Setup and allocate the VTK image
-  outputImage->SetNumberOfScalarComponents(3);
-  outputImage->SetScalarTypeToUnsignedChar();
+  //outputImage->SetNumberOfScalarComponents(3);
+  //outputImage->SetScalarTypeToUnsignedChar();
   outputImage->SetDimensions(region.GetSize()[0],
                              region.GetSize()[1],
                              1);
-
-  outputImage->AllocateScalars();
+  //outputImage->AllocateScalars();
+  outputImage->AllocateScalars(VTK_UNSIGNED_CHAR,3);
 
   // Copy all of the pixels to the output
   itk::ImageRegionConstIteratorWithIndex<VectorImageType> imageIterator(image, region);
@@ -232,13 +248,13 @@ void ITKRegionToVTKImage(const VectorImageType* const image, const itk::ImageReg
 void SetMaskTransparencyBinary(Mask* const input, vtkImageData* outputImage)
 {
   // Setup and allocate the VTK image
-  outputImage->SetNumberOfScalarComponents(2);
-  outputImage->SetScalarTypeToUnsignedChar();
+  //outputImage->SetNumberOfScalarComponents(2);
+  //outputImage->SetScalarTypeToUnsignedChar();
   outputImage->SetDimensions(input->GetLargestPossibleRegion().GetSize()[0],
                              input->GetLargestPossibleRegion().GetSize()[1],
                              1);
-
-  outputImage->AllocateScalars();
+//outputImage->AllocateScalars();
+  outputImage->AllocateScalars(VTK_UNSIGNED_CHAR, 2);
 
   // Copy all of the pixels to the output
   itk::ImageRegionConstIteratorWithIndex<UnsignedCharScalarImageType> imageIterator(input, input->GetLargestPossibleRegion());
@@ -268,13 +284,13 @@ void SetMaskTransparencyBinary(Mask* const input, vtkImageData* outputImage)
 void SetMaskTransparency(Mask* const input, vtkImageData* outputImage)
 {
   // Setup and allocate the VTK image
-  outputImage->SetNumberOfScalarComponents(4);
-  outputImage->SetScalarTypeToUnsignedChar();
+  //outputImage->SetNumberOfScalarComponents(4);
+  //outputImage->SetScalarTypeToUnsignedChar();
   outputImage->SetDimensions(input->GetLargestPossibleRegion().GetSize()[0],
                              input->GetLargestPossibleRegion().GetSize()[1],
                              1);
-
-  outputImage->AllocateScalars();
+  //outputImage->AllocateScalars();
+  outputImage->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
 
   // Copy all of the pixels to the output
   itk::ImageRegionConstIteratorWithIndex<UnsignedCharScalarImageType> imageIterator(input, input->GetLargestPossibleRegion());
@@ -396,13 +412,13 @@ void ITKImagetoVTKVectorFieldImage(FloatVector2ImageType* const image, vtkImageD
   //std::cout << "ITKImagetoVTKVectorFieldImage()" << std::endl;
 
   // Setup and allocate the image data
-  outputImage->SetNumberOfScalarComponents(3); // We really want this to be 2, but VTK complains, so we must add a 3rd component (0) to every pixel
-  outputImage->SetScalarTypeToFloat();
+  //outputImage->SetNumberOfScalarComponents(3); // We really want this to be 2, but VTK complains, so we must add a 3rd component (0) to every pixel
+  //outputImage->SetScalarTypeToFloat();
   outputImage->SetDimensions(image->GetLargestPossibleRegion().GetSize()[0],
                              image->GetLargestPossibleRegion().GetSize()[1],
                              1);
-
-  outputImage->AllocateScalars();
+//  outputImage->AllocateScalars();
+  outputImage->AllocateScalars(VTK_UNSIGNED_CHAR,3);
 
   // Copy all of the input image pixels to the output image
   itk::ImageRegionConstIteratorWithIndex<FloatVector2ImageType> imageIterator(image, image->GetLargestPossibleRegion());
@@ -437,13 +453,13 @@ void ITKImagetoVTKRGBImage(const VectorImageType* const image, vtkImageData* out
     }
 
   // Setup and allocate the image data
-  outputImage->SetNumberOfScalarComponents(3);
-  outputImage->SetScalarTypeToUnsignedChar();
+  //outputImage->SetNumberOfScalarComponents(3);
+  //outputImage->SetScalarTypeToUnsignedChar();
   outputImage->SetDimensions(image->GetLargestPossibleRegion().GetSize()[0],
                              image->GetLargestPossibleRegion().GetSize()[1],
                              1);
-
-  outputImage->AllocateScalars();
+  //outputImage->AllocateScalars();
+  outputImage->AllocateScalars(VTK_UNSIGNED_CHAR, 3);
 
   // Copy all of the input image pixels to the output image
   itk::ImageRegionConstIteratorWithIndex<VectorImageType> imageIterator(image,image->GetLargestPossibleRegion());
@@ -488,13 +504,13 @@ void ITKImagetoVTKMagnitudeImage(const VectorImageType* const image, vtkImageDat
   rescaleFilter->Update();
 
   // Setup and allocate the VTK image
-  outputImage->SetNumberOfScalarComponents(1);
-  outputImage->SetScalarTypeToUnsignedChar();
+  //outputImage->SetNumberOfScalarComponents(1);
+  //outputImage->SetScalarTypeToUnsignedChar();
   outputImage->SetDimensions(image->GetLargestPossibleRegion().GetSize()[0],
                              image->GetLargestPossibleRegion().GetSize()[1],
                              1);
-
-  outputImage->AllocateScalars();
+  //outputImage->AllocateScalars();
+  outputImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 
   // Copy all of the scaled magnitudes to the output image
   itk::ImageRegionConstIteratorWithIndex<UnsignedCharScalarImageType> imageIterator(rescaleFilter->GetOutput(), rescaleFilter->GetOutput()->GetLargestPossibleRegion());

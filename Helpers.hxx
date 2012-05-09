@@ -20,6 +20,7 @@
 
 // STL
 #include <iomanip> // for setfill()
+#include <stdexcept>
 
 // Qt
 #include <QColor>
@@ -194,16 +195,18 @@ void DeepCopy(const TImage* const input, TImage* const output)
     }
 }
 
-/** Copy the input to the output*/
-template<typename TImage>
-void DeepCopyVectorImage(const TImage* const input, TImage* const output)
+/** Copy the input to the output. An overload for VectorImage. */
+template<typename TPixel>
+void DeepCopy(const itk::VectorImage<TPixel, 2>* const input, itk::VectorImage<TPixel, 2>* const output)
 {
+  typedef itk::VectorImage<TPixel, 2> ImageType;
+  
   output->SetRegions(input->GetLargestPossibleRegion());
   output->SetNumberOfComponentsPerPixel(input->GetNumberOfComponentsPerPixel());
   output->Allocate();
 
-  itk::ImageRegionConstIterator<TImage> inputIterator(input, input->GetLargestPossibleRegion());
-  itk::ImageRegionIterator<TImage> outputIterator(output, output->GetLargestPossibleRegion());
+  itk::ImageRegionConstIterator<ImageType> inputIterator(input, input->GetLargestPossibleRegion());
+  itk::ImageRegionIterator<ImageType> outputIterator(output, output->GetLargestPossibleRegion());
 
   while(!inputIterator.IsAtEnd())
     {
@@ -289,7 +292,7 @@ void ReplaceValue(const T* const image, const typename T::PixelType queryValue, 
 }
 
 template<typename T>
-void WriteImage(const T* const image, std::string filename)
+void WriteImage(const T* const image, const std::string& filename)
 {
   // This is a convenience function so that images can be written in 1 line instead of 4.
   typename itk::ImageFileWriter<T>::Pointer writer = itk::ImageFileWriter<T>::New();
@@ -298,9 +301,78 @@ void WriteImage(const T* const image, std::string filename)
   writer->Update();
 }
 
+template<typename TImage>
+void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, const std::string& filename)
+{
+  typename TImage::Pointer extracted = TImage::New();
+  
+  ExtractRegion(image, region, extracted.GetPointer());
+  WriteImage(extracted.GetPointer(), filename);
+}
 
-template<typename T>
-void WriteRGBImage(const T* const input, const std::string filename)
+template<typename TImage>
+void WriteRGBRegion(const TImage* const image, const itk::ImageRegion<2>& region, const std::string& filename)
+{
+  typename TImage::Pointer extracted = TImage::New();
+
+  ExtractRegion(image, region, extracted.GetPointer());
+  WriteRGBImage(extracted.GetPointer(), filename);
+}
+
+template<typename TImage>
+void WriteRGBRegionMasked(const TImage* const image, const itk::ImageRegion<2>& imageRegion, const Mask* const mask, const itk::ImageRegion<2>& maskRegion, const std::string& filename)
+{
+  if(imageRegion.GetSize() != maskRegion.GetSize())
+  {
+    throw std::runtime_error("Image region size must match mask region size!");
+  }
+
+  typename TImage::Pointer extractedImage = TImage::New();
+  ExtractRegion(image, imageRegion, extractedImage.GetPointer());
+
+  Mask::Pointer extractedMask = Mask::New();
+  ExtractRegion(mask, maskRegion, extractedMask.GetPointer());
+
+  // Apply mask
+  itk::ImageRegionConstIterator<Mask> maskIterator(extractedMask, extractedMask->GetLargestPossibleRegion());
+  itk::ImageRegionIterator<TImage> imageIterator(extractedImage, extractedImage->GetLargestPossibleRegion());
+
+  while(!maskIterator.IsAtEnd())
+    {
+    if(extractedMask->IsHole(maskIterator.GetIndex()))
+      {
+      typename TImage::PixelType pixel = imageIterator.Get();
+      pixel[0] = 255;
+      pixel[1] = 0;
+      pixel[2] = 0;
+      imageIterator.Set(pixel);
+      }
+
+    ++imageIterator;
+    ++maskIterator;
+    }
+    
+  WriteRGBImage(extractedImage.GetPointer(), filename);
+}
+
+template<typename TImage>
+void WriteScalarRegion(const TImage* const image, const itk::ImageRegion<2>& region, const std::string& filename)
+{
+  typedef itk::RegionOfInterestImageFilter<TImage, TImage> ExtractFilterType;
+
+  typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+  extractFilter->SetRegionOfInterest(region);
+  extractFilter->SetInput(image);
+  extractFilter->Update();
+
+  typename itk::ImageFileWriter<TImage>::Pointer writer = itk::ImageFileWriter<TImage>::New();
+  writer->SetFileName(filename);
+  writer->SetInput(extractFilter->GetOutput());
+  writer->Update();
+}
+
+template<typename TImage>
+void WriteRGBImage(const TImage* const input, const std::string& filename)
 {
   typedef itk::Image<itk::CovariantVector<unsigned char, 3>, 2> RGBImageType;
 
@@ -308,7 +380,7 @@ void WriteRGBImage(const T* const input, const std::string filename)
   output->SetRegions(input->GetLargestPossibleRegion());
   output->Allocate();
 
-  itk::ImageRegionConstIterator<T> inputIterator(input, input->GetLargestPossibleRegion());
+  itk::ImageRegionConstIterator<TImage> inputIterator(input, input->GetLargestPossibleRegion());
   itk::ImageRegionIterator<RGBImageType> outputIterator(output, output->GetLargestPossibleRegion());
 
   while(!inputIterator.IsAtEnd())
@@ -568,7 +640,7 @@ void CopyPatch(const T* const sourceImage, T* const targetImage,
   {
     std::cerr << "ExceptionObject caught in CopyPatch!" << std::endl;
     std::cerr << err << std::endl;
-    exit(-1);
+    throw;
   }
 }
 
@@ -625,15 +697,15 @@ void DebugWriteSequentialImage(const TImageType* const image, const std::string&
 {
   std::stringstream padded;
   padded << "Debug/" << filePrefix << "_" << std::setfill('0') << std::setw(4) << iteration << ".mha";
-  Helpers::WriteImage<TImageType>(image, padded.str());
+  Helpers::WriteImage(image, padded.str());
 }
 
 template <typename TImageType>
-void DebugWriteImageConditional(typename TImageType::Pointer image, const std::string& fileName, const bool condition)
+void DebugWriteImageConditional(const TImageType* const image, const std::string& fileName, const bool condition)
 {
   if(condition)
     {
-    WriteImage<TImageType>(image, fileName);
+    WriteImage(image, fileName);
     }
 }
 
@@ -652,13 +724,13 @@ void ITKScalarImageToScaledVTKImage(const TImage* const image, vtkImageData* out
   rescaleFilter->Update();
 
   // Setup and allocate the VTK image
-  outputImage->SetNumberOfScalarComponents(1);
-  outputImage->SetScalarTypeToUnsignedChar();
+  //outputImage->SetNumberOfScalarComponents(1);
+  //outputImage->SetScalarTypeToUnsignedChar();
   outputImage->SetDimensions(image->GetLargestPossibleRegion().GetSize()[0],
                              image->GetLargestPossibleRegion().GetSize()[1],
                              1);
-
-  outputImage->AllocateScalars();
+  //outputImage->AllocateScalars();
+  outputImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 
   // Copy all of the scaled magnitudes to the output image
   itk::ImageRegionConstIteratorWithIndex<UnsignedCharScalarImageType> imageIterator(rescaleFilter->GetOutput(), rescaleFilter->GetOutput()->GetLargestPossibleRegion());

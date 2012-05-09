@@ -77,6 +77,7 @@ public slots:
   void on_actionQuit_activated();
   
   void on_actionFlipImage_activated();
+  void on_actionScreenshot_activated();
   
   void on_txtPatchRadius_returnPressed();
 

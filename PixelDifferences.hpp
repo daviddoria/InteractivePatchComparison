@@ -1,10 +1,12 @@
 #ifndef PixelDifferences_H
 #define PixelDifferences_H
 
+#include <cmath>
+
 struct SumOfSquaredDifferences
 {
   template <typename TPixel>
-  float operator()(const VectorType &a, const VectorType &b)
+  float operator()(const TPixel &a, const TPixel &b)
   {
     float difference = 0;
 
@@ -21,7 +23,8 @@ struct SumOfSquaredDifferences
 
 struct SumOfAbsoluteDifferences
 {
-  float operator()(const VectorType &a, const VectorType &b)
+  template <typename TPixel>
+  float operator()(const TPixel &a, const TPixel &b)
   {
     float difference = 0;
 

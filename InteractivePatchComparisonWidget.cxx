@@ -44,6 +44,7 @@
 #include <vtkImageSliceMapper.h>
 #include <vtkLookupTable.h>
 #include <vtkMath.h>
+#include <vtkPNGWriter.h>
 #include <vtkPointData.h>
 #include <vtkProperty2D.h>
 #include <vtkPolyDataMapper.h>
@@ -55,7 +56,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSmartPointer.h>
-#include <vtkImageSliceMapper.h>
+#include <vtkWindowToImageFilter.h>
 #include <vtkXMLPolyDataReader.h>
 #include <vtkXMLImageDataWriter.h> // For debugging only
 
@@ -128,9 +129,9 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   actionOpenMask->setIcon(openIcon);
   this->toolBar->addAction(actionOpenMask);
   actionOpenMask->setEnabled(false);
-
+/*
   actionSaveResult->setIcon(saveIcon);
-  this->toolBar->addAction(actionSaveResult);
+  this->toolBar->addAction(actionSaveResult);*/
 
   this->Flipped = false;
 
@@ -142,7 +143,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->ImageSliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
   this->ImageSliceMapper->BorderOn();
   this->ImageSlice->PickableOff();
-  this->ImageSliceMapper->SetInputConnection(this->VTKImage->GetProducerPort());
+  this->ImageSliceMapper->SetInputData(this->VTKImage);
   this->ImageSlice->SetMapper(this->ImageSliceMapper);
   this->ImageSlice->GetProperty()->SetInterpolationTypeToNearest();
 
@@ -152,7 +153,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->MaskImageSliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
   this->MaskImageSlice->PickableOff();
   this->MaskImageSliceMapper->BorderOn();
-  this->MaskImageSliceMapper->SetInputConnection(this->VTKMaskImage->GetProducerPort());
+  this->MaskImageSliceMapper->SetInputData(this->VTKMaskImage);
   this->MaskImageSlice->SetMapper(this->MaskImageSliceMapper);
   this->MaskImageSlice->GetProperty()->SetInterpolationTypeToNearest();
 
@@ -161,7 +162,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->SourcePatchSlice = vtkSmartPointer<vtkImageSlice>::New();
   this->SourcePatchSliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
   this->SourcePatchSliceMapper->BorderOn();
-  this->SourcePatchSliceMapper->SetInputConnection(this->SourcePatch->GetProducerPort());
+  this->SourcePatchSliceMapper->SetInputData(this->SourcePatch);
   this->SourcePatchSlice->SetMapper(this->SourcePatchSliceMapper);
   this->SourcePatchSlice->GetProperty()->SetInterpolationTypeToNearest();
 
@@ -169,7 +170,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->TargetPatchSlice = vtkSmartPointer<vtkImageSlice>::New();
   this->TargetPatchSliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
   this->TargetPatchSliceMapper->BorderOn();
-  this->TargetPatchSliceMapper->SetInputConnection(this->TargetPatch->GetProducerPort());
+  this->TargetPatchSliceMapper->SetInputData(this->TargetPatch);
   this->TargetPatchSlice->SetMapper(this->TargetPatchSliceMapper);
   this->TargetPatchSlice->GetProperty()->SetInterpolationTypeToNearest();
 
@@ -222,10 +223,12 @@ void InteractivePatchComparisonWidget::showEvent(QShowEvent* event)
   GetPatchSize();
 
   // Initialize
-  this->SourcePatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2,
-                                      this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
-  this->TargetPatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2 + this->PatchSize[0],
-                                      this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
+//   this->SourcePatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2,
+//                                       this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
+//   this->TargetPatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2 + this->PatchSize[0],
+//                                       this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
+  this->SourcePatchSlice->SetPosition(0, 0, 0);
+  this->TargetPatchSlice->SetPosition(20, 20, 0);
 
   SetupPatches();
 
@@ -252,15 +255,15 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
 
   //this->Image = reader->GetOutput();
   this->Image = VectorImageType::New();
-  Helpers::DeepCopyVectorImage<VectorImageType>(reader->GetOutput(), this->Image);
+  Helpers::DeepCopy(reader->GetOutput(), this->Image.GetPointer());
 
-  Helpers::ITKImagetoVTKImage(this->Image, this->VTKImage);
+  Helpers::ITKImagetoVTKImage(this->Image.GetPointer(), this->VTKImage);
 
   this->statusBar()->showMessage("Opened image.");
   actionOpenMask->setEnabled(true);
 
-  TargetPatchInfoWidget->SetImage(this->Image);
-  SourcePatchInfoWidget->SetImage(this->Image);
+  TargetPatchInfoWidget->SetImage(this->Image.GetPointer());
+  SourcePatchInfoWidget->SetImage(this->Image.GetPointer());
 
 }
 
@@ -277,7 +280,7 @@ void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
     return;
     }
   this->MaskImage = Mask::New();
-  Helpers::DeepCopy<Mask>(reader->GetOutput(), this->MaskImage);
+  Helpers::DeepCopy(reader->GetOutput(), this->MaskImage.GetPointer());
 
   // For this program, we ALWAYS assume the hole to be filled is white, and the valid/source region is black.
   // This is not simply reversible because of some subtle erosion operations that are performed.
@@ -344,10 +347,11 @@ void InteractivePatchComparisonWidget::SetupPatches()
 void InteractivePatchComparisonWidget::InitializePatch(vtkImageData* image, const unsigned char color[3])
 {
   // Setup and allocate the image data
-  image->SetNumberOfScalarComponents(4);
-  image->SetScalarTypeToUnsignedChar();
+  //image->SetNumberOfScalarComponents(4);
+  //image->SetScalarTypeToUnsignedChar();
   image->SetDimensions(this->PatchSize[0], this->PatchSize[1], 1);
-  image->AllocateScalars();
+  //image->AllocateScalars();
+  image->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
   
   Helpers::BlankAndOutlineImage(image,color);
 }
@@ -437,6 +441,7 @@ void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageReg
   this->TargetPatchSlice->SetPosition(targetPosition);
 
   Refresh();
+  PatchesMovedEventHandler();
 }
 
 void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageRegion<2>& patchRegion)
@@ -449,6 +454,7 @@ void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageReg
   this->SourcePatchSlice->SetPosition(sourcePosition);
 
   Refresh();
+  PatchesMovedEventHandler();
 }
   
 void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
@@ -493,8 +499,12 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
     return;
   }
 
-  AveragePixelDifference<SumOfAbsoluteDifferences> averagePixelDifferenceFunctor;
-  float averagePixelDifference = averagePixelDifferenceFunctor(this->Image.GetPointer(),
+  AveragePixelDifference<SumOfAbsoluteDifferences> averageAbsPixelDifferenceFunctor;
+  float averageAbsPixelDifference = averageAbsPixelDifferenceFunctor(this->Image.GetPointer(),
+                                                                 this->MaskImage, sourceRegion, targetRegion);
+
+  AveragePixelDifference<SumOfSquaredDifferences> averageSqPixelDifferenceFunctor;
+  float averageSqPixelDifference = averageSqPixelDifferenceFunctor(this->Image.GetPointer(),
                                                                this->MaskImage, sourceRegion, targetRegion);
 
   CorrelationScore correlationScoreFunctor;
@@ -570,67 +580,87 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
   }
 
   // Diffusion distance of pixel values directly (smaller patches)
-  {
-  unsigned int smallPatchRadius = 5;
-  std::vector<Eigen::VectorXf> allPoints;
-  itk::Index<2> targetCenter = Helpers::GetRegionCenter(targetRegion);
-  itk::Index<2> sourceCenter = Helpers::GetRegionCenter(sourceRegion);
-  itk::ImageRegion<2> neighborhoodRegion = Helpers::GetRegionInRadiusAroundPixel(targetCenter, 4);
-  itk::ImageRegionConstIterator<Mask> neighborhoodIterator(MaskImage, neighborhoodRegion);
-
-  itk::ImageRegion<2> smallSourceRegion = Helpers::GetRegionInRadiusAroundPixel(sourceCenter, smallPatchRadius);
-  itk::ImageRegion<2> smallTargetRegion = Helpers::GetRegionInRadiusAroundPixel(targetCenter, smallPatchRadius);
-  
-  Eigen::VectorXf sourceRegionVectorized = Helpers::GetRegionAsVector(Image.GetPointer(), smallSourceRegion);
-  Eigen::VectorXf targetRegionVectorized = Helpers::GetRegionAsVector(Image.GetPointer(), smallTargetRegion);
-
-  std::cout << "Features have " << targetRegionVectorized.size() << " components." << std::endl;
-  while(!neighborhoodIterator.IsAtEnd())
-    {
-    itk::ImageRegion<2> nearbyRegion = Helpers::GetRegionInRadiusAroundPixel(neighborhoodIterator.GetIndex(), smallPatchRadius);
-    Eigen::VectorXf nearbyFeatures = Helpers::GetRegionAsVector(Image.GetPointer(), nearbyRegion);
-    allPoints.push_back(nearbyFeatures);
-    ++neighborhoodIterator;
-    }
-
-  while(allPoints.size() < static_cast<unsigned int>(sourceRegionVectorized.size()))
-  {
-//     Eigen::VectorXf emptyFeature(sourceRegionVectorized.size());
-//     for(unsigned int i = 0; i < static_cast<unsigned int>(emptyFeature.size()); ++i)
-//       {
-//       emptyFeature[i] = 0.0f;
-//       }
-//     allPoints.push_back(emptyFeature);
-    allPoints.push_back(targetRegionVectorized);
-  }
-
-  allPoints.push_back(sourceRegionVectorized);
-
-  std::cout << "There are " << allPoints.size() << " points." << std::endl;
-
-  DiffusionDistance diffusionDistanceFunctor;
-  float diffusionDistance = diffusionDistanceFunctor(sourceRegionVectorized, targetRegionVectorized, allPoints);
-  std::cout << "diffusionDistance: " << diffusionDistance << std::endl;
-  }
+//   {
+//   unsigned int smallPatchRadius = 5;
+//   std::vector<Eigen::VectorXf> allPoints;
+//   itk::Index<2> targetCenter = Helpers::GetRegionCenter(targetRegion);
+//   itk::Index<2> sourceCenter = Helpers::GetRegionCenter(sourceRegion);
+//   itk::ImageRegion<2> neighborhoodRegion = Helpers::GetRegionInRadiusAroundPixel(targetCenter, 4);
+//   itk::ImageRegionConstIterator<Mask> neighborhoodIterator(MaskImage, neighborhoodRegion);
+// 
+//   itk::ImageRegion<2> smallSourceRegion = Helpers::GetRegionInRadiusAroundPixel(sourceCenter, smallPatchRadius);
+//   itk::ImageRegion<2> smallTargetRegion = Helpers::GetRegionInRadiusAroundPixel(targetCenter, smallPatchRadius);
+//   
+//   Eigen::VectorXf sourceRegionVectorized = Helpers::GetRegionAsVector(Image.GetPointer(), smallSourceRegion);
+//   Eigen::VectorXf targetRegionVectorized = Helpers::GetRegionAsVector(Image.GetPointer(), smallTargetRegion);
+// 
+//   std::cout << "Features have " << targetRegionVectorized.size() << " components." << std::endl;
+//   while(!neighborhoodIterator.IsAtEnd())
+//     {
+//     itk::ImageRegion<2> nearbyRegion = Helpers::GetRegionInRadiusAroundPixel(neighborhoodIterator.GetIndex(), smallPatchRadius);
+//     Eigen::VectorXf nearbyFeatures = Helpers::GetRegionAsVector(Image.GetPointer(), nearbyRegion);
+//     allPoints.push_back(nearbyFeatures);
+//     ++neighborhoodIterator;
+//     }
+// 
+//   while(allPoints.size() < static_cast<unsigned int>(sourceRegionVectorized.size()))
+//   {
+// //     Eigen::VectorXf emptyFeature(sourceRegionVectorized.size());
+// //     for(unsigned int i = 0; i < static_cast<unsigned int>(emptyFeature.size()); ++i)
+// //       {
+// //       emptyFeature[i] = 0.0f;
+// //       }
+// //     allPoints.push_back(emptyFeature);
+//     allPoints.push_back(targetRegionVectorized);
+//   }
+// 
+//   allPoints.push_back(sourceRegionVectorized);
+// 
+//   std::cout << "There are " << allPoints.size() << " points." << std::endl;
+// 
+//   DiffusionDistance diffusionDistanceFunctor;
+//   float diffusionDistance = diffusionDistanceFunctor(sourceRegionVectorized, targetRegionVectorized, allPoints);
+//   std::cout << "diffusionDistance: " << diffusionDistance << std::endl;
+//   }
   
   Refresh();
 
-  this->lblSumAbsolutePixelDifference->setNum(averagePixelDifference);
+  this->lblSumSquaredPixelDifference->setNum(averageSqPixelDifference);
+  
+  this->lblSumAbsolutePixelDifference->setNum(averageAbsPixelDifference);
   this->lblCorrelation->setNum(correlationScore);
 }
 
 void InteractivePatchComparisonWidget::on_btnSavePatches_clicked()
 {
-  TargetPatchInfoWidget->Save("target");
-  SourcePatchInfoWidget->Save("source");
+//   TargetPatchInfoWidget->Save("target");
+//   SourcePatchInfoWidget->Save("source");
 
   itk::ImageRegion<2> sourceRegion = SourcePatchInfoWidget->GetRegion();
   itk::ImageRegion<2> targetRegion = TargetPatchInfoWidget->GetRegion();
+
+  if(!this->Image->GetLargestPossibleRegion().IsInside(sourceRegion))
+  {
+    std::cerr << "Source region not inside image!" << sourceRegion << std::endl;
+    return;
+  }
+
+  if(!this->Image->GetLargestPossibleRegion().IsInside(targetRegion))
+  {
+    std::cerr << "Target region not inside image!" << targetRegion << std::endl;
+    return;
+  }
   
   AveragePixelDifference<SumOfAbsoluteDifferences> averagePixelDifferenceFunctor;
   float averagePixelDifference = averagePixelDifferenceFunctor(this->Image.GetPointer(),
                                                                this->MaskImage, sourceRegion, targetRegion);
 
+  Helpers::WriteRGBRegion(this->Image.GetPointer(), sourceRegion, "SourcePatch.png");
+  //Helpers::WriteRGBRegion(this->Image.GetPointer(), targetRegion, "TargetPatch.png");
+  Helpers::WriteRGBRegionMasked(this->Image.GetPointer(), targetRegion, this->MaskImage.GetPointer(), targetRegion, "TargetPatch.png");
+
+  Helpers::WriteScalarRegion(this->MaskImage.GetPointer(), targetRegion, "MaskPatch.png");
+  
   std::ofstream fout("score.txt");
   fout << averagePixelDifference << std::endl;
   fout.close();
@@ -730,4 +760,19 @@ void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
 
   std::cout << "featureMeans: " << std::endl <<  FeatureMeans << std::endl;
   std::cout << "featureStandardDeviations: " << std::endl << FeatureStandardDeviations << std::endl;
+}
+
+void InteractivePatchComparisonWidget::on_actionScreenshot_activated()
+{
+  vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =
+    vtkSmartPointer<vtkWindowToImageFilter>::New();
+  windowToImageFilter->SetInput(this->qvtkWidget->GetRenderWindow());
+  //windowToImageFilter->SetMagnification(3); //set the resolution of the output image (3 times the current resolution of vtk render window)
+  //windowToImageFilter->SetInputBufferTypeToRGBA(); //also record the alpha (transparency) channel
+  windowToImageFilter->Update();
+
+  vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
+  writer->SetFileName("Screenshot.png");
+  writer->SetInputData(windowToImageFilter->GetOutput());
+  writer->Write();
 }

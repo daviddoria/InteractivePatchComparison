@@ -73,6 +73,12 @@ QImage FitToGraphicsView(const QImage qimage, const QGraphicsView* gfx);
 template<typename TImage>
 void DeepCopy(const TImage* const input, TImage* const output);
 
+template<typename TPixel>
+void DeepCopy(const itk::VectorImage<TPixel, 2>* const input, itk::VectorImage<TPixel, 2>* const output);
+
+// template<>
+// void DeepCopy<FloatVectorImageType>(const itk::VectorImage<TPixel>* const input, itk::VectorImage<TPixel>* const output);
+
 /** Extract a region of an image. */
 template<typename TImage>
 void ExtractRegion(const TImage* const image, const itk::ImageRegion<2>& region,
@@ -93,9 +99,6 @@ void OutputFirst(const T& vec);
 void SetMaskTransparency(Mask* const input, vtkImageData* outputImage);
 
 void ITKRegionToVTKImage(VectorImageType* const image, const itk::ImageRegion<2>& region, vtkImageData* outputImage);
-
-template<typename TImage>
-void DeepCopyVectorImage(const TImage* const input, TImage* const output);
 
 void ITKImagetoVTKImage(const VectorImageType* const image, vtkImageData* outputImage); // This function simply drives ITKImagetoVTKRGBImage or ITKImagetoVTKMagnitudeImage
 void ITKImagetoVTKRGBImage(const VectorImageType* const image, vtkImageData* outputImage);
@@ -130,7 +133,10 @@ template<typename T>
 void ReplaceValue(T* const image, const T* const queryValue, const T* const replacementValue);
 
 template<typename TImage>
-void WriteImage(const TImage* const image, const std::string filename);
+void WriteImage(const TImage* const image, const std::string& filename);
+
+template<typename TImage>
+void WriteRegion(const TImage* const image, const itk::ImageRegion<2>& region, const std::string& filename);
 
 template <class T>
 void CopyPatchIntoImage(T* const patch, T* const image, const itk::Index<2> position);
@@ -226,6 +232,18 @@ bool SortByFirstAccending(TPair object1, TPair object2);
 
 template <typename TPair>
 bool SortByFirstDescending(TPair object1, TPair object2);
+
+template<typename T>
+void WriteRGBImage(const T* const input, const std::string& filename);
+
+template<typename TImage>
+void WriteRGBRegion(const TImage* const input, const itk::ImageRegion<2>& region, const std::string& filename);
+
+template<typename TImage>
+void WriteScalarRegion(const TImage* const input, const itk::ImageRegion<2>& region, const std::string& filename);
+
+template<typename TImage>
+void WriteRGBRegionMasked(const TImage* const image, const itk::ImageRegion<2>& imageRegion, const Mask* const mask, const itk::ImageRegion<2>& maskRegion, const std::string& filename);
 
 }// end namespace
 
