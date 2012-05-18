@@ -14,8 +14,6 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 # Submodules
 add_subdirectory(EigenHelpers)
-add_subdirectory(Helpers)
-add_subdirectory(ITKHelpers)
 add_subdirectory(VTKHelpers)
 add_subdirectory(ITKVTKHelpers)
 add_subdirectory(Mask)
@@ -47,7 +45,7 @@ CustomTrackballStyle.cxx
 VarianceScore.hpp
 PatchInfoWidget.cxx
 ${InteractivePatchComparisonWidgetUISrcs} ${InteractivePatchComparisonWidgetMOCSrcs})
-TARGET_LINK_LIBRARIES(InteractivePatchComparison EigenHelpers libQtHelpers libHelpers libVTKHelpers libITKHelpers libITKVTKHelpers libMask ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
+TARGET_LINK_LIBRARIES(InteractivePatchComparison EigenHelpers libQtHelpers Helpers libVTKHelpers ITKHelpers libITKVTKHelpers libMask ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
 INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )
 
 # 
