@@ -4,7 +4,7 @@
 
 #include "Helpers/Helpers.h"
 
-#include "EigenHelpers.h"
+#include "EigenHelpers/EigenHelpers.h"
 
 float DiffusionDistance::SumOfAbsoluteDifference(const std::vector<float>& a, const std::vector<float>& b)
 {

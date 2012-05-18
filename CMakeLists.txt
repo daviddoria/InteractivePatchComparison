@@ -13,6 +13,7 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) #fix the dynamic linking error (RPAT
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 # Submodules
+add_subdirectory(EigenHelpers)
 add_subdirectory(Helpers)
 add_subdirectory(ITKHelpers)
 add_subdirectory(VTKHelpers)
@@ -38,7 +39,6 @@ INCLUDE(${ITK_USE_FILE})
 
 ADD_EXECUTABLE(InteractivePatchComparison
 DiffusionDistance.cpp
-EigenHelpers.cpp
 InteractivePatchComparisonWidget.cxx
 Interactive.cpp 
 SwitchBetweenStyle.cxx
@@ -47,7 +47,7 @@ CustomTrackballStyle.cxx
 VarianceScore.hpp
 PatchInfoWidget.cxx
 ${InteractivePatchComparisonWidgetUISrcs} ${InteractivePatchComparisonWidgetMOCSrcs})
-TARGET_LINK_LIBRARIES(InteractivePatchComparison libQtHelpers libHelpers libVTKHelpers libITKHelpers libITKVTKHelpers libMask ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
+TARGET_LINK_LIBRARIES(InteractivePatchComparison EigenHelpers libQtHelpers libHelpers libVTKHelpers libITKHelpers libITKVTKHelpers libMask ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
 INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )
 
 # 

@@ -66,9 +66,9 @@
 #include "Mask/Mask.h"
 #include "Mask/MaskOperations.h"
 #include "VTKHelpers/VTKHelpers.h"
+#include "EigenHelpers/EigenHelpers.h"
 
 // Custom
-#include "EigenHelpers.h"
 #include "SwitchBetweenStyle.h"
 #include "Types.h"
 #include "CorrelationScore.hpp"

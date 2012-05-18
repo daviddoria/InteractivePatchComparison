@@ -19,3 +19,6 @@
 [submodule "ITKQtHelpers"]
 	path = ITKQtHelpers
 	url = git@github.com:daviddoria/ITKQtHelpers.git
+[submodule "EigenHelpers"]
+	path = EigenHelpers
+	url = git@github.com:daviddoria/EigenHelpers.git
