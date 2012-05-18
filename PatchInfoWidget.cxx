@@ -22,7 +22,7 @@
 #include <QTextEdit>
 
 // Submodules
-#include "Helpers/Helpers.h"
+#include "Mask/ITKHelpers/Helpers/Helpers.h"
 #include "Mask/MaskOperations.h"
 #include "QtHelpers/QtHelpers.h"
 #include "ITKQtHelpers/ITKQtHelpers.h"

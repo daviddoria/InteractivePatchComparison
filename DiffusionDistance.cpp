@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "Helpers/Helpers.h"
+#include "Mask/ITKHelpers/Helpers/Helpers.h"
 
 #include "EigenHelpers/EigenHelpers.h"
 

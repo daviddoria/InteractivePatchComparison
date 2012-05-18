@@ -2,7 +2,7 @@
 #define AverageScore_HPP
 
 // Submodules
-#include "Helpers/Helpers.h"
+#include "Mask/ITKHelpers/Helpers/Helpers.h"
 #include "Mask/ITKHelpers/ITKHelpers.h"
 #include "Mask/ITKHelpers/ITKStatistics.h"
 

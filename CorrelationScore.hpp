@@ -8,8 +8,8 @@
 #include "itkVectorMagnitudeImageFilter.h"
 
 // Custom
-#include "Helpers/Helpers.h"
-#include "Helpers/Statistics.h"
+#include "Mask/ITKHelpers/Helpers/Helpers.h"
+#include "Mask/ITKHelpers/Helpers/Statistics.h"
 #include "Mask/ITKHelpers/ITKHelpers.h"
 
 /**

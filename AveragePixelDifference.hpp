@@ -20,7 +20,7 @@
 #define AveragePixelDifference_HPP
 
 // Submodules
-#include "Helpers/Helpers.h"
+#include "Mask/ITKHelpers/Helpers/Helpers.h"
 #include "Mask/Mask.h"
 
 // Custom

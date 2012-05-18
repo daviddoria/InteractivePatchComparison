@@ -62,7 +62,7 @@
 
 // Submodules
 #include "ITKVTKHelpers/ITKVTKHelpers.h"
-#include "Helpers/Helpers.h"
+#include "Mask/ITKHelpers/Helpers/Helpers.h"
 #include "Mask/Mask.h"
 #include "Mask/MaskOperations.h"
 #include "VTKHelpers/VTKHelpers.h"

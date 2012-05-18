@@ -45,7 +45,7 @@ CustomTrackballStyle.cxx
 VarianceScore.hpp
 PatchInfoWidget.cxx
 ${InteractivePatchComparisonWidgetUISrcs} ${InteractivePatchComparisonWidgetMOCSrcs})
-TARGET_LINK_LIBRARIES(InteractivePatchComparison EigenHelpers libQtHelpers Helpers libVTKHelpers ITKHelpers libITKVTKHelpers libMask ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
+TARGET_LINK_LIBRARIES(InteractivePatchComparison Mask EigenHelpers libQtHelpers Helpers libVTKHelpers ITKHelpers ITKVTKHelpers  ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
 INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )
 
 # 

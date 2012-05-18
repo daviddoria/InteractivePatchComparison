@@ -3,7 +3,7 @@
 
 #include "DiffusionDistance.h" // Appease syntax parser
 
-#include "Helpers/Helpers.h"
+#include "Mask/ITKHelpers/Helpers/Helpers.h"
 /*
 template <typename TPoint>
 float DiffusionDistance::operator()(const TPoint& a, const TPoint& b,

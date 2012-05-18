@@ -2,9 +2,9 @@
 #define VarianceScore_HPP
 
 // Submodules
-#include "Helpers/Helpers.h"
-#include "ITKHelpers/ITKHelpers.h"
-#include "ITKHelpers/ITKStatistics.h"
+#include "Mask/ITKHelpers/Helpers/Helpers.h"
+#include "Mask/ITKHelpers/ITKHelpers.h"
+#include "Mask/ITKHelpers/ITKStatistics.h"
 
 /**
 
