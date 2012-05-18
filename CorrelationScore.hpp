@@ -10,7 +10,7 @@
 // Custom
 #include "Helpers/Helpers.h"
 #include "Helpers/Statistics.h"
-#include "ITKHelpers/ITKHelpers.h"
+#include "Mask/ITKHelpers/ITKHelpers.h"
 
 /**
 

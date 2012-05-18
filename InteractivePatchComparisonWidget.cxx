@@ -661,7 +661,7 @@ void InteractivePatchComparisonWidget::on_btnSavePatches_clicked()
   float averagePixelDifference = averagePixelDifferenceFunctor(this->Image.GetPointer(),
                                                                this->MaskImage, sourceRegion, targetRegion);
 
-  ITKHelpers::WriteVectorImageRegionAsRGB(this->Image.GetPointer(), sourceRegion, "SourcePatch.png");
+  //ITKHelpers::WriteVectorImageRegionAsRGB(this->Image.GetPointer(), sourceRegion, "SourcePatch.png");
   //Helpers::WriteRGBRegion(this->Image.GetPointer(), targetRegion, "TargetPatch.png");
   VectorImageType::PixelType holeColor;
   holeColor.SetSize(3);
