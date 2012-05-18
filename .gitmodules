@@ -1,6 +1,3 @@
-[submodule "Helpers"]
-	path = Helpers
-	url = git@github.com:daviddoria/Helpers.git
 [submodule "ITKVTKHelpers"]
 	path = ITKVTKHelpers
 	url = git@github.com:daviddoria/ITKVTKHelpers.git
