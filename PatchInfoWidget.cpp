@@ -41,7 +41,7 @@ PatchInfoWidget::PatchInfoWidget(QWidget* parent) : QWidget(parent)
   setupUi(this);
 }
 
-void PatchInfoWidget::SetImage(VectorImageType* const image)
+void PatchInfoWidget::SetImage(ImageType* const image)
 {
   this->Image = image;
 }
@@ -94,11 +94,11 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   this->txtXCenter->setText(QString::number(patchCenter[0]));
   this->txtYCenter->setText(QString::number(patchCenter[1]));
 
-  VectorImageType::PixelType average;
+  ImageType::PixelType average;
   average.SetSize(Image->GetNumberOfComponentsPerPixel());
   average.Fill(0);
   
-  VectorImageType::PixelType variance;
+  ImageType::PixelType variance;
   variance.SetSize(Image->GetNumberOfComponentsPerPixel());
   variance.Fill(0);
   
@@ -107,11 +107,11 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
     //average = Helpers::AverageInRegionMasked(Image.GetPointer(), MaskImage.GetPointer(), patchRegion);
 
     // This assumes both patches are fully valid (often the case when exploring)
-    average = ITKHelpers::AverageInRegion(Image.GetPointer(), patchRegion);
+    average = ITKHelpers::AverageInRegion(Image, patchRegion);
 
     lblPixelMean->setText(ITKHelpers::VectorToString(average).c_str());
 
-    variance = MaskOperations::VarianceInRegionMasked(this->Image.GetPointer(), this->MaskImage, patchRegion);
+    variance = MaskOperations::VarianceInRegionMasked(this->Image, this->MaskImage, patchRegion);
 
     lblPixelVariance->setText(ITKHelpers::VectorToString(variance).c_str());
   }
@@ -122,7 +122,7 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   }
 
   // Patch display
-  QImage sourcePatchImage = MaskOperations::GetQImageMasked(this->Image.GetPointer(), this->MaskImage,
+  QImage sourcePatchImage = MaskOperations::GetQImageMasked(this->Image, this->MaskImage,
                             patchRegion);
 
   sourcePatchImage = QtHelpers::FitToGraphicsView(sourcePatchImage, this->graphicsView);
@@ -132,7 +132,7 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   this->graphicsView->setScene(sourceScene);
 
   // Average color display
-  VectorImageType::Pointer averageColorImage = VectorImageType::New();
+  ImageType::Pointer averageColorImage = ImageType::New();
   itk::Index<2> corner = {{0,0}};
   itk::Size<2> size = {{10,10}};
   itk::ImageRegion<2> averageColorRegion(corner,size);
@@ -155,7 +155,7 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
 
 void PatchInfoWidget::Save(const std::string& prefix)
 {
-  typedef itk::RegionOfInterestImageFilter< VectorImageType, VectorImageType> RegionOfInterestImageFilterType;
+  typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> RegionOfInterestImageFilterType;
   RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
   regionOfInterestImageFilter->SetRegionOfInterest(this->Region);
   regionOfInterestImageFilter->SetInput(Image);

@@ -35,9 +35,11 @@ class PatchInfoWidget : public QWidget, public Ui::PatchInfoWidget
 Q_OBJECT
 public:
 
+  typedef itk::VectorImage<float, 2> ImageType;
+  
   PatchInfoWidget(QWidget* parent);
 
-  void SetImage(VectorImageType* const image);
+  void SetImage(ImageType* const image);
   void SetMask(Mask* const mask);
 
   void Save(const std::string& prefix);
@@ -57,8 +59,8 @@ public slots:
 private:
 
   unsigned int GetRadius();
-  VectorImageType::Pointer Image;
-  Mask::Pointer MaskImage;
+  ImageType* Image;
+  Mask* MaskImage;
 
   itk::ImageRegion<2> Region;
 };

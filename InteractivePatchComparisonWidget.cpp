@@ -95,7 +95,8 @@ void InteractivePatchComparisonWidget::on_actionHelp_activated()
 
 // Constructors
 InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(const std::string& imageFileName,
-                                                                   const std::string& maskFileName)
+                                                                   const std::string& maskFileName, QWidget* parent)
+: QMainWindow(parent)
 {
   SharedConstructor();
   OpenImage(imageFileName);
@@ -123,8 +124,6 @@ InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(const std::st
 void InteractivePatchComparisonWidget::SharedConstructor()
 {
   this->setupUi(this);
-
-  this->PatchScale = 5;
 
   // Setup icons
   QIcon openIcon = QIcon::fromTheme("document-open");
@@ -193,19 +192,23 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->qvtkWidget->GetRenderWindow()->GetInteractor()->SetInteractorStyle(this->InteractorStyle);
   this->InteractorStyle->Init();
 
-  //this->Image = FloatVectorImageType::New();
+  this->Image = ImageType::New();
   //this->MaskImage = Mask::New();
-  this->Image = NULL;
+  
   this->MaskImage = NULL;
 
+  /** When the patches are dragged with the mouse, alert the GUI. */
   this->InteractorStyle->TrackballStyle->AddObserver(CustomTrackballStyle::PatchesMovedEvent, this,
                                                      &InteractivePatchComparisonWidget::PatchesMovedEventHandler);
 
+  /** Connect the PatchInfoWidgets signals (e.g. when the user changes the patch locations
+   * using the text boxes). */
   connect(TargetPatchInfoWidget, SIGNAL(signal_PatchMoved(const itk::ImageRegion<2>&)),
           this, SLOT(slot_TargetPatchMoved(const itk::ImageRegion<2>&)));
   connect(SourcePatchInfoWidget, SIGNAL(signal_PatchMoved(const itk::ImageRegion<2>&)),
           this, SLOT(slot_SourcePatchMoved(const itk::ImageRegion<2>&)));
 
+  /** Alert the PatchInfoWidgets when the patches have moved. */
   connect(this, SIGNAL(signal_TargetPatchMoved(const itk::ImageRegion<2>&)),
           TargetPatchInfoWidget, SLOT(slot_Update(const itk::ImageRegion<2>& )));
 
@@ -214,7 +217,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
 
 }
   
-InteractivePatchComparisonWidget::InteractivePatchComparisonWidget()
+InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(QWidget* parent) : QMainWindow(parent)
 {
   SharedConstructor();
 };
@@ -254,13 +257,11 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
   std::cout << "Working directory set to: " << workingDirectory << std::endl;
   QDir::setCurrent(QString(workingDirectory.c_str()));
 
-  typedef itk::ImageFileReader<VectorImageType> ReaderType;
+  typedef itk::ImageFileReader<ImageType> ReaderType;
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName(fileName);
   reader->Update();
 
-  //this->Image = reader->GetOutput();
-  this->Image = VectorImageType::New();
   ITKHelpers::DeepCopy(reader->GetOutput(), this->Image.GetPointer());
 
   ITKVTKHelpers::ITKImageToVTKRGBImage(this->Image.GetPointer(), this->VTKImage);
@@ -271,6 +272,7 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
   TargetPatchInfoWidget->SetImage(this->Image.GetPointer());
   SourcePatchInfoWidget->SetImage(this->Image.GetPointer());
 
+  this->TopPatchesPanel->SetImage(this->Image.GetPointer());
 }
 
 void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
@@ -406,6 +408,8 @@ void InteractivePatchComparisonWidget::on_actionFlipImage_activated()
 
 void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageRegion<2>& patchRegion)
 {
+  std::cout << "slot_TargetPatchMoved" << std::endl;
+  
   double targetPosition[3];
   this->TargetPatchSlice->GetPosition(targetPosition);
 
@@ -414,7 +418,7 @@ void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageReg
   this->TargetPatchSlice->SetPosition(targetPosition);
 
   // Update the TopPatches widget
-  this->TopPatches->SetTargetRegion(patchRegion);
+  this->TopPatchesPanel->SetTargetRegion(patchRegion);
   
   // Refresh
   Refresh();
@@ -433,7 +437,7 @@ void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageReg
   Refresh();
   PatchesMovedEventHandler();
 }
-  
+
 void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
 {
   // Source patch
@@ -468,6 +472,9 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
 
   itk::ImageRegion<2> targetRegion(targetCorner, this->PatchSize);
 
+  // Set the TopPatchesWidget to use the new target patch
+  this->TopPatchesPanel->SetTargetRegion(targetRegion);
+  
   emit signal_TargetPatchMoved(targetRegion);
 
   if(!(Image->GetLargestPossibleRegion().IsInside(targetRegion) &&
@@ -496,110 +503,6 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
   float featuresDifference = EigenHelpers::SumOfAbsoluteDifferences(sourceFeatures, targetFeatures);
   std::cout << "Features difference: " << featuresDifference << std::endl;
 
-  // Diffusion distance of feature vectors
-//   std::vector<Eigen::VectorXf> allPoints;
-//   itk::Index<2> targetCenter = Helpers::GetRegionCenter(targetRegion);
-//   itk::ImageRegion<2> neighborhoodRegion = Helpers::GetRegionInRadiusAroundPixel(targetCenter, 4);
-//   itk::ImageRegionConstIterator<Mask> neighborhoodIterator(MaskImage, neighborhoodRegion);
-// 
-//   while(!neighborhoodIterator.IsAtEnd())
-//     {
-//     itk::ImageRegion<2> nearbyRegion = Helpers::GetRegionInRadiusAroundPixel(neighborhoodIterator.GetIndex(),
-//                                                                              GetPatchRadius());
-//     Eigen::VectorXf nearbyFeatures = ComputeNormalizedFeatures(nearbyRegion);
-//     allPoints.push_back(nearbyFeatures);
-//     ++neighborhoodIterator;
-//     }
-// 
-//   allPoints.push_back(sourceFeatures);
-// 
-//   DiffusionDistance diffusionDistanceFunctor;
-//   float diffusionDistance = diffusionDistanceFunctor(targetFeatures, sourceFeatures, allPoints);
-//   std::cout << "diffusionDistance: " << diffusionDistance << std::endl;
-
-  // Diffusion distance of pixel values directly
-  {
-//   std::vector<Eigen::VectorXf> allPoints;
-//   itk::Index<2> targetCenter = Helpers::GetRegionCenter(targetRegion);
-//   itk::ImageRegion<2> neighborhoodRegion = Helpers::GetRegionInRadiusAroundPixel(targetCenter, 4);
-//   itk::ImageRegionConstIterator<Mask> neighborhoodIterator(MaskImage, neighborhoodRegion);
-// 
-//   Eigen::VectorXf sourceRegionVectorized = Helpers::GetRegionAsVector(Image.GetPointer(), sourceRegion);
-//   Eigen::VectorXf targetRegionVectorized = Helpers::GetRegionAsVector(Image.GetPointer(), targetRegion);
-// 
-//   std::cout << "Features have " << targetRegionVectorized.size() << " components." << std::endl;
-//   while(!neighborhoodIterator.IsAtEnd())
-//     {
-//     itk::ImageRegion<2> nearbyRegion = Helpers::GetRegionInRadiusAroundPixel(neighborhoodIterator.GetIndex(), GetPatchRadius());
-//     Eigen::VectorXf nearbyFeatures = Helpers::GetRegionAsVector(Image.GetPointer(), nearbyRegion);
-//     allPoints.push_back(nearbyFeatures);
-//     ++neighborhoodIterator;
-//     }
-// 
-//   while(allPoints.size() < static_cast<unsigned int>(sourceRegionVectorized.size()))
-//   {
-// //     Eigen::VectorXf emptyFeature(sourceRegionVectorized.size());
-// //     for(unsigned int i = 0; i < static_cast<unsigned int>(emptyFeature.size()); ++i)
-// //       {
-// //       emptyFeature[i] = 0.0f;
-// //       }
-// //     allPoints.push_back(emptyFeature);
-//     allPoints.push_back(targetRegionVectorized);
-//   }
-// 
-//   allPoints.push_back(sourceRegionVectorized);
-// 
-//   std::cout << "There are " << allPoints.size() << " points." << std::endl;
-// 
-//   DiffusionDistance diffusionDistanceFunctor;
-//   float diffusionDistance = diffusionDistanceFunctor(sourceRegionVectorized, targetRegionVectorized, allPoints);
-//   std::cout << "diffusionDistance: " << diffusionDistance << std::endl;
-  }
-
-  // Diffusion distance of pixel values directly (smaller patches)
-//   {
-//   unsigned int smallPatchRadius = 5;
-//   std::vector<Eigen::VectorXf> allPoints;
-//   itk::Index<2> targetCenter = Helpers::GetRegionCenter(targetRegion);
-//   itk::Index<2> sourceCenter = Helpers::GetRegionCenter(sourceRegion);
-//   itk::ImageRegion<2> neighborhoodRegion = Helpers::GetRegionInRadiusAroundPixel(targetCenter, 4);
-//   itk::ImageRegionConstIterator<Mask> neighborhoodIterator(MaskImage, neighborhoodRegion);
-// 
-//   itk::ImageRegion<2> smallSourceRegion = Helpers::GetRegionInRadiusAroundPixel(sourceCenter, smallPatchRadius);
-//   itk::ImageRegion<2> smallTargetRegion = Helpers::GetRegionInRadiusAroundPixel(targetCenter, smallPatchRadius);
-//   
-//   Eigen::VectorXf sourceRegionVectorized = Helpers::GetRegionAsVector(Image.GetPointer(), smallSourceRegion);
-//   Eigen::VectorXf targetRegionVectorized = Helpers::GetRegionAsVector(Image.GetPointer(), smallTargetRegion);
-// 
-//   std::cout << "Features have " << targetRegionVectorized.size() << " components." << std::endl;
-//   while(!neighborhoodIterator.IsAtEnd())
-//     {
-//     itk::ImageRegion<2> nearbyRegion = Helpers::GetRegionInRadiusAroundPixel(neighborhoodIterator.GetIndex(), smallPatchRadius);
-//     Eigen::VectorXf nearbyFeatures = Helpers::GetRegionAsVector(Image.GetPointer(), nearbyRegion);
-//     allPoints.push_back(nearbyFeatures);
-//     ++neighborhoodIterator;
-//     }
-// 
-//   while(allPoints.size() < static_cast<unsigned int>(sourceRegionVectorized.size()))
-//   {
-// //     Eigen::VectorXf emptyFeature(sourceRegionVectorized.size());
-// //     for(unsigned int i = 0; i < static_cast<unsigned int>(emptyFeature.size()); ++i)
-// //       {
-// //       emptyFeature[i] = 0.0f;
-// //       }
-// //     allPoints.push_back(emptyFeature);
-//     allPoints.push_back(targetRegionVectorized);
-//   }
-// 
-//   allPoints.push_back(sourceRegionVectorized);
-// 
-//   std::cout << "There are " << allPoints.size() << " points." << std::endl;
-// 
-//   DiffusionDistance diffusionDistanceFunctor;
-//   float diffusionDistance = diffusionDistanceFunctor(sourceRegionVectorized, targetRegionVectorized, allPoints);
-//   std::cout << "diffusionDistance: " << diffusionDistance << std::endl;
-//   }
-  
   Refresh();
 
   this->lblSumSquaredPixelDifference->setNum(averageSqPixelDifference);
@@ -634,7 +537,7 @@ void InteractivePatchComparisonWidget::on_btnSavePatches_clicked()
 
   //ITKHelpers::WriteVectorImageRegionAsRGB(this->Image.GetPointer(), sourceRegion, "SourcePatch.png");
   //Helpers::WriteRGBRegion(this->Image.GetPointer(), targetRegion, "TargetPatch.png");
-  VectorImageType::PixelType holeColor;
+  ImageType::PixelType holeColor;
   holeColor.SetSize(3);
   holeColor.Fill(0);
   MaskOperations::WriteMaskedRegionPNG(this->Image.GetPointer(), this->MaskImage.GetPointer(), targetRegion, "TargetPatch.png", holeColor);
@@ -666,13 +569,13 @@ Eigen::VectorXf InteractivePatchComparisonWidget::ComputeFeatures(const itk::Ima
 
   Eigen::VectorXf feature(numberOfImageComponents * 2);
   
-  VectorImageType::PixelType pixelAverage = ITKHelpers::AverageInRegion(Image.GetPointer(), region);
+  ImageType::PixelType pixelAverage = ITKHelpers::AverageInRegion(Image.GetPointer(), region);
   for(unsigned int component = 0; component < numberOfImageComponents; ++component)
     {
     feature[component] = pixelAverage[component];
     }
 
-  VectorImageType::PixelType pixelVariance = ITKHelpers::VarianceInRegion(Image.GetPointer(), region);
+  ImageType::PixelType pixelVariance = ITKHelpers::VarianceInRegion(Image.GetPointer(), region);
   for(unsigned int component = 0; component < numberOfImageComponents; ++component)
     {
     feature[numberOfImageComponents + component] = pixelVariance[component];
@@ -696,7 +599,7 @@ void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
   
   Eigen::MatrixXf featureMatrix(numberOfValidPatches, numberOfFeatures);
   
-  itk::ImageRegionConstIteratorWithIndex<VectorImageType> imageIterator(Image, Image->GetLargestPossibleRegion());
+  itk::ImageRegionConstIteratorWithIndex<ImageType> imageIterator(Image, Image->GetLargestPossibleRegion());
 
   unsigned int rowCounter = 0;
   while(!imageIterator.IsAtEnd())
@@ -759,17 +662,5 @@ void InteractivePatchComparisonWidget::on_actionScreenshot_activated()
 
 void InteractivePatchComparisonWidget::on_action_View_TopPatches_activated()
 {
-  TopPatches->setVisible(!TopPatches->isVisible());
-
-  // Get target patch
-  double position[3];
-  TargetPatchSlice->GetPosition(position);
-  int intPosition[2]; // Need this to prevent "narrowing conversion inside {{ }}" error
-  intPosition[0] = position[0];
-  intPosition[1] = position[1];
-  itk::Index<2> location = {{intPosition[0], intPosition[1]}};
-  itk::ImageRegion<2> targetPatch(location, this->PatchSize);
-  
-  TopPatches->SetTargetRegion(targetPatch);
-  TopPatches->setVisible(true);
+  TopPatchesPanel->setVisible(!TopPatchesPanel->isVisible());
 }

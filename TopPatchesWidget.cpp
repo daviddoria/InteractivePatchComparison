@@ -69,30 +69,20 @@
 #include "VTKHelpers/VTKHelpers.h"
 #include "ITKVTKHelpers/ITKVTKHelpers.h"
 #include "Mask/MaskOperations.h"
+#include "ITKQtHelpers/ITKQtHelpers.h"
 
 const unsigned char TopPatchesWidget::Green[3] = {0,255,0};
 const unsigned char TopPatchesWidget::Red[3] = {255,0,0};
 
-
-TopPatchesWidget::TopPatchesWidget(const std::string& imageFileName, const std::string& maskFileName)
-{
-  SharedConstructor();
-}
-
 // Constructor
-TopPatchesWidget::TopPatchesWidget(QWidget* parent)
+TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
 {
-  SharedConstructor();
-}
-
-void TopPatchesWidget::SharedConstructor()
-{
+  std::cout << "TopPatchesWidget::TopPatchesWidget()" << std::endl;
+  std::cout << this << std::endl;
   this->setupUi(this);
   
   this->TargetPatchScene = new QGraphicsScene();
   this->gfxTarget->setScene(TargetPatchScene);
-  
-  this->PatchScale = 5;
 
   this->Image = NULL;
   this->MaskImage = NULL;
@@ -103,17 +93,6 @@ void TopPatchesWidget::SharedConstructor()
 void TopPatchesWidget::on_txtPatchRadius_returnPressed()
 {
   SetupPatches();
-}
-
-void TopPatchesWidget::PositionTarget()
-{
-//   double position[3];
-//   this->TargetPatchSlice->GetPosition(position);
-//   position[0] = txtTargetX->text().toUInt();
-//   position[1] = txtTargetY->text().toUInt();
-//   this->TargetPatchSlice->SetPosition(position);
-//   
-//   PatchesMoved();
 }
 
 void TopPatchesWidget::GetPatchSize()
@@ -127,13 +106,8 @@ void TopPatchesWidget::SetupPatches()
 {
   GetPatchSize();
 
-//   InitializePatch(this->SourcePatch, this->Green);
-//   
-//   InitializePatch(this->TargetPatch, this->Red);
-  
   Refresh();
 }
-
 
 void TopPatchesWidget::RefreshSlot()
 {
@@ -143,26 +117,6 @@ void TopPatchesWidget::RefreshSlot()
 void TopPatchesWidget::Refresh()
 {
 
-}
-
-void TopPatchesWidget::SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image)
-{
-  itk::ImageRegionIterator<Mask> maskIterator(this->MaskImage, targetRegion);
-
-  while(!maskIterator.IsAtEnd())
-    {
-    if(this->MaskImage->IsHole(maskIterator.GetIndex()))
-      {
-      itk::Index<2> index = maskIterator.GetIndex();
-      index[0] -= targetRegion.GetIndex()[0];
-      index[1] -= targetRegion.GetIndex()[1];
-      unsigned char* pixel = static_cast<unsigned char*>(image->GetScalarPointer(index[0], index[1],0));
-      pixel[0] = 0;
-      pixel[1] = 255;
-      pixel[2] = 0;
-      }
-    ++maskIterator;
-    }  
 }
 
 void TopPatchesWidget::on_txtNumberOfPatches_returnPressed()
@@ -223,8 +177,6 @@ void TopPatchesWidget::DisplaySourcePatches()
 
 void TopPatchesWidget::on_btnCompute_clicked()
 {
-  PositionTarget();
-  
   this->PatchCompare.SetImage(this->Image);
   this->PatchCompare.SetMask(this->MaskImage);
 
@@ -265,5 +217,23 @@ void TopPatchesWidget::PatchClickedSlot(const unsigned int value)
 
 void TopPatchesWidget::SetTargetRegion(const itk::ImageRegion<2>& region)
 {
+  std::cout << "SetTargetRegion to " << region << std::endl;
   this->TargetRegion = region;
+
+  QImage patchImage = ITKQtHelpers::GetQImageColor(this->Image, region);
+  //patchImage = QtHelpers::FitToGraphicsView(patchImage, this->gfxTarget);
+
+  QPixmap pixmap = QPixmap::fromImage(patchImage);
+
+  this->TargetPatchScene = new QGraphicsScene();
+  this->gfxTarget->setScene(TargetPatchScene);
+  
+  this->TargetPatchScene->addPixmap(pixmap);
+  
+  Refresh();
+}
+
+void TopPatchesWidget::SetImage(ImageType* const image)
+{
+  this->Image = image;
 }

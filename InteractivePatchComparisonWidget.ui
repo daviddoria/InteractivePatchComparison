@@ -19,6 +19,9 @@
      <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,3,2">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0,0">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetMaximumSize</enum>
+        </property>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>

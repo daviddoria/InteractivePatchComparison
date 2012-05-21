@@ -47,16 +47,17 @@ class vtkImageSliceMapper;
 
 class SwitchBetweenStyle;
 
-class InteractivePatchComparisonWidget : public QMainWindow, public Ui::InteractivePatchComparisonWidget
+class InteractivePatchComparisonWidget : public QMainWindow, private Ui::InteractivePatchComparisonWidget
 {
 Q_OBJECT
 public:
 
+  typedef itk::VectorImage<float, 2> ImageType;
+
   // Constructor/Destructor
-  InteractivePatchComparisonWidget();
-  InteractivePatchComparisonWidget(const std::string& imageFileName, const std::string& maskFileName);
+  InteractivePatchComparisonWidget(QWidget* parent = 0);
+  InteractivePatchComparisonWidget(const std::string& imageFileName, const std::string& maskFileName, QWidget* parent = 0);
   void SharedConstructor();
-  ~InteractivePatchComparisonWidget() {};
 
   void Refresh();
 
@@ -144,13 +145,11 @@ private:
   vtkSmartPointer<vtkImageSliceMapper> TargetPatchSliceMapper;
   
   // The data that the user loads
-  VectorImageType::Pointer Image;
+  ImageType::Pointer Image;
   Mask::Pointer MaskImage;
-  
+
   itk::Size<2> PatchSize;
-  unsigned int PatchScale;
-  
-  TopPatchesWidget* TopPatches;
+
 };
 
 #endif // InteractivePatchComparisonWidget_H

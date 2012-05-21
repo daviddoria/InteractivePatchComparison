@@ -33,7 +33,7 @@ class vtkRenderer;
 #include "itkImage.h"
 
 // Qt
-#include <QMainWindow>
+#include <QWidget>
 #include <QImage>
 
 // Custom
@@ -45,24 +45,24 @@ class vtkRenderer;
 
 class SwitchBetweenStyle;
 
-class TopPatchesWidget : public QWidget, public Ui::TopPatchesWidget
+class TopPatchesWidget : public QWidget, private Ui::TopPatchesWidget
 {
-  Q_OBJECT
+Q_OBJECT
 public:
 
   // Constructor/Destructor
-  TopPatchesWidget(const std::string& imageFileName, const std::string& maskFileName);
   TopPatchesWidget(QWidget* parent);
-  void SharedConstructor();
-  ~TopPatchesWidget() {};
 
+  // Types
+  typedef itk::VectorImage<float, 2> ImageType;
+  
   void Refresh();
+
+  void SetImage(ImageType* const image);
 
   const static unsigned int DisplayPatchSize = 50;
 
   void DisplaySourcePatches();
-
-  void PositionTarget();
 
   void SetTargetRegion(const itk::ImageRegion<2>& region);
   
@@ -79,9 +79,7 @@ public slots:
 
   void RefreshSlot();
 
-protected:
-
-  void SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image);
+private:
 
   static const unsigned char Green[3];
   static const unsigned char Red[3];
@@ -91,13 +89,14 @@ protected:
   void PatchesMoved();
   void SetupPatches();
 
-  // The data that the user loads
-  itk::VectorImage<float, 2>::Pointer Image;
+  /** The image from which to pull the patches. */
+  ImageType* Image;
+
+  /** The mask indicating which pixels in the image are valid. */
   Mask::Pointer MaskImage;
-  
+
   itk::Size<2> PatchSize;
-  unsigned int PatchScale;
-  
+
   QGraphicsScene* SourcePatchesScene;
   QGraphicsScene* TargetPatchScene;
   
