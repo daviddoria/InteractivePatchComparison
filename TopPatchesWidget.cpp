@@ -80,7 +80,7 @@ TopPatchesWidget::TopPatchesWidget(const std::string& imageFileName, const std::
 }
 
 // Constructor
-TopPatchesWidget::TopPatchesWidget()
+TopPatchesWidget::TopPatchesWidget(QWidget* parent)
 {
   SharedConstructor();
 }
@@ -114,16 +114,6 @@ void TopPatchesWidget::PositionTarget()
 //   this->TargetPatchSlice->SetPosition(position);
 //   
 //   PatchesMoved();
-}
-
-void TopPatchesWidget::on_txtTargetX_returnPressed()
-{
-  PositionTarget();  
-}
-
-void TopPatchesWidget::on_txtTargetY_returnPressed()
-{
-  PositionTarget();
 }
 
 void TopPatchesWidget::GetPatchSize()
@@ -235,7 +225,6 @@ void TopPatchesWidget::on_btnCompute_clicked()
 {
   PositionTarget();
   
-  this->PatchCompare.SetNumberOfComponentsPerPixel(this->Image->GetNumberOfComponentsPerPixel());
   this->PatchCompare.SetImage(this->Image);
   this->PatchCompare.SetMask(this->MaskImage);
 
@@ -272,4 +261,9 @@ void TopPatchesWidget::PatchClickedSlot(const unsigned int value)
 //   std::cout << "Region: " << patch.Region << std::endl;
 
   Refresh();
+}
+
+void TopPatchesWidget::SetTargetRegion(const itk::ImageRegion<2>& region)
+{
+  this->TargetRegion = region;
 }

@@ -52,7 +52,7 @@ public:
 
   // Constructor/Destructor
   TopPatchesWidget(const std::string& imageFileName, const std::string& maskFileName);
-  TopPatchesWidget();
+  TopPatchesWidget(QWidget* parent);
   void SharedConstructor();
   ~TopPatchesWidget() {};
 
@@ -64,20 +64,19 @@ public:
 
   void PositionTarget();
 
+  void SetTargetRegion(const itk::ImageRegion<2>& region);
+  
 public slots:
 
   void PatchClickedSlot(const unsigned int);
 
   void on_txtPatchRadius_returnPressed();
   void on_txtNumberOfPatches_returnPressed();
-  
-  void on_txtTargetX_returnPressed();
-  void on_txtTargetY_returnPressed();
-  
+
   void on_btnCompute_clicked();
 
   void on_chkFillPatch_clicked();
-  
+
   void RefreshSlot();
 
 protected:
@@ -105,6 +104,8 @@ protected:
   SelfPatchCompare PatchCompare;
 
   unsigned int DisplayedSourcePatch;
+
+  itk::ImageRegion<2> TargetRegion;
 };
 
 #endif // TopPatchesWidget_H

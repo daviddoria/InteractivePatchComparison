@@ -413,6 +413,10 @@ void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageReg
   targetPosition[1] = patchRegion.GetIndex()[1];
   this->TargetPatchSlice->SetPosition(targetPosition);
 
+  // Update the TopPatches widget
+  this->TopPatches->SetTargetRegion(patchRegion);
+  
+  // Refresh
   Refresh();
   PatchesMovedEventHandler();
 }
@@ -751,4 +755,21 @@ void InteractivePatchComparisonWidget::on_actionScreenshot_activated()
   writer->SetFileName("Screenshot.png");
   writer->SetInputData(windowToImageFilter->GetOutput());
   writer->Write();
+}
+
+void InteractivePatchComparisonWidget::on_action_View_TopPatches_activated()
+{
+  TopPatches->setVisible(!TopPatches->isVisible());
+
+  // Get target patch
+  double position[3];
+  TargetPatchSlice->GetPosition(position);
+  int intPosition[2]; // Need this to prevent "narrowing conversion inside {{ }}" error
+  intPosition[0] = position[0];
+  intPosition[1] = position[1];
+  itk::Index<2> location = {{intPosition[0], intPosition[1]}};
+  itk::ImageRegion<2> targetPatch(location, this->PatchSize);
+  
+  TopPatches->SetTargetRegion(targetPatch);
+  TopPatches->setVisible(true);
 }

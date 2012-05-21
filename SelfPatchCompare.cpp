@@ -25,11 +25,9 @@
 // Custom
 #include "Types.h"
 
-SelfPatchCompare::SelfPatchCompare(const unsigned int components)
+SelfPatchCompare::SelfPatchCompare() : NumberOfPixelsCompared(0)
 {
-  this->NumberOfComponentsPerPixel = components;
-  
-  this->NumberOfPixelsCompared = 0;
+
 }
 
 void SelfPatchCompare::ComputeSourcePatches()
@@ -61,11 +59,6 @@ void SelfPatchCompare::ComputeSourcePatches()
   
 }
 
-void SelfPatchCompare::SetNumberOfComponentsPerPixel(const unsigned int value)
-{
-  this->NumberOfComponentsPerPixel = value;
-}
-
 bool SelfPatchCompare::IsReady()
 {
   if(this->Image && this->MaskImage && NumberOfComponentsPerPixel > 0)
@@ -81,9 +74,10 @@ bool SelfPatchCompare::IsReady()
 void SelfPatchCompare::SetImage(itk::VectorImage<float, 2>* const image)
 {
   this->Image = image;
+  this->NumberOfComponentsPerPixel = this->Image->GetNumberOfComponentsPerPixel();
 }
 
-void SelfPatchCompare::SetMask(Mask::Pointer mask)
+void SelfPatchCompare::SetMask(Mask* const mask)
 {
   this->MaskImage = mask;
 }

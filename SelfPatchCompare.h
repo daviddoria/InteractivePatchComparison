@@ -41,24 +41,15 @@
 
 class SelfPatchCompare
 {
-  
 public:
-  SelfPatchCompare()
-  {
-    this->NumberOfComponentsPerPixel = 0;
-  }
-  
-  SelfPatchCompare(const unsigned int);
-  
-  void SetNumberOfComponentsPerPixel(const unsigned int);
-  
-  //unsigned int FindBestPatch();
 
-  void SetImage(itk::VectorImage<float, 2>* const);
+  SelfPatchCompare();
 
-  void SetMask(Mask::Pointer mask);
+  void SetImage(itk::VectorImage<float, 2>* const image);
 
-  void SetTargetRegion(const itk::ImageRegion<2>&);
+  void SetMask(Mask* const mask);
+
+  void SetTargetRegion(const itk::ImageRegion<2>& targetRegion);
 
   float SlowTotalAbsoluteDifference(const itk::ImageRegion<2>& sourceRegion);
   float SlowTotalSquaredDifference(const itk::ImageRegion<2>& sourceRegion);
@@ -67,37 +58,35 @@ public:
   float SlowAverageSquaredDifference(const itk::ImageRegion<2>& sourceRegion);
   
   bool IsReady();
-  
-  void ComputeSourcePatches();
-  
+
   float PixelDifference(const VectorType &a, const VectorType &b);
   float PixelSquaredDifference(const VectorType &a, const VectorType &b);
   
   void ComputePatchScores();
-  
+
   // These are the fully valid source regions
   std::vector<itk::ImageRegion<2> > SourcePatches;
-  
-  //std::vector<Patch>& GetSourcePatches();
-  
-protected:
-  // If a channel of one pixel was white (255) and the corresponding channel of the other pixel
-  // was black (0), the difference would be 255, so the difference squared would be 255*255
-  //static const float MaxColorDifference = 255*255; // Doesn't work with c++0x
-  static float MaxColorDifference() { return 255.0f*255.0f; }
-  
-  // These are the offsets of the target region which we with to compare
-  //std::vector<FloatVectorImageType::OffsetValueType> ValidOffsets;
 
-  // This is the target region we wish to compare. It may be partially invalid.
+  std::vector<itk::ImageRegion<2> >& GetSourcePatches();
+
+private:
+  /** If a channel of one pixel was white (255) and the corresponding channel of the other pixel
+   * was black (0), the difference would be 255, so the difference squared would be 255*255
+   * static const float MaxColorDifference = 255*255; // Doesn't work with c++0x
+   */
+  static float MaxColorDifference() { return 255.0f*255.0f; }
+
+  /** This is the target region we wish to compare. It may be partially invalid. */
   itk::ImageRegion<2> TargetRegion;
   
-  // This is the image from which to take the patches
+  /** This is the image from which to take the patches */
   itk::VectorImage<float, 2>::Pointer Image;
 
-  // This is the mask to check the validity of target pixels
+  /** This is the mask to check the validity of target pixels */
   Mask::Pointer MaskImage;
 
+  void ComputeSourcePatches();
+  
   unsigned int NumberOfComponentsPerPixel;
   
   unsigned int NumberOfPixelsCompared;

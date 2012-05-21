@@ -43,6 +43,7 @@ class vtkImageSliceMapper;
 
 // Custom
 #include "Types.h"
+#include "TopPatchesWidget.h"
 
 class SwitchBetweenStyle;
 
@@ -64,7 +65,10 @@ signals:
   void signal_SourcePatchMoved(const itk::ImageRegion<2>&);
 
 public slots:
-  
+
+  // View menu
+  void on_action_View_TopPatches_activated();
+
   void on_actionOpenImage_activated();
   void on_actionOpenMask_activated();
   void on_actionOpenMaskInverted_activated();
@@ -146,7 +150,7 @@ private:
   itk::Size<2> PatchSize;
   unsigned int PatchScale;
   
-  
+  TopPatchesWidget* TopPatches;
 };
 
 #endif // InteractivePatchComparisonWidget_H
