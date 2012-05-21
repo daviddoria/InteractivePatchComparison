@@ -71,10 +71,12 @@
 // Custom
 #include "SwitchBetweenStyle.h"
 #include "Types.h"
-#include "CorrelationScore.hpp"
-#include "AveragePixelDifference.hpp"
-#include "PixelDifferences.hpp"
-#include "DiffusionDistance.h"
+
+// Patch Comparison Submodule
+#include "PatchComparison/CorrelationScore.hpp"
+#include "PatchComparison/AveragePixelDifference.hpp"
+#include "PatchComparison/PixelDifferences.hpp"
+#include "PatchComparison/DiffusionDistance.h"
 
 const unsigned char InteractivePatchComparisonWidget::Green[3] = {0,255,0};
 const unsigned char InteractivePatchComparisonWidget::Red[3] = {255,0,0};

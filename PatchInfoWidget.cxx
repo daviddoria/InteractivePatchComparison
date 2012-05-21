@@ -27,11 +27,11 @@
 #include "QtHelpers/QtHelpers.h"
 #include "ITKQtHelpers/ITKQtHelpers.h"
 
-// Custom
-#include "AverageScore.hpp"
-#include "VarianceScore.hpp"
-#include "AveragePixelDifference.hpp"
-#include "PixelDifferences.hpp"
+// Patch Comparison Submodule
+#include "PatchComparison/AverageScore.hpp"
+#include "PatchComparison/VarianceScore.hpp"
+#include "PatchComparison/AveragePixelDifference.hpp"
+#include "PatchComparison/PixelDifferences.hpp"
 
 // ITK
 #include "itkRegionOfInterestImageFilter.h"

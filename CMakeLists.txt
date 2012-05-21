@@ -19,6 +19,7 @@ add_subdirectory(ITKVTKHelpers)
 add_subdirectory(Mask)
 add_subdirectory(QtHelpers)
 add_subdirectory(ITKQtHelpers)
+add_subdirectory(PatchComparison)
 
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})
@@ -36,22 +37,14 @@ FIND_PACKAGE(ITK REQUIRED)
 INCLUDE(${ITK_USE_FILE})
 
 ADD_EXECUTABLE(InteractivePatchComparison
-DiffusionDistance.cpp
 InteractivePatchComparisonWidget.cxx
 Interactive.cpp 
 SwitchBetweenStyle.cxx
 CustomImageStyle.cxx
 CustomTrackballStyle.cxx
-VarianceScore.hpp
 PatchInfoWidget.cxx
 ${InteractivePatchComparisonWidgetUISrcs} ${InteractivePatchComparisonWidgetMOCSrcs})
-TARGET_LINK_LIBRARIES(InteractivePatchComparison Mask EigenHelpers libQtHelpers Helpers libVTKHelpers ITKHelpers ITKVTKHelpers  ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
+TARGET_LINK_LIBRARIES(InteractivePatchComparison PatchComparison Mask
+EigenHelpers QtHelpers Helpers VTKHelpers ITKHelpers ITKVTKHelpers
+${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
 INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )
-
-# 
-# ADD_EXECUTABLE(ExamplePatchDifference ExamplePatchDifference.cpp)
-# TARGET_LINK_LIBRARIES(ExamplePatchDifference PatchComparison ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
-
-# ADD_EXECUTABLE(DiffusionDistanceTest DiffusionDistanceTest.cpp DiffusionDistance.cpp Helpers.cpp)
-# TARGET_LINK_LIBRARIES(DiffusionDistanceTest ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
-# these libraries are required because Helpers has many other things, even though we don't use them in this executable
