@@ -27,6 +27,7 @@
 class vtkImageData;
 class vtkImageSlice;
 class vtkImageSliceMapper;
+class vtkRenderer;
 
 // ITK
 #include "itkImage.h"
@@ -37,51 +38,36 @@ class vtkImageSliceMapper;
 
 // Custom
 #include "Types.h"
+#include "SelfPatchCompare.h"
 
 // Submodules
 #include "Mask/Mask.h"
 
 class SwitchBetweenStyle;
 
-class InteractiveBestPatchesWidget : public QMainWindow, public Ui::InteractiveBestPatchesWidget
+class TopPatchesWidget : public QWidget, public Ui::TopPatchesWidget
 {
   Q_OBJECT
 public:
 
   // Constructor/Destructor
-  InteractiveBestPatchesWidget();
-  InteractiveBestPatchesWidget(const std::string& imageFileName, const std::string& maskFileName);
+  TopPatchesWidget(const std::string& imageFileName, const std::string& maskFileName);
+  TopPatchesWidget();
   void SharedConstructor();
-  ~InteractiveBestPatchesWidget() {};
-  
-  // These function deal with flipping the image
-  void SetCameraPosition(const double leftToRight[3], const double bottomToTop[3]);
-  void SetCameraPosition1();
-  void SetCameraPosition2();
-  
+  ~TopPatchesWidget() {};
+
   void Refresh();
-  
+
   const static unsigned int DisplayPatchSize = 50;
-  
+
   void DisplaySourcePatches();
-  
+
   void PositionTarget();
-  
+
 public slots:
-  
+
   void PatchClickedSlot(const unsigned int);
-  
-  void on_chkShowMask_clicked();
-  
-  void on_actionOpenImage_activated();
-  void on_actionOpenMask_activated();
-  void on_actionOpenMaskInverted_activated();
-  
-  void on_actionHelp_activated();
-  void on_actionQuit_activated();
-  
-  void on_actionFlipImage_activated();
-  
+
   void on_txtPatchRadius_returnPressed();
   void on_txtNumberOfPatches_returnPressed();
   
@@ -89,65 +75,25 @@ public slots:
   void on_txtTargetY_returnPressed();
   
   void on_btnCompute_clicked();
-  void on_btnResort_clicked();
 
   void on_chkFillPatch_clicked();
   
   void RefreshSlot();
-  
-  
+
 protected:
-  
-  QImage GetQImage(const itk::ImageRegion<2>& region);
-  QImage GetTargetQImage(const itk::ImageRegion<2>& region);
-  
+
   void SetMaskedPixelsToGreen(const itk::ImageRegion<2>& targetRegion, vtkImageData* image);
 
-  void LoadMask(const std::string& filename);
-  void LoadImage(const std::string& filename);
-  
   static const unsigned char Green[3];
   static const unsigned char Red[3];
-  
+
   void GetPatchSize();
-  
-  itk::ImageRegion<2> GetTargetRegion();
-  
-  void InitializePatch(vtkImageData* image, const unsigned char color[3]);
-  
+
   void PatchesMoved();
   void SetupPatches();
-  
-  // Allow us to interact with the objects as we would like.
-  vtkSmartPointer<SwitchBetweenStyle> InteractorStyle;
-  
-  // Track if the image has been flipped
-  bool Flipped;
 
-  vtkSmartPointer<vtkRenderer> Renderer;
-  
-  // Image display
-  vtkSmartPointer<vtkImageData> VTKImage;
-  vtkSmartPointer<vtkImageSlice> ImageSlice;
-  vtkSmartPointer<vtkImageSliceMapper> ImageSliceMapper;
-  
-  // Mask image display
-  vtkSmartPointer<vtkImageData> VTKMaskImage;
-  vtkSmartPointer<vtkImageSlice> MaskImageSlice;
-  vtkSmartPointer<vtkImageSliceMapper> MaskImageSliceMapper;
-  
-  // Movable target patch
-  vtkSmartPointer<vtkImageData> TargetPatch;
-  vtkSmartPointer<vtkImageSlice> TargetPatchSlice;
-  vtkSmartPointer<vtkImageSliceMapper> TargetPatchSliceMapper;
-  
-  // Source patch (to indicate where one of the best matches came from)
-  vtkSmartPointer<vtkImageData> SourcePatch;
-  vtkSmartPointer<vtkImageSlice> SourcePatchSlice;
-  vtkSmartPointer<vtkImageSliceMapper> SourcePatchSliceMapper;
-    
   // The data that the user loads
-  FloatVectorImageType::Pointer Image;
+  itk::VectorImage<float, 2>::Pointer Image;
   Mask::Pointer MaskImage;
   
   itk::Size<2> PatchSize;
@@ -161,4 +107,4 @@ protected:
   unsigned int DisplayedSourcePatch;
 };
 
-#endif // InteractiveBestPatchesWidget_H
+#endif // TopPatchesWidget_H

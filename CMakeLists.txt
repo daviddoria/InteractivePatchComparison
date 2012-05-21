@@ -39,6 +39,7 @@ INCLUDE(${VTK_USE_FILE})
 FIND_PACKAGE(ITK REQUIRED)
 INCLUDE(${ITK_USE_FILE})
 
+
 ADD_EXECUTABLE(InteractivePatchComparison
 InteractivePatchComparisonWidget.cpp
 Interactive.cpp 
@@ -47,8 +48,13 @@ CustomImageStyle.cxx
 CustomTrackballStyle.cxx
 PatchInfoWidget.cpp
 TopPatchesWidget.cpp
+SelfPatchCompare.cpp
 ${InteractivePatchComparisonWidgetUISrcs} ${InteractivePatchComparisonWidgetMOCSrcs})
-TARGET_LINK_LIBRARIES(InteractivePatchComparison PatchComparison Mask
+TARGET_LINK_LIBRARIES(InteractivePatchComparison 
 EigenHelpers QtHelpers Helpers VTKHelpers ITKHelpers ITKVTKHelpers
+PatchComparison Mask
 ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
 INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )
+
+get_directory_property(output INCLUDE_DIRECTORIES)
+message(${output})
