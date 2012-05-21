@@ -141,8 +141,6 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   actionSaveResult->setIcon(saveIcon);
   this->toolBar->addAction(actionSaveResult);*/
 
-  this->Flipped = false;
-
   this->InteractorStyle = vtkSmartPointer<SwitchBetweenStyle>::New();
 
   // Initialize and link the image display objects
@@ -401,42 +399,9 @@ void InteractivePatchComparisonWidget::Refresh()
   
 }
 
-void InteractivePatchComparisonWidget::SetCameraPosition1()
-{
-  double leftToRight[3] = {-1,0,0};
-  double bottomToTop[3] = {0,1,0};
-  SetCameraPosition(leftToRight, bottomToTop);
-}
-
-void InteractivePatchComparisonWidget::SetCameraPosition2()
-{
-  double leftToRight[3] = {-1,0,0};
-  double bottomToTop[3] = {0,-1,0};
-
-  SetCameraPosition(leftToRight, bottomToTop);
-}
-
-void InteractivePatchComparisonWidget::SetCameraPosition(const double leftToRight[3], const double bottomToTop[3])
-{
-  this->InteractorStyle->SetImageOrientation(leftToRight, bottomToTop);
-
-  this->Renderer->ResetCamera();
-  this->Renderer->ResetCameraClippingRange();
-  this->qvtkWidget->GetRenderWindow()->Render();
-}
-
-
 void InteractivePatchComparisonWidget::on_actionFlipImage_activated()
 {
-  if(this->Flipped)
-    {
-    SetCameraPosition1();
-    }
-  else
-    {
-    SetCameraPosition2();
-    }
-  this->Flipped = !this->Flipped;
+// camera->Flip
 }
 
 void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageRegion<2>& patchRegion)

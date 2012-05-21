@@ -4,7 +4,6 @@
 #include "CustomImageStyle.h"
 #include <vtkInteractorStyleImage.h>
 
-//#include "CustomTrackballStyle.h"
 class CustomTrackballStyle;
 
 // Define interaction style
@@ -18,10 +17,9 @@ public:
 
   void SetOtherStyle(CustomTrackballStyle* style);
 
-  
 private:
   CustomTrackballStyle* OtherStyle;
-  
+
 };
 
 #endif

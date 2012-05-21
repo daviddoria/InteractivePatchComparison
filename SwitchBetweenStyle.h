@@ -12,31 +12,27 @@
 //  this->InteractorStyle->SetCurrentRenderer(this->Renderer);
 //  this->Interactor->SetInteractorStyle(this->InteractorStyle);
 //  this->InteractorStyle->Init();
-    
+
 // Define interaction style
 class SwitchBetweenStyle : public vtkInteractorStyleTrackballActor
 {
-  public:
-    
-    
-    static SwitchBetweenStyle* New();
-    vtkTypeMacro(SwitchBetweenStyle,vtkInteractorStyleTrackballActor);
+public:
 
-    SwitchBetweenStyle();
+  static SwitchBetweenStyle* New();
+  vtkTypeMacro(SwitchBetweenStyle,vtkInteractorStyleTrackballActor);
 
-    void Init();
+  SwitchBetweenStyle();
 
-    void SetCurrentRenderer(vtkRenderer* renderer);
+  void Init();
 
-    void SetImageOrientation(const double*, const double*);
-    
-        
-    vtkSmartPointer<CustomImageStyle> ImageStyle;
-    vtkSmartPointer<CustomTrackballStyle> TrackballStyle;
-    
-  protected:
+  void SetCurrentRenderer(vtkRenderer* renderer);
 
-    
+  void SetImageOrientation(const double*, const double*);
+
+  vtkSmartPointer<CustomImageStyle> ImageStyle;
+  vtkSmartPointer<CustomTrackballStyle> TrackballStyle;
+
+protected:
 
 };
 

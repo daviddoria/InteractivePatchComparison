@@ -37,8 +37,11 @@ class vtkImageSliceMapper;
 // Qt
 #include <QMainWindow>
 
-// Custom
+// Submodules
 #include "Mask/Mask.h"
+#include "ITKVTKCamera/ITKVTKCamera.h"
+
+// Custom
 #include "Types.h"
 
 class SwitchBetweenStyle;
@@ -53,12 +56,7 @@ public:
   InteractivePatchComparisonWidget(const std::string& imageFileName, const std::string& maskFileName);
   void SharedConstructor();
   ~InteractivePatchComparisonWidget() {};
-  
-  // These functions deal with flipping the image
-  void SetCameraPosition(const double leftToRight[3], const double bottomToTop[3]);
-  void SetCameraPosition1();
-  void SetCameraPosition2();
-  
+
   void Refresh();
 
 signals:
@@ -116,9 +114,9 @@ private:
   
   // Allow us to interact with the objects as we would like.
   vtkSmartPointer<SwitchBetweenStyle> InteractorStyle;
-  
-  // Track if the image has been flipped
-  bool Flipped;
+
+  // Display the image appropriately
+  ITKVTKCamera itkvtkCamera;
 
   vtkSmartPointer<vtkRenderer> Renderer;
   

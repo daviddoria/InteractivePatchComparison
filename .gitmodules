@@ -19,3 +19,6 @@
 [submodule "PatchComparison"]
 	path = PatchComparison
 	url = git@github.com:daviddoria/PatchComparison.git
+[submodule "ITKVTKCamera"]
+	path = ITKVTKCamera
+	url = git@github.com:daviddoria/ITKVTKCamera.git

@@ -115,22 +115,7 @@
          </column>
          <column>
           <property name="text">
-           <string>Total Absolute</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Average Absolute</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Total Squared</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Average Squared</string>
+           <string>Score</string>
           </property>
          </column>
         </widget>
