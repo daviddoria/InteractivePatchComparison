@@ -28,8 +28,10 @@
 // ITK
 #include "itkVectorImage.h"
 
-// Custom
+// Submodules
 #include "Mask/Mask.h"
+
+// Custom
 #include "TableModelTopPatches.h"
 
 /** This class is necessary because a class template cannot have the Q_OBJECT macro directly. */
@@ -50,6 +52,8 @@ public slots:
 
   /** When a patch is clicked, emit a signal. */
   void slot_SingleClicked(const QModelIndex & index);
+
+  void on_btnCompute_clicked();
 
 signals:
   void TopPatchSelected(const QModelIndex & index);

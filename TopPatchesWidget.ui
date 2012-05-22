@@ -26,7 +26,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QGraphicsView" name="gfxTargetPatch"/>
+        <widget class="QGraphicsView" name="gfxTargetPatch">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">

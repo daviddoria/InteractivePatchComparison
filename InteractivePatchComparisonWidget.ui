@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>1083</width>
     <height>841</height>
    </rect>
   </property>
@@ -14,125 +14,129 @@
    <string>Interactive Patch Comparison</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,3,2">
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0,0">
-        <property name="sizeConstraint">
-         <enum>QLayout::SetMaximumSize</enum>
-        </property>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Patch Radius</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="txtPatchRadius">
-            <property name="toolTip">
-             <string>Sets the width/height of a square patch</string>
-            </property>
-            <property name="text">
-             <string>15</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>&lt;font color=&quot;green&quot;&gt;Source Patch&lt;/font&gt;</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="PatchInfoWidget" name="SourcePatchInfoWidget" native="true"/>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>&lt;font color=&quot;red&quot;&gt;Target Patch&lt;/font&gt;</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="PatchInfoWidget" name="TargetPatchInfoWidget" native="true"/>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <item>
-           <widget class="QLabel" name="label_8">
-            <property name="text">
-             <string>Sum Abs.Pixel Diff:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="lblSumAbsolutePixelDifference">
-            <property name="text">
-             <string>0</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Sum Sq. Pix Diff: </string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="lblSumSquaredPixelDifference">
-            <property name="text">
-             <string>0</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_6">
-          <item>
-           <widget class="QLabel" name="label_11">
-            <property name="text">
-             <string>Correlation:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="lblCorrelation">
-            <property name="text">
-             <string>0</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnSavePatches">
-          <property name="text">
-           <string>Save Patches</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QVTKWidget" name="qvtkWidget"/>
-      </item>
-      <item>
-       <widget class="TopPatchesWidget" name="TopPatchesPanel" native="true"/>
-      </item>
-     </layout>
+   <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,4,1">
+    <item>
+     <widget class="QWidget" name="LeftPanelWidget" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="toolTip">
+            <string>Patch half width (radius)</string>
+           </property>
+           <property name="text">
+            <string>Patch HW</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="txtPatchRadius">
+           <property name="toolTip">
+            <string>Sets the width/height of a square patch</string>
+           </property>
+           <property name="text">
+            <string>15</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>&lt;font color=&quot;green&quot;&gt;Source Patch&lt;/font&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="PatchInfoWidget" name="SourcePatchInfoWidget" native="true"/>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>&lt;font color=&quot;red&quot;&gt;Target Patch&lt;/font&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="PatchInfoWidget" name="TargetPatchInfoWidget" native="true"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QLabel" name="label_8">
+           <property name="text">
+            <string>SAD</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblSumAbsolutePixelDifference">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>SSD</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblSumSquaredPixelDifference">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QLabel" name="label_12">
+           <property name="text">
+            <string>Corr</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblCorrelation">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnSavePatches_2">
+         <property name="text">
+          <string>Save Patches</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QVTKWidget" name="qvtkWidget"/>
+    </item>
+    <item>
+     <widget class="TopPatchesWidget" name="TopPatchesPanel" native="true"/>
     </item>
    </layout>
   </widget>
@@ -141,7 +145,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1083</width>
      <height>29</height>
     </rect>
    </property>
@@ -283,15 +287,15 @@
    <header>QVTKWidget.h</header>
   </customwidget>
   <customwidget>
-   <class>PatchInfoWidget</class>
-   <extends>QWidget</extends>
-   <header>PatchInfoWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>TopPatchesWidget</class>
    <extends>QWidget</extends>
    <header>TopPatchesWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PatchInfoWidget</class>
+   <extends>QWidget</extends>
+   <header>PatchInfoWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

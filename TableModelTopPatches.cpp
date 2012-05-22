@@ -46,7 +46,7 @@ Qt::ItemFlags TableModelTopPatches::flags(const QModelIndex& index) const
 
 int TableModelTopPatches::rowCount(const QModelIndex& parent) const
 {
-  unsigned int numberOfRowsToDisplay = std::min(this->TopPatchRegions.size(), this->MaxTopPatchesToDisplay);
+  unsigned int numberOfRowsToDisplay = std::min(this->TopPatchData.size(), this->MaxTopPatchesToDisplay);
 
   return numberOfRowsToDisplay;
 }
@@ -66,7 +66,7 @@ QVariant TableModelTopPatches::data(const QModelIndex& index, int role) const
   QVariant returnValue;
   if(role == Qt::DisplayRole && index.row() >= 0)
     {
-    itk::ImageRegion<2> sourceRegion = this->TopPatchRegions[index.row()];
+    itk::ImageRegion<2> sourceRegion = this->TopPatchData[index.row()].first;
 
     switch(index.column())
       {
@@ -136,3 +136,13 @@ void TableModelTopPatches::SetImage(ImageType* const image)
 {
   this->Image = image;
 }
+
+// void TableModelTopPatches::SetTopPatchRegions(const std::vector<itk::ImageRegion<2> >& topPatchRegions)
+// {
+//   this->TopPatchRegions = topPatchRegions;
+// }
+void TableModelTopPatches::SetTopPatchData(const std::vector<SelfPatchCompare::PatchDataType>& topPatchData)
+{
+  this->TopPatchData = topPatchData;
+}
+

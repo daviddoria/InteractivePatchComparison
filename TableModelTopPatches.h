@@ -30,6 +30,9 @@
 // STL
 #include <vector>
 
+// Custom
+#include "SelfPatchCompare.h"
+
 class TableModelTopPatches : public QAbstractTableModel
 {
 public:
@@ -53,6 +56,9 @@ public:
   void SetPatchDisplaySize(const unsigned int value);
 
   void SetImage(ImageType* const image);
+
+  //void SetTopPatchRegions(const std::vector<itk::ImageRegion<2> >& topPatchRegions);
+  void SetTopPatchData(const std::vector<SelfPatchCompare::PatchDataType>& topPatchData);
   
 private:
 
@@ -60,7 +66,8 @@ private:
 
   unsigned int MaxTopPatchesToDisplay;
 
-  std::vector<itk::ImageRegion<2> > TopPatchRegions;
+  //std::vector<itk::ImageRegion<2> > TopPatchRegions;
+  std::vector<SelfPatchCompare::PatchDataType> TopPatchData;
 
   ImageType* Image;
 };

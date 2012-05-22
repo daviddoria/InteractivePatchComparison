@@ -42,7 +42,8 @@
 class SelfPatchCompare
 {
 public:
-
+  typedef itk::VectorImage<float, 2> ImageType;
+  
   SelfPatchCompare();
 
   void SetImage(itk::VectorImage<float, 2>* const image);
@@ -56,18 +57,15 @@ public:
 
   float SlowAverageAbsoluteDifference(const itk::ImageRegion<2>& sourceRegion);
   float SlowAverageSquaredDifference(const itk::ImageRegion<2>& sourceRegion);
-  
-  bool IsReady();
 
   float PixelDifference(const VectorType &a, const VectorType &b);
   float PixelSquaredDifference(const VectorType &a, const VectorType &b);
-  
+
   void ComputePatchScores();
 
-  // These are the fully valid source regions
-  std::vector<itk::ImageRegion<2> > SourcePatches;
+  typedef std::pair<itk::ImageRegion<2>, float> PatchDataType;
 
-  std::vector<itk::ImageRegion<2> >& GetSourcePatches();
+  std::vector<PatchDataType> GetPatchData();
 
 private:
   /** If a channel of one pixel was white (255) and the corresponding channel of the other pixel
@@ -80,17 +78,14 @@ private:
   itk::ImageRegion<2> TargetRegion;
   
   /** This is the image from which to take the patches */
-  itk::VectorImage<float, 2>::Pointer Image;
+  ImageType* Image;
 
   /** This is the mask to check the validity of target pixels */
-  Mask::Pointer MaskImage;
+  Mask* MaskImage;
 
-  void ComputeSourcePatches();
-  
-  unsigned int NumberOfComponentsPerPixel;
-  
-  unsigned int NumberOfPixelsCompared;
+  std::vector<itk::ImageRegion<2> > FindFullSourcePatches();
 
+  std::vector<PatchDataType> PatchData;
 };
 
 #endif
