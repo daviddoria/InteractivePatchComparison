@@ -84,8 +84,6 @@ private:
   static const unsigned char Green[3];
   static const unsigned char Red[3];
 
-  void GetPatchSize();
-
   void PatchesMoved();
   void SetupPatches();
 
@@ -95,11 +93,9 @@ private:
   /** The mask indicating which pixels in the image are valid. */
   Mask::Pointer MaskImage;
 
-  itk::Size<2> PatchSize;
-
   QGraphicsScene* SourcePatchesScene;
   QGraphicsScene* TargetPatchScene;
-  
+
   SelfPatchCompare PatchCompare;
 
   unsigned int DisplayedSourcePatch;

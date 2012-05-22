@@ -28,40 +28,11 @@
 #include "itkVector.h"
 
 // Qt
-#include <QFileDialog>
-#include <QIcon>
-#include <QTextEdit>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSimpleTextItem>
 
-// VTK
-#include <vtkActor.h>
-#include <vtkCamera.h>
-#include <vtkFloatArray.h>
-#include <vtkImageData.h>
-#include <vtkImageProperty.h>
-#include <vtkImageSlice.h>
-#include <vtkImageSliceMapper.h>
-#include <vtkLookupTable.h>
-#include <vtkMath.h>
-#include <vtkPointData.h>
-#include <vtkProperty2D.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkPoints.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-#include <vtkImageSliceMapper.h>
-#include <vtkXMLPolyDataReader.h>
-#include <vtkXMLImageDataWriter.h> // For debugging only
-
 // Custom
-#include "SwitchBetweenStyle.h"
-#include "Types.h"
+// #include "Types.h"
 
 // Submodules
 #include "ITKVTKHelpers/ITKHelpers/Helpers/Helpers.h"
@@ -93,17 +64,8 @@ void TopPatchesWidget::on_txtPatchRadius_returnPressed()
   SetupPatches();
 }
 
-void TopPatchesWidget::GetPatchSize()
-{
-  // The edge length of the patch is the (radius*2) + 1
-  this->PatchSize[0] = this->txtPatchRadius->text().toUInt() * 2 + 1;
-  this->PatchSize[1] = this->txtPatchRadius->text().toUInt() * 2 + 1;
-}
-
 void TopPatchesWidget::SetupPatches()
 {
-  GetPatchSize();
-
   Refresh();
 }
 
@@ -141,30 +103,30 @@ void TopPatchesWidget::DisplaySourcePatches()
     {
     this->tableWidget->insertRow(this->tableWidget->rowCount());
   
-//     Patch currentPatch = this->PatchCompare.SourcePatches[i];
-//     std::cout << "Generating table row for " << currentPatch.Region << std::endl;
-//   
-    //QImage sourceImage = GetQImage(currentPatch.Region);
+    Patch currentPatch = this->PatchCompare.SourcePatches[i];
+    std::cout << "Generating table row for " << currentPatch.Region << std::endl;
+
+    QImage sourceImage = GetQImage(currentPatch.Region);
   
-//     ClickableLabel* imageLabel = new ClickableLabel;
-//     imageLabel->setPixmap(QPixmap::fromImage(sourceImage));
-//     imageLabel->Id = i; // This is the ith best match
-//     imageLabel->setScaledContents(false);
-//     this->tableWidget->setCellWidget(i,0,imageLabel);
-//             
-//     connect( imageLabel, SIGNAL( ClickedSignal(unsigned int) ), this, SLOT(PatchClickedSlot(unsigned int)) );
-//     
-//     std::stringstream ssLabel;
-//     ssLabel << "( " << currentPatch.Region.GetIndex()[0] << ", " << currentPatch.Region.GetIndex()[1] << ")";
-//     
-//     QTableWidgetItem* indexLabel = new QTableWidgetItem;
-//     indexLabel->setText(ssLabel.str().c_str());
-//     this->tableWidget->setItem(i,1,indexLabel);
-// 
-//     // Total absolute score
-//     QTableWidgetItem* totalAbsoluteScoreLabel = new QTableWidgetItem;
-//     totalAbsoluteScoreLabel->setData(Qt::DisplayRole, currentPatch.TotalAbsoluteScore);
-//     this->tableWidget->setItem(i,2,totalAbsoluteScoreLabel);
+    ClickableLabel* imageLabel = new ClickableLabel;
+    imageLabel->setPixmap(QPixmap::fromImage(sourceImage));
+    imageLabel->Id = i; // This is the ith best match
+    imageLabel->setScaledContents(false);
+    this->tableWidget->setCellWidget(i,0,imageLabel);
+
+    connect( imageLabel, SIGNAL( ClickedSignal(unsigned int) ), this, SLOT(PatchClickedSlot(unsigned int)) );
+
+    std::stringstream ssLabel;
+    ssLabel << "( " << currentPatch.Region.GetIndex()[0] << ", " << currentPatch.Region.GetIndex()[1] << ")";
+
+    QTableWidgetItem* indexLabel = new QTableWidgetItem;
+    indexLabel->setText(ssLabel.str().c_str());
+    this->tableWidget->setItem(i,1,indexLabel);
+
+    // Total absolute score
+    QTableWidgetItem* totalAbsoluteScoreLabel = new QTableWidgetItem;
+    totalAbsoluteScoreLabel->setData(Qt::DisplayRole, currentPatch.TotalAbsoluteScore);
+    this->tableWidget->setItem(i,2,totalAbsoluteScoreLabel);
 
     }
     
