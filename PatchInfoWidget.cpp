@@ -125,37 +125,22 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   QImage sourcePatchImage = MaskOperations::GetQImageMasked(this->Image, this->MaskImage,
                             patchRegion);
 
-  sourcePatchImage = QtHelpers::FitToGraphicsView(sourcePatchImage, this->graphicsView);
+  sourcePatchImage = QtHelpers::FitToGraphicsView(sourcePatchImage, this->graphicsView_Patch);
 
   QGraphicsScene* sourceScene = new QGraphicsScene();
   sourceScene->addPixmap(QPixmap::fromImage(sourcePatchImage));
-  this->graphicsView->setScene(sourceScene);
+  this->graphicsView_Patch->setScene(sourceScene);
 
-  /*
   // Average color display
-  ImageType::Pointer averageColorImage = ImageType::New();
-  itk::Index<2> corner = {{0,0}};
-  itk::Size<2> size = {{10,10}};
-  itk::ImageRegion<2> averageColorRegion(corner,size);
-  
-  averageColorImage->SetRegions(averageColorRegion);
-  averageColorImage->SetNumberOfComponentsPerPixel(Image->GetNumberOfComponentsPerPixel());
-  averageColorImage->Allocate();
-
-  ITKHelpers::SetImageToConstant(averageColorImage.GetPointer(), average);
-  
-  QImage averageColorQImage = ITKQtHelpers::GetQImageColor(averageColorImage.GetPointer(), averageColorImage->GetLargestPossibleRegion());
-  */
   QImage averageColorQImage = QImage(1, 1, QImage::Format_ARGB32); // A 1x1 color image
   QColor averageColor = ITKQtHelpers::GetQColor(average);
   QtHelpers::SetImageToConstant(averageColorQImage, averageColor);
-  
+
   averageColorQImage = QtHelpers::FitToGraphicsView(averageColorQImage, this->graphicsView_AverageColor);
 
   QGraphicsScene* averageColorScene = new QGraphicsScene();
   averageColorScene->addPixmap(QPixmap::fromImage(averageColorQImage));
   this->graphicsView_AverageColor->setScene(averageColorScene);
-
 }
 
 void PatchInfoWidget::Save(const std::string& prefix)
@@ -178,5 +163,16 @@ itk::ImageRegion<2> PatchInfoWidget::GetRegion() const
 
 void PatchInfoWidget::MakeInvalid()
 {
-  
+  QImage solidImage = QImage(1, 1, QImage::Format_ARGB32); // A 1x1 color image
+  QColor color(Qt::black);
+  QtHelpers::SetImageToConstant(solidImage, color);
+
+  solidImage = QtHelpers::FitToGraphicsView(solidImage, this->graphicsView_AverageColor);
+
+  QGraphicsScene* scene = new QGraphicsScene();
+  scene->addPixmap(QPixmap::fromImage(solidImage));
+  this->graphicsView_Patch->setScene(scene);
+
+  lblPixelMean->setText("Invalid");
+  lblPixelVariance->setText("Invalid");
 }

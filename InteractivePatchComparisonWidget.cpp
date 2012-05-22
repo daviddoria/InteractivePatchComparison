@@ -437,8 +437,6 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
 
   itk::ImageRegion<2> sourceRegion(sourceCorner, this->PatchSize);
 
-  emit signal_SourcePatchMoved(sourceRegion);
-
   // Patch 2
   double targetPosition[3];
   this->TargetPatchSlice->GetPosition(targetPosition);
@@ -454,37 +452,50 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
 
   itk::ImageRegion<2> targetRegion(targetCorner, this->PatchSize);
 
-  // Set the TopPatchesWidget to use the new target patch
-  this->TopPatchesPanel->SetTargetRegion(targetRegion);
-  
-  emit signal_TargetPatchMoved(targetRegion);
-
   // If the patch is not inside the image, don't do anything
-  if(!(Image->GetLargestPossibleRegion().IsInside(targetRegion) &&
-    Image->GetLargestPossibleRegion().IsInside(sourceRegion)))
+  if(!Image->GetLargestPossibleRegion().IsInside(targetRegion))
   {
-    // Set the patch preview to black
-    
-    return;
+    TargetPatchInfoWidget->MakeInvalid();
+  }
+  else
+  {
+    // Set the TopPatchesWidget to use the new target patch
+    this->TopPatchesPanel->SetTargetRegion(targetRegion);
+
+    emit signal_TargetPatchMoved(targetRegion);
   }
 
-  AveragePixelDifference<SumOfAbsoluteDifferences> averageAbsPixelDifferenceFunctor;
-  float averageAbsPixelDifference = averageAbsPixelDifferenceFunctor(this->Image.GetPointer(),
-                                                                 this->MaskImage, sourceRegion, targetRegion);
+  if(!Image->GetLargestPossibleRegion().IsInside(sourceRegion))
+  {
+    SourcePatchInfoWidget->MakeInvalid();
+  }
+  else
+  {
+    emit signal_SourcePatchMoved(sourceRegion);
+  }
 
-  AveragePixelDifference<SumOfSquaredDifferences> averageSqPixelDifferenceFunctor;
-  float averageSqPixelDifference = averageSqPixelDifferenceFunctor(this->Image.GetPointer(),
-                                                               this->MaskImage, sourceRegion, targetRegion);
+  // If both patches are valid, we can compute the difference
+  if(Image->GetLargestPossibleRegion().IsInside(targetRegion) &&
+    Image->GetLargestPossibleRegion().IsInside(sourceRegion))
+  {
+    AveragePixelDifference<SumOfAbsoluteDifferences> averageAbsPixelDifferenceFunctor;
+    float averageAbsPixelDifference = averageAbsPixelDifferenceFunctor(this->Image.GetPointer(),
+                                                                  this->MaskImage, sourceRegion, targetRegion);
 
-  CorrelationScore correlationScoreFunctor;
-  float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), this->MaskImage, sourceRegion, targetRegion);
+    AveragePixelDifference<SumOfSquaredDifferences> averageSqPixelDifferenceFunctor;
+    float averageSqPixelDifference = averageSqPixelDifferenceFunctor(this->Image.GetPointer(),
+                                                                this->MaskImage, sourceRegion, targetRegion);
 
-  Refresh();
+    CorrelationScore correlationScoreFunctor;
+    float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), this->MaskImage, sourceRegion, targetRegion);
 
-  this->lblSumSquaredPixelDifference->setNum(averageSqPixelDifference);
-  
-  this->lblSumAbsolutePixelDifference->setNum(averageAbsPixelDifference);
-  this->lblCorrelation->setNum(correlationScore);
+    Refresh();
+
+    this->lblSumSquaredPixelDifference->setNum(averageSqPixelDifference);
+
+    this->lblSumAbsolutePixelDifference->setNum(averageAbsPixelDifference);
+    this->lblCorrelation->setNum(correlationScore);
+  }
 }
 
 void InteractivePatchComparisonWidget::on_btnSavePatches_clicked()

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>126</width>
+    <width>199</width>
     <height>300</height>
    </rect>
   </property>
@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QGraphicsView" name="graphicsView">
+    <widget class="QGraphicsView" name="graphicsView_Patch">
      <property name="maximumSize">
       <size>
        <width>100</width>
