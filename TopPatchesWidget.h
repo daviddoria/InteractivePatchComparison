@@ -21,84 +21,45 @@
 
 #include "ui_TopPatchesWidget.h"
 
-// VTK
-#include <vtkSmartPointer.h>
-
-class vtkImageData;
-class vtkImageSlice;
-class vtkImageSliceMapper;
-class vtkRenderer;
+// Qt
+#include <QDialog>
+#include <QObject>
 
 // ITK
-#include "itkImage.h"
-
-// Qt
-#include <QWidget>
-#include <QImage>
+#include "itkVectorImage.h"
 
 // Custom
-#include "Types.h"
-#include "SelfPatchCompare.h"
-
-// Submodules
 #include "Mask/Mask.h"
+#include "TableModelTopPatches.h"
 
-class SwitchBetweenStyle;
-
-class TopPatchesWidget : public QWidget, private Ui::TopPatchesWidget
+/** This class is necessary because a class template cannot have the Q_OBJECT macro directly. */
+class TopPatchesWidget : public QWidget, public Ui::TopPatchesWidget
 {
 Q_OBJECT
+
 public:
-
-  // Constructor/Destructor
-  TopPatchesWidget(QWidget* parent);
-
-  // Types
   typedef itk::VectorImage<float, 2> ImageType;
   
-  void Refresh();
+  TopPatchesWidget(QWidget* parent = NULL);
+
+  void SetTargetRegion(const itk::ImageRegion<2>& targetRegion);
 
   void SetImage(ImageType* const image);
-
-  const static unsigned int DisplayPatchSize = 50;
-
-  void DisplaySourcePatches();
-
-  void SetTargetRegion(const itk::ImageRegion<2>& region);
   
 public slots:
 
-  void PatchClickedSlot(const unsigned int);
+  /** When a patch is clicked, emit a signal. */
+  void slot_SingleClicked(const QModelIndex & index);
 
-  void on_txtPatchRadius_returnPressed();
-  void on_txtNumberOfPatches_returnPressed();
-
-  void on_btnCompute_clicked();
-
-  void on_chkFillPatch_clicked();
-
-  void RefreshSlot();
+signals:
+  void TopPatchSelected(const QModelIndex & index);
 
 private:
-
-  static const unsigned char Green[3];
-  static const unsigned char Red[3];
-
-  void PatchesMoved();
-  void SetupPatches();
-
-  /** The image from which to pull the patches. */
   ImageType* Image;
 
-  /** The mask indicating which pixels in the image are valid. */
-  Mask::Pointer MaskImage;
-
-  QGraphicsScene* SourcePatchesScene;
   QGraphicsScene* TargetPatchScene;
-
-  SelfPatchCompare PatchCompare;
-
-  unsigned int DisplayedSourcePatch;
+  QGraphicsPixmapItem* TargetPatchItem;
+  TableModelTopPatches* TopPatchesModel;
 
   itk::ImageRegion<2> TargetRegion;
 };

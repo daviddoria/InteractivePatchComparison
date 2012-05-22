@@ -25,6 +25,12 @@ add_subdirectory(ITKVTKCamera)
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})
 
+FIND_PACKAGE(VTK REQUIRED)
+INCLUDE(${VTK_USE_FILE})
+
+FIND_PACKAGE(ITK REQUIRED)
+INCLUDE(${ITK_USE_FILE})
+
 QT4_WRAP_UI(InteractivePatchComparisonWidgetUISrcs
 InteractivePatchComparisonWidget.ui
 PatchInfoWidget.ui
@@ -32,14 +38,8 @@ TopPatchesWidget.ui)
 QT4_WRAP_CPP(InteractivePatchComparisonWidgetMOCSrcs
 InteractivePatchComparisonWidget.h
 PatchInfoWidget.h
-TopPatchesWidget.h)
-
-FIND_PACKAGE(VTK REQUIRED)
-INCLUDE(${VTK_USE_FILE})
-
-FIND_PACKAGE(ITK REQUIRED)
-INCLUDE(${ITK_USE_FILE})
-
+TopPatchesWidget.h
+PixmapDelegate.h)
 
 ADD_EXECUTABLE(InteractivePatchComparison
 InteractivePatchComparisonWidget.cpp
@@ -50,6 +50,8 @@ CustomTrackballStyle.cxx
 PatchInfoWidget.cpp
 TopPatchesWidget.cpp
 SelfPatchCompare.cpp
+PixmapDelegate.cpp
+TableModelTopPatches.cpp
 ${InteractivePatchComparisonWidgetUISrcs} ${InteractivePatchComparisonWidgetMOCSrcs})
 TARGET_LINK_LIBRARIES(InteractivePatchComparison 
 EigenHelpers QtHelpers Helpers VTKHelpers ITKHelpers ITKVTKHelpers
