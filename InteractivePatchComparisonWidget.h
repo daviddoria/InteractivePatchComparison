@@ -93,30 +93,23 @@ private:
 
   unsigned int GetPatchRadius();
 
-  Eigen::VectorXf ComputeFeatures(const itk::ImageRegion<2>& region);
-  Eigen::VectorXf ComputeNormalizedFeatures(const itk::ImageRegion<2>& region);
-  void ComputeFeatureMatrixStatistics();
-
-  Eigen::VectorXf FeatureMeans;
-  Eigen::VectorXf FeatureStandardDeviations;
-
   void PatchesMovedEventHandler();
-  
+
   void showEvent(QShowEvent* event);
-  
+
   void OpenImage(const std::string& filename);
   void OpenMask(const std::string& filename);
 
   static const unsigned char Green[3];
   static const unsigned char Red[3];
   static const unsigned char Blue[3];
-  
+
   void GetPatchSize();
-  
+
   void InitializePatch(vtkImageData* image, const unsigned char color[3]);
-  
+
   void SetupPatches();
-  
+
   // Allow us to interact with the objects as we would like.
   vtkSmartPointer<SwitchBetweenStyle> InteractorStyle;
 

@@ -176,7 +176,7 @@ itk::ImageRegion<2> PatchInfoWidget::GetRegion() const
   return Region;
 }
 
-void MakeInvalid()
+void PatchInfoWidget::MakeInvalid()
 {
   
 }

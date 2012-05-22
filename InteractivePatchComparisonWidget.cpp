@@ -479,15 +479,6 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
   CorrelationScore correlationScoreFunctor;
   float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), this->MaskImage, sourceRegion, targetRegion);
 
-  Eigen::VectorXf sourceFeatures = ComputeNormalizedFeatures(sourceRegion);
-  std::cout << "sourceFeatures " << std::endl << sourceFeatures << std::endl;
-  
-  Eigen::VectorXf targetFeatures = ComputeNormalizedFeatures(targetRegion);
-  //std::cout << "targetFeatures " << std::endl << targetFeatures << std::endl;
-
-  float featuresDifference = EigenHelpers::SumOfAbsoluteDifferences(sourceFeatures, targetFeatures);
-  std::cout << "Features difference: " << featuresDifference << std::endl;
-
   Refresh();
 
   this->lblSumSquaredPixelDifference->setNum(averageSqPixelDifference);
@@ -532,102 +523,6 @@ void InteractivePatchComparisonWidget::on_btnSavePatches_clicked()
   std::ofstream fout("score.txt");
   fout << averagePixelDifference << std::endl;
   fout.close();
-}
-
-Eigen::VectorXf InteractivePatchComparisonWidget::ComputeNormalizedFeatures(const itk::ImageRegion<2>& region)
-{
-  Eigen::VectorXf features = ComputeFeatures(region);
-  for(unsigned int i = 0; i < static_cast<unsigned int>(features.size()); ++i)
-  {
-    features[i] -= FeatureMeans[i];
-    features[i] /= FeatureStandardDeviations[i];
-  }
-
-  return features;
-}
-
-Eigen::VectorXf InteractivePatchComparisonWidget::ComputeFeatures(const itk::ImageRegion<2>& region)
-{
-  // Compute average (N components), variance (N components)
-
-  unsigned int numberOfImageComponents = Image->GetNumberOfComponentsPerPixel();
-
-  Eigen::VectorXf feature(numberOfImageComponents * 2);
-  
-  ImageType::PixelType pixelAverage = ITKHelpers::AverageInRegion(Image.GetPointer(), region);
-  for(unsigned int component = 0; component < numberOfImageComponents; ++component)
-    {
-    feature[component] = pixelAverage[component];
-    }
-
-  ImageType::PixelType pixelVariance = ITKHelpers::VarianceInRegion(Image.GetPointer(), region);
-  for(unsigned int component = 0; component < numberOfImageComponents; ++component)
-    {
-    feature[numberOfImageComponents + component] = pixelVariance[component];
-    }
-
-  return feature;
-}
-
-void InteractivePatchComparisonWidget::ComputeFeatureMatrixStatistics()
-{
-  //Eigen::MatrixXf m(3*N,3*N);
-
-  // Count valid patches
-  unsigned int numberOfValidPatches = MaskImage->CountValidPatches(GetPatchRadius());
-
-  itk::ImageRegion<2> firstValidRegion = MaskImage->FindFirstValidPatch(GetPatchRadius());
-
-  Eigen::VectorXf testFeature = ComputeFeatures(firstValidRegion);
-  
-  unsigned int numberOfFeatures = testFeature.size();
-  
-  Eigen::MatrixXf featureMatrix(numberOfValidPatches, numberOfFeatures);
-  
-  itk::ImageRegionConstIteratorWithIndex<ImageType> imageIterator(Image, Image->GetLargestPossibleRegion());
-
-  unsigned int rowCounter = 0;
-  while(!imageIterator.IsAtEnd())
-    {
-    if(rowCounter % 10000 == 0)
-    {
-      std::cout << "Computed " << rowCounter << " out of " << Image->GetLargestPossibleRegion().GetNumberOfPixels()
-                << " features." << std::endl;
-    }
-
-    itk::ImageRegion<2> region = ITKHelpers::GetRegionInRadiusAroundPixel(imageIterator.GetIndex(), GetPatchRadius());
-    if(MaskImage->IsValid(region))
-    {
-      Eigen::VectorXf feature = ComputeFeatures(region);
-      for(unsigned int component = 0; component < numberOfFeatures; ++component)
-        {
-        featureMatrix(rowCounter, component) = feature[component];
-        }
-
-      rowCounter++;
-    }
-
-    ++imageIterator;
-    }
-
-  // Normalize feature matrix
-  FeatureMeans.resize(numberOfFeatures);
-  FeatureStandardDeviations.resize(numberOfFeatures);
-  
-  // Extract a column at a time (each column consists of the same computed value)
-  for(unsigned int feature = 0; feature < numberOfFeatures; ++feature)
-  {
-    Eigen::VectorXf eigenFeatures = featureMatrix.col(feature);
-    std::vector<float> stdFeatures = EigenHelpers::EigenVectorToSTDVector(eigenFeatures);
-    float featureAverage = Statistics::Average(stdFeatures);
-    FeatureMeans[feature] = featureAverage;
-    
-    float featureStandardDeviation = sqrt(Statistics::Variance(stdFeatures));
-    FeatureStandardDeviations[feature] = featureStandardDeviation;
-  }
-
-  std::cout << "featureMeans: " << std::endl <<  FeatureMeans << std::endl;
-  std::cout << "featureStandardDeviations: " << std::endl << FeatureStandardDeviations << std::endl;
 }
 
 void InteractivePatchComparisonWidget::on_actionScreenshot_activated()
