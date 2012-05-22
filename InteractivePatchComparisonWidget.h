@@ -91,9 +91,11 @@ public slots:
 
 private:
 
+  void UpdatePatches();
+  
   unsigned int GetPatchRadius();
 
-  void PatchesMovedEventHandler();
+  void PatchesMovedEventHandler(vtkObject* caller, long unsigned int eventId, void* callData);
 
   void showEvent(QShowEvent* event);
 

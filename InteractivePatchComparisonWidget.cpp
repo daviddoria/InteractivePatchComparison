@@ -404,7 +404,7 @@ void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageReg
   
   // Refresh
   Refresh();
-  PatchesMovedEventHandler();
+  UpdatePatches();
 }
 
 void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageRegion<2>& patchRegion)
@@ -417,19 +417,19 @@ void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageReg
   this->SourcePatchSlice->SetPosition(sourcePosition);
 
   Refresh();
-  PatchesMovedEventHandler();
+  UpdatePatches();
 }
 
-void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
+void InteractivePatchComparisonWidget::UpdatePatches()
 {
   // Source patch
   double sourcePosition[3];
   this->SourcePatchSlice->GetPosition(sourcePosition);
-  
+
   itk::Index<2> sourceCorner;
   sourceCorner[0] = sourcePosition[0];
   sourceCorner[1] = sourcePosition[1];
-  
+
   // Snap to grid
   sourcePosition[0] = sourceCorner[0];
   sourcePosition[1] = sourceCorner[1];
@@ -440,11 +440,11 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
   // Patch 2
   double targetPosition[3];
   this->TargetPatchSlice->GetPosition(targetPosition);
-      
+
   itk::Index<2> targetCorner;
   targetCorner[0] = targetPosition[0];
   targetCorner[1] = targetPosition[1];
-  
+
   // Snap to grid
   targetPosition[0] = targetCorner[0];
   targetPosition[1] = targetCorner[1];
@@ -496,6 +496,16 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
     this->lblSumAbsolutePixelDifference->setNum(averageAbsPixelDifference);
     this->lblCorrelation->setNum(correlationScore);
   }
+}
+
+void InteractivePatchComparisonWidget::PatchesMovedEventHandler(vtkObject* caller, long unsigned int eventId,
+                                                                void* callData)
+{
+  vtkProp* prop = static_cast<vtkProp*>(callData);
+  if(prop == static_cast<vtkProp*>(TargetPatchSlice) || prop == static_cast<vtkProp*>(SourcePatchSlice))
+    {
+    UpdatePatches();
+    }
 }
 
 void InteractivePatchComparisonWidget::on_btnSavePatches_clicked()

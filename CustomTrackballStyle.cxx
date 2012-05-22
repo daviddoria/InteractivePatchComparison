@@ -16,10 +16,9 @@ void CustomTrackballStyle::OnLeftButtonDown()
 
 void CustomTrackballStyle::OnLeftButtonUp()
 {
-  //std::cout << "TrackballStyle::OnLeftButtonUp()" << std::endl;
   // Behave like the middle button instead
   vtkInteractorStyleTrackballActor::OnMiddleButtonUp();
-  this->InvokeEvent(this->PatchesMovedEvent, NULL);
+  this->InvokeEvent(this->PatchesMovedEvent, InteractionProp);
 }
 
 void CustomTrackballStyle::OnMiddleButtonDown()
