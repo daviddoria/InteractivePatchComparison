@@ -200,6 +200,8 @@ float SelfPatchCompare::SlowAverageAbsoluteDifference(const itk::ImageRegion<2>&
 
       difference = PixelDifference(sourcePixel, targetPixel);
       sumDifferences +=  difference;
+
+      numberOfPixelsCompared++;
       }
 
     ++sourcePatchIterator;
@@ -207,7 +209,15 @@ float SelfPatchCompare::SlowAverageAbsoluteDifference(const itk::ImageRegion<2>&
     ++maskIterator;
     } // end while iterate over sourcePatch
 
-  float averageDifferences = sumDifferences / static_cast<float>(numberOfPixelsCompared);
+  float averageDifferences = 0.0f;
+  if(numberOfPixelsCompared == 0)
+  {
+    averageDifferences = 0.0f;
+  }
+  else
+  {
+    averageDifferences= sumDifferences / static_cast<float>(numberOfPixelsCompared);
+  }
   return averageDifferences;
 }
 
@@ -265,16 +275,14 @@ void SelfPatchCompare::ComputePatchScores()
   
   for(unsigned int i = 0; i < fullSourcePatches.size(); ++i)
     {
-    std::cout << "Comparing " << this->TargetRegion << " to " << fullSourcePatches[i] << std::endl;
+    //std::cout << "Comparing " << this->TargetRegion << " to " << fullSourcePatches[i] << std::endl;
     float averageAbsoluteScore = SlowAverageAbsoluteDifference(fullSourcePatches[i]);
-    std::cout << "score: " << averageAbsoluteScore << std::endl;
+    //std::cout << "score: " << averageAbsoluteScore << std::endl;
     PatchDataType patchData;
     patchData.first = fullSourcePatches[i];
     patchData.second = averageAbsoluteScore;
     this->PatchData.push_back(patchData);
     }
-
-  std::sort(this->PatchData.begin(), this->PatchData.end(), Helpers::SortBySecondAccending<PatchDataType>);
 }
 
 std::vector<SelfPatchCompare::PatchDataType> SelfPatchCompare::GetPatchData()

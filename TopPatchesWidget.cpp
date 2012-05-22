@@ -81,6 +81,11 @@ void TopPatchesWidget::on_btnCompute_clicked()
   patchCompare.ComputePatchScores();
 
   std::vector<SelfPatchCompare::PatchDataType> topPatchData = patchCompare.GetPatchData();
+
+  //std::sort(topPatchData.begin(), topPatchData.end(), Helpers::SortBySecondAccending<PatchDataType>);
+  std::partial_sort(topPatchData.begin(), topPatchData.begin() + this->txtNumberOfPatches->text().toInt(),
+                    topPatchData.end(), Helpers::SortBySecondAccending<SelfPatchCompare::PatchDataType>);
+  
   std::cout << "There are " << topPatchData.size() << " top patches." << std::endl;
 
   this->TopPatchesModel->SetMaxTopPatchesToDisplay(this->txtNumberOfPatches->text().toInt());
