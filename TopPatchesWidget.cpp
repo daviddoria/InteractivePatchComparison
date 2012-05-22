@@ -77,10 +77,8 @@ const unsigned char TopPatchesWidget::Red[3] = {255,0,0};
 // Constructor
 TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
 {
-  std::cout << "TopPatchesWidget::TopPatchesWidget()" << std::endl;
-  std::cout << this << std::endl;
   this->setupUi(this);
-  
+
   this->TargetPatchScene = new QGraphicsScene();
   this->gfxTarget->setScene(TargetPatchScene);
 

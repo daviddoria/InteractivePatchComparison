@@ -172,6 +172,7 @@ void PatchInfoWidget::MakeInvalid()
   QGraphicsScene* scene = new QGraphicsScene();
   scene->addPixmap(QPixmap::fromImage(solidImage));
   this->graphicsView_Patch->setScene(scene);
+  this->graphicsView_AverageColor->setScene(scene);
 
   lblPixelMean->setText("Invalid");
   lblPixelVariance->setText("Invalid");

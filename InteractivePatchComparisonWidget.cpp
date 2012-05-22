@@ -133,6 +133,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->ImageSliceMapper->SetInputData(this->VTKImage);
   this->ImageSlice->SetMapper(this->ImageSliceMapper);
   this->ImageSlice->GetProperty()->SetInterpolationTypeToNearest();
+  this->ImageSlice->VisibilityOff(); // There are errors if this is visible and therefore displayed before it has data ("This data object does not contain the requested extent.")
 
   // Initialize and link the mask image display objects
   this->VTKMaskImage = vtkSmartPointer<vtkImageData>::New();
@@ -143,6 +144,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->MaskImageSliceMapper->SetInputData(this->VTKMaskImage);
   this->MaskImageSlice->SetMapper(this->MaskImageSliceMapper);
   this->MaskImageSlice->GetProperty()->SetInterpolationTypeToNearest();
+  this->MaskImageSlice->VisibilityOff();
 
   // Initialize patches
   this->SourcePatch = vtkSmartPointer<vtkImageData>::New();
@@ -152,6 +154,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->SourcePatchSliceMapper->SetInputData(this->SourcePatch);
   this->SourcePatchSlice->SetMapper(this->SourcePatchSliceMapper);
   this->SourcePatchSlice->GetProperty()->SetInterpolationTypeToNearest();
+  this->SourcePatchSlice->VisibilityOff();
 
   this->TargetPatch = vtkSmartPointer<vtkImageData>::New();
   this->TargetPatchSlice = vtkSmartPointer<vtkImageSlice>::New();
@@ -160,6 +163,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->TargetPatchSliceMapper->SetInputData(this->TargetPatch);
   this->TargetPatchSlice->SetMapper(this->TargetPatchSliceMapper);
   this->TargetPatchSlice->GetProperty()->SetInterpolationTypeToNearest();
+  this->TargetPatchSlice->VisibilityOff();
 
   // Add objects to the renderer
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -179,6 +183,8 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   
   this->MaskImage = NULL;
 
+  SetupPatches();
+  
   /** When the patches are dragged with the mouse, alert the GUI. */
   this->InteractorStyle->TrackballStyle->AddObserver(CustomTrackballStyle::PatchesMovedEvent, this,
                                                      &InteractivePatchComparisonWidget::PatchesMovedEventHandler);
@@ -221,7 +227,7 @@ void InteractivePatchComparisonWidget::showEvent(QShowEvent* event)
   this->SourcePatchSlice->SetPosition(0, 0, 0);
   this->TargetPatchSlice->SetPosition(20, 20, 0);
 
-  SetupPatches();
+  //SetupPatches();
 
   //PatchesMovedEventHandler();
 
@@ -255,6 +261,10 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
   SourcePatchInfoWidget->SetImage(this->Image.GetPointer());
 
   this->TopPatchesPanel->SetImage(this->Image.GetPointer());
+
+   this->ImageSlice->VisibilityOn();
+   this->SourcePatchSlice->VisibilityOn();
+   this->TargetPatchSlice->VisibilityOn();
 }
 
 void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
@@ -286,6 +296,8 @@ void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
 
   TargetPatchInfoWidget->SetMask(this->MaskImage);
   SourcePatchInfoWidget->SetMask(this->MaskImage);
+
+  this->MaskImageSlice->VisibilityOn();
   
   Refresh();
 }
@@ -502,7 +514,7 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler(vtkObject* calle
                                                                 void* callData)
 {
   vtkProp* prop = static_cast<vtkProp*>(callData);
-  if(prop == static_cast<vtkProp*>(TargetPatchSlice) || prop == static_cast<vtkProp*>(SourcePatchSlice))
+  if(prop == static_cast<vtkProp*>(TargetPatchSlice) || prop == static_cast<vtkProp*>(SourcePatchSlice)) // These casts are necessary because the compiler complains (warns) about mismatched pointer types
     {
     UpdatePatches();
     }
