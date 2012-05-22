@@ -131,6 +131,7 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   sourceScene->addPixmap(QPixmap::fromImage(sourcePatchImage));
   this->graphicsView->setScene(sourceScene);
 
+  /*
   // Average color display
   ImageType::Pointer averageColorImage = ImageType::New();
   itk::Index<2> corner = {{0,0}};
@@ -144,7 +145,11 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   ITKHelpers::SetImageToConstant(averageColorImage.GetPointer(), average);
   
   QImage averageColorQImage = ITKQtHelpers::GetQImageColor(averageColorImage.GetPointer(), averageColorImage->GetLargestPossibleRegion());
-
+  */
+  QImage averageColorQImage = QImage(1, 1, QImage::Format_ARGB32); // A 1x1 color image
+  QColor averageColor = ITKQtHelpers::GetQColor(average);
+  QtHelpers::SetImageToConstant(averageColorQImage, averageColor);
+  
   averageColorQImage = QtHelpers::FitToGraphicsView(averageColorQImage, this->graphicsView_AverageColor);
 
   QGraphicsScene* averageColorScene = new QGraphicsScene();
@@ -169,4 +174,9 @@ void PatchInfoWidget::Save(const std::string& prefix)
 itk::ImageRegion<2> PatchInfoWidget::GetRegion() const
 {
   return Region;
+}
+
+void MakeInvalid()
+{
+  
 }

@@ -16,7 +16,6 @@
  *
  *=========================================================================*/
 
-#include "ui_InteractivePatchComparisonWidget.h"
 #include "InteractivePatchComparisonWidget.h"
 
 // Eigen
@@ -89,7 +88,8 @@ void InteractivePatchComparisonWidget::on_actionHelp_activated()
   help->setReadOnly(true);
   help->append("<h1>Interactive Patch Comparison</h1>\
   Position the two patches. <br/>\
-  Their difference will be displayed.<br/> <p/>");
+  Their difference will be displayed.<br/>\
+  Additionally you can display the top patches of the target patch.<p/>");
   help->show();
 }
 
@@ -101,24 +101,6 @@ InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(const std::st
   SharedConstructor();
   OpenImage(imageFileName);
   OpenMask(maskFileName);
-
-  // ComputeFeatureMatrixStatistics();
-  FeatureMeans.resize(6);
-  FeatureMeans[0] = 84.5227;
-  FeatureMeans[1] = 83.7242;
-  FeatureMeans[2] = 66.7671;
-  FeatureMeans[3] = 124.39;
-  FeatureMeans[4] = 124.645;
-  FeatureMeans[5] = 126.41;
-
-  FeatureStandardDeviations.resize(6);
-  FeatureStandardDeviations[0] = 26.4461;
-  FeatureStandardDeviations[1] = 25.3215;
-  FeatureStandardDeviations[2] = 22.657;
-  FeatureStandardDeviations[3] = 74.04;
-  FeatureStandardDeviations[4] = 73.3509;
-  FeatureStandardDeviations[5] = 72.8899;
-
 }
 
 void InteractivePatchComparisonWidget::SharedConstructor()
@@ -477,9 +459,12 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler()
   
   emit signal_TargetPatchMoved(targetRegion);
 
+  // If the patch is not inside the image, don't do anything
   if(!(Image->GetLargestPossibleRegion().IsInside(targetRegion) &&
     Image->GetLargestPossibleRegion().IsInside(sourceRegion)))
   {
+    // Set the patch preview to black
+    
     return;
   }
 

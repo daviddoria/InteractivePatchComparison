@@ -45,6 +45,8 @@ public:
   void Save(const std::string& prefix);
 
   itk::ImageRegion<2> GetRegion() const;
+
+  void MakeInvalid();
   
 signals:
   void signal_PatchMoved(const itk::ImageRegion<2>& patchRegion);
