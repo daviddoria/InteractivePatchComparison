@@ -82,7 +82,8 @@ QVariant TableModelTopPatches::data(const QModelIndex& index, int role) const
         }
       case 1:
         {
-        returnValue = index.row();
+        // returnValue = index.row(); // This is the id
+        returnValue = this->TopPatchData[index.row()].second;
         break;
         }
       case 2:
@@ -110,7 +111,7 @@ QVariant TableModelTopPatches::headerData(int section, Qt::Orientation orientati
           returnValue = "Patch";
           break;
         case 1:
-          returnValue = "Id";
+          returnValue = "Score";
           break;
         case 2:
           returnValue = "Location";
@@ -142,4 +143,9 @@ void TableModelTopPatches::SetTopPatchData(const std::vector<SelfPatchCompare::P
 {
   this->TopPatchData = topPatchData;
   Refresh();
+}
+
+std::vector<SelfPatchCompare::PatchDataType> TableModelTopPatches::GetTopPatchData()
+{
+  return this->TopPatchData;
 }

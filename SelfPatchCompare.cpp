@@ -265,7 +265,9 @@ void SelfPatchCompare::ComputePatchScores()
   
   for(unsigned int i = 0; i < fullSourcePatches.size(); ++i)
     {
+    std::cout << "Comparing " << this->TargetRegion << " to " << fullSourcePatches[i] << std::endl;
     float averageAbsoluteScore = SlowAverageAbsoluteDifference(fullSourcePatches[i]);
+    std::cout << "score: " << averageAbsoluteScore << std::endl;
     PatchDataType patchData;
     patchData.first = fullSourcePatches[i];
     patchData.second = averageAbsoluteScore;

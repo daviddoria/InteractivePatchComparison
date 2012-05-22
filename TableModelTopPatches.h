@@ -59,6 +59,8 @@ public:
 
   //void SetTopPatchRegions(const std::vector<itk::ImageRegion<2> >& topPatchRegions);
   void SetTopPatchData(const std::vector<SelfPatchCompare::PatchDataType>& topPatchData);
+
+  std::vector<SelfPatchCompare::PatchDataType> GetTopPatchData();
   
 private:
 

@@ -196,12 +196,16 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   connect(SourcePatchInfoWidget, SIGNAL(signal_PatchMoved(const itk::ImageRegion<2>&)),
           this, SLOT(slot_SourcePatchMoved(const itk::ImageRegion<2>&)));
 
-  /** Alert the PatchInfoWidgets when the patches have moved. */
+  /** Alert the PatchInfoWidgets when the patches have moved. These are typically called when the user specifies the position of the patches using the text boxes.*/
   connect(this, SIGNAL(signal_TargetPatchMoved(const itk::ImageRegion<2>&)),
           TargetPatchInfoWidget, SLOT(slot_Update(const itk::ImageRegion<2>& )));
 
   connect(this, SIGNAL(signal_SourcePatchMoved(const itk::ImageRegion<2>&)),
           SourcePatchInfoWidget, SLOT(slot_Update(const itk::ImageRegion<2>& )));
+
+  /** This is used when the user clicks on a top patch in the view of the top patches. */
+  connect(this->TopPatchesPanel, SIGNAL(signal_TopPatchSelected(const itk::ImageRegion<2>&)),
+          this, SLOT(slot_SourcePatchMoved(const itk::ImageRegion<2>& )));
 
 }
   

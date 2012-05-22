@@ -61,7 +61,7 @@ void TopPatchesWidget::SetTargetRegion(const itk::ImageRegion<2>& targetRegion)
 
 void TopPatchesWidget::slot_SingleClicked(const QModelIndex& selected)
 {
-  emit TopPatchSelected(selected);
+  emit signal_TopPatchSelected(this->TopPatchesModel->GetTopPatchData()[selected.row()].first);
 }
 
 void TopPatchesWidget::SetImage(ImageType* const image)

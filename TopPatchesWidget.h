@@ -56,7 +56,7 @@ public slots:
   void on_btnCompute_clicked();
 
 signals:
-  void TopPatchSelected(const QModelIndex & index);
+  void signal_TopPatchSelected(const itk::ImageRegion<2>& region);
 
 private:
   ImageType* Image;
