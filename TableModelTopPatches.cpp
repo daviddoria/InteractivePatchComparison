@@ -28,7 +28,7 @@
 #include "ITKQtHelpers/ITKQtHelpers.h"
 
 TableModelTopPatches::TableModelTopPatches(QObject * parent) :
-    QAbstractTableModel(parent), MaxTopPatchesToDisplay(100), Image(NULL)
+    QAbstractTableModel(parent), PatchDisplaySize(20), MaxTopPatchesToDisplay(0), Image(NULL)
 {
 }
 
@@ -67,7 +67,7 @@ QVariant TableModelTopPatches::data(const QModelIndex& index, int role) const
   if(role == Qt::DisplayRole && index.row() >= 0)
     {
     itk::ImageRegion<2> sourceRegion = this->TopPatchData[index.row()].first;
-
+    std::cout << "sourceRegion: " << index.row() << " " << sourceRegion << std::endl;
     switch(index.column())
       {
       case 0:
@@ -75,6 +75,7 @@ QVariant TableModelTopPatches::data(const QModelIndex& index, int role) const
         QImage patchImage = ITKQtHelpers::GetQImageColor(this->Image, sourceRegion);
 
         patchImage = patchImage.scaledToHeight(this->PatchDisplaySize);
+        std::cout << "Size: " << patchImage.size().width() << std::endl;
 
         returnValue = QPixmap::fromImage(patchImage);
         break;
@@ -137,12 +138,8 @@ void TableModelTopPatches::SetImage(ImageType* const image)
   this->Image = image;
 }
 
-// void TableModelTopPatches::SetTopPatchRegions(const std::vector<itk::ImageRegion<2> >& topPatchRegions)
-// {
-//   this->TopPatchRegions = topPatchRegions;
-// }
 void TableModelTopPatches::SetTopPatchData(const std::vector<SelfPatchCompare::PatchDataType>& topPatchData)
 {
   this->TopPatchData = topPatchData;
+  Refresh();
 }
-

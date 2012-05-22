@@ -36,6 +36,7 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
 
   this->TopPatchesModel = new TableModelTopPatches(this);
   this->tblviewTopPatches->setModel(TopPatchesModel);
+  this->TopPatchesModel->SetMaxTopPatchesToDisplay(this->txtNumberOfPatches->text().toInt());
 
   PixmapDelegate* pixmapDelegate = new PixmapDelegate;
 
@@ -75,9 +76,14 @@ void TopPatchesWidget::on_btnCompute_clicked()
   patchCompare.SetImage(this->Image);
   //this->PatchCompare.SetMask(this->MaskImage);
 
+  patchCompare.SetTargetRegion(this->TargetRegion);
+
   patchCompare.ComputePatchScores();
 
   std::vector<SelfPatchCompare::PatchDataType> topPatchData = patchCompare.GetPatchData();
+  std::cout << "There are " << topPatchData.size() << " top patches." << std::endl;
 
+  this->TopPatchesModel->SetMaxTopPatchesToDisplay(this->txtNumberOfPatches->text().toInt());
   this->TopPatchesModel->SetTopPatchData(topPatchData);
+  this->TopPatchesModel->Refresh();
 }

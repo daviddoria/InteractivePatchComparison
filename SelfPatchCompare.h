@@ -83,6 +83,8 @@ private:
   /** This is the mask to check the validity of target pixels */
   Mask* MaskImage;
 
+  Mask::Pointer FullyValidMask;
+
   std::vector<itk::ImageRegion<2> > FindFullSourcePatches();
 
   std::vector<PatchDataType> PatchData;

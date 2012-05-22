@@ -62,7 +62,7 @@ public:
   
 private:
 
-  unsigned int PatchDisplaySize;
+  unsigned int PatchDisplaySize; // TODO: This should be set by the size of the target patch, or a multiplier, or something
 
   unsigned int MaxTopPatchesToDisplay;
 

@@ -30,12 +30,16 @@
 
 SelfPatchCompare::SelfPatchCompare() : Image(NULL), MaskImage(NULL)
 {
-
+  this->FullyValidMask = Mask::New();
 }
 
 void SelfPatchCompare::SetImage(itk::VectorImage<float, 2>* const image)
 {
   this->Image = image;
+
+  this->FullyValidMask->SetRegions(this->Image->GetLargestPossibleRegion());
+  this->FullyValidMask->Allocate();
+  ITKHelpers::SetImageToConstant(this->FullyValidMask.GetPointer(), this->FullyValidMask->GetValidValue());
 }
 
 void SelfPatchCompare::SetMask(Mask* const mask)
@@ -171,6 +175,11 @@ float SelfPatchCompare::SlowAverageAbsoluteDifference(const itk::ImageRegion<2>&
   // and PatchDifference*(). This function is only here for comparison purposes (to ensure the result of the other functions
   // is correct).
 
+  if(!this->MaskImage)
+    {
+    this->MaskImage = this->FullyValidMask.GetPointer();
+    }
+
   typedef itk::VectorImage<float, 2> FloatVectorImageType;
   itk::ImageRegionConstIterator<FloatVectorImageType> sourcePatchIterator(this->Image, sourceRegion);
   itk::ImageRegionConstIterator<FloatVectorImageType> targetPatchIterator(this->Image, this->TargetRegion);
@@ -274,7 +283,8 @@ std::vector<SelfPatchCompare::PatchDataType> SelfPatchCompare::GetPatchData()
 std::vector<itk::ImageRegion<2> > SelfPatchCompare::FindFullSourcePatches()
 {
   // Find all full patches that are entirely Valid
-
+  std::cout << "Finding patches for TargetRegion " << this->TargetRegion << std::endl;
+  
   std::vector<itk::ImageRegion<2> > fullSourcePatches;
 
   itk::ImageRegionConstIterator<ImageType> imageIterator(this->Image, this->Image->GetLargestPossibleRegion());
@@ -284,9 +294,13 @@ std::vector<itk::ImageRegion<2> > SelfPatchCompare::FindFullSourcePatches()
     itk::Index<2> currentPixel = imageIterator.GetIndex();
     itk::ImageRegion<2> region = ITKHelpers::GetRegionInRadiusAroundPixel(currentPixel, this->TargetRegion.GetSize()[0]/2);
 
-    if(this->MaskImage->GetLargestPossibleRegion().IsInside(region))
+    if(this->Image->GetLargestPossibleRegion().IsInside(region))
       {
-      if(this->MaskImage->IsValid(region))
+      if(!this->MaskImage)
+        {
+        fullSourcePatches.push_back(region);
+        }
+      else if(this->MaskImage->IsValid(region))
         {
         fullSourcePatches.push_back(region);
         }
