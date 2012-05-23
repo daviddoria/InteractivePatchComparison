@@ -44,6 +44,7 @@ class vtkImageSliceMapper;
 // Custom
 #include "Types.h"
 #include "TopPatchesWidget.h"
+#include "Layer.h"
 
 class SwitchBetweenStyle;
 
@@ -74,7 +75,7 @@ public slots:
   void on_actionOpenMask_activated();
   void on_actionOpenMaskInverted_activated();
 
-  void on_btnSavePatches_clicked();
+  void on_action_SavePatches_activated();
   
   void on_actionHelp_activated();
   void on_actionQuit_activated();
@@ -122,23 +123,14 @@ private:
   vtkSmartPointer<vtkRenderer> Renderer;
   
   // Image display
-  vtkSmartPointer<vtkImageData> VTKImage;
-  vtkSmartPointer<vtkImageSlice> ImageSlice;
-  vtkSmartPointer<vtkImageSliceMapper> ImageSliceMapper;
+  Layer ImageLayer;
   
   // Mask image display
-  vtkSmartPointer<vtkImageData> VTKMaskImage;
-  vtkSmartPointer<vtkImageSlice> MaskImageSlice;
-  vtkSmartPointer<vtkImageSliceMapper> MaskImageSliceMapper;
+  Layer MaskImageLayer;
   
   // Movable patches
-  vtkSmartPointer<vtkImageData> SourcePatch;
-  vtkSmartPointer<vtkImageSlice> SourcePatchSlice;
-  vtkSmartPointer<vtkImageSliceMapper> SourcePatchSliceMapper;
-  
-  vtkSmartPointer<vtkImageData> TargetPatch;
-  vtkSmartPointer<vtkImageSlice> TargetPatchSlice;
-  vtkSmartPointer<vtkImageSliceMapper> TargetPatchSliceMapper;
+  Layer SourcePatchLayer;
+  Layer TargetPatchLayer;
   
   // The data that the user loads
   ImageType::Pointer Image;

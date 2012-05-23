@@ -170,6 +170,7 @@
      <string>Export</string>
     </property>
     <addaction name="actionScreenshot"/>
+    <addaction name="action_SavePatches"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -277,6 +278,11 @@
   <action name="action_View_TopPatches">
    <property name="text">
     <string>Top Patches</string>
+   </property>
+  </action>
+  <action name="action_SavePatches">
+   <property name="text">
+    <string>Save Patches</string>
    </property>
   </action>
  </widget>

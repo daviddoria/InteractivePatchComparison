@@ -125,54 +125,25 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->InteractorStyle = vtkSmartPointer<SwitchBetweenStyle>::New();
 
   // Initialize and link the image display objects
-  this->VTKImage = vtkSmartPointer<vtkImageData>::New();
-  this->ImageSlice = vtkSmartPointer<vtkImageSlice>::New();
-  this->ImageSliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
-  this->ImageSliceMapper->BorderOn();
-  this->ImageSlice->PickableOff();
-  this->ImageSliceMapper->SetInputData(this->VTKImage);
-  this->ImageSlice->SetMapper(this->ImageSliceMapper);
-  this->ImageSlice->GetProperty()->SetInterpolationTypeToNearest();
-  this->ImageSlice->VisibilityOff(); // There are errors if this is visible and therefore displayed before it has data ("This data object does not contain the requested extent.")
+  this->ImageLayer.ImageSlice->PickableOff();
+  this->ImageLayer.ImageSlice->VisibilityOff(); // There are errors if this is visible and therefore displayed before it has data ("This data object does not contain the requested extent.")
 
   // Initialize and link the mask image display objects
-  this->VTKMaskImage = vtkSmartPointer<vtkImageData>::New();
-  this->MaskImageSlice = vtkSmartPointer<vtkImageSlice>::New();
-  this->MaskImageSliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
-  this->MaskImageSlice->PickableOff();
-  this->MaskImageSliceMapper->BorderOn();
-  this->MaskImageSliceMapper->SetInputData(this->VTKMaskImage);
-  this->MaskImageSlice->SetMapper(this->MaskImageSliceMapper);
-  this->MaskImageSlice->GetProperty()->SetInterpolationTypeToNearest();
-  this->MaskImageSlice->VisibilityOff();
+  this->MaskImageLayer.ImageSlice->PickableOff();
+  this->MaskImageLayer.ImageSlice->VisibilityOff();
 
   // Initialize patches
-  this->SourcePatch = vtkSmartPointer<vtkImageData>::New();
-  this->SourcePatchSlice = vtkSmartPointer<vtkImageSlice>::New();
-  this->SourcePatchSliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
-  this->SourcePatchSliceMapper->BorderOn();
-  this->SourcePatchSliceMapper->SetInputData(this->SourcePatch);
-  this->SourcePatchSlice->SetMapper(this->SourcePatchSliceMapper);
-  this->SourcePatchSlice->GetProperty()->SetInterpolationTypeToNearest();
-  this->SourcePatchSlice->VisibilityOff();
-
-  this->TargetPatch = vtkSmartPointer<vtkImageData>::New();
-  this->TargetPatchSlice = vtkSmartPointer<vtkImageSlice>::New();
-  this->TargetPatchSliceMapper = vtkSmartPointer<vtkImageSliceMapper>::New();
-  this->TargetPatchSliceMapper->BorderOn();
-  this->TargetPatchSliceMapper->SetInputData(this->TargetPatch);
-  this->TargetPatchSlice->SetMapper(this->TargetPatchSliceMapper);
-  this->TargetPatchSlice->GetProperty()->SetInterpolationTypeToNearest();
-  this->TargetPatchSlice->VisibilityOff();
+  this->SourcePatchLayer.ImageSlice->VisibilityOff();
+  this->TargetPatchLayer.ImageSlice->VisibilityOff();
 
   // Add objects to the renderer
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
   this->qvtkWidget->GetRenderWindow()->AddRenderer(this->Renderer);
 
-  this->Renderer->AddViewProp(this->ImageSlice);
-  this->Renderer->AddViewProp(this->MaskImageSlice);
-  this->Renderer->AddViewProp(this->SourcePatchSlice);
-  this->Renderer->AddViewProp(this->TargetPatchSlice);
+  this->Renderer->AddViewProp(this->ImageLayer.ImageSlice);
+  this->Renderer->AddViewProp(this->MaskImageLayer.ImageSlice);
+  this->Renderer->AddViewProp(this->SourcePatchLayer.ImageSlice);
+  this->Renderer->AddViewProp(this->TargetPatchLayer.ImageSlice);
 
   this->InteractorStyle->SetCurrentRenderer(this->Renderer);
   this->qvtkWidget->GetRenderWindow()->GetInteractor()->SetInteractorStyle(this->InteractorStyle);
@@ -230,8 +201,8 @@ void InteractivePatchComparisonWidget::showEvent(QShowEvent* event)
 //                                       this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
 //   this->TargetPatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2 + this->PatchSize[0],
 //                                       this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
-  this->SourcePatchSlice->SetPosition(0, 0, 0);
-  this->TargetPatchSlice->SetPosition(20, 20, 0);
+  this->SourcePatchLayer.ImageSlice->SetPosition(0, 0, 0);
+  this->TargetPatchLayer.ImageSlice->SetPosition(20, 20, 0);
 
   //SetupPatches();
 
@@ -258,7 +229,7 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
 
   ITKHelpers::DeepCopy(reader->GetOutput(), this->Image.GetPointer());
 
-  ITKVTKHelpers::ITKImageToVTKRGBImage(this->Image.GetPointer(), this->VTKImage);
+  ITKVTKHelpers::ITKImageToVTKRGBImage(this->Image.GetPointer(), this->ImageLayer.ImageData);
 
   this->statusBar()->showMessage("Opened image.");
   actionOpenMask->setEnabled(true);
@@ -268,9 +239,9 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
 
   this->TopPatchesPanel->SetImage(this->Image.GetPointer());
 
-   this->ImageSlice->VisibilityOn();
-   this->SourcePatchSlice->VisibilityOn();
-   this->TargetPatchSlice->VisibilityOn();
+   this->ImageLayer.ImageSlice->VisibilityOn();
+   this->SourcePatchLayer.ImageSlice->VisibilityOn();
+   this->TargetPatchLayer.ImageSlice->VisibilityOn();
 }
 
 void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
@@ -296,14 +267,14 @@ void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
 
   this->MaskImage->Cleanup();
 
-  MaskOperations::SetMaskTransparency(this->MaskImage, this->VTKMaskImage);
+  MaskOperations::SetMaskTransparency(this->MaskImage, this->MaskImageLayer.ImageData);
 
   this->statusBar()->showMessage("Opened mask.");
 
   TargetPatchInfoWidget->SetMask(this->MaskImage);
   SourcePatchInfoWidget->SetMask(this->MaskImage);
 
-  this->MaskImageSlice->VisibilityOn();
+  this->MaskImageLayer.ImageSlice->VisibilityOn();
   
   Refresh();
 }
@@ -344,9 +315,9 @@ void InteractivePatchComparisonWidget::SetupPatches()
 {
   GetPatchSize();
 
-  InitializePatch(this->SourcePatch, this->Green);
+  InitializePatch(this->SourcePatchLayer.ImageData, this->Green);
   
-  InitializePatch(this->TargetPatch, this->Blue);
+  InitializePatch(this->TargetPatchLayer.ImageData, this->Blue);
   
   //PatchesMovedEventHandler();
   Refresh();
@@ -416,11 +387,11 @@ void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageReg
   std::cout << "slot_TargetPatchMoved" << std::endl;
   
   double targetPosition[3];
-  this->TargetPatchSlice->GetPosition(targetPosition);
+  this->TargetPatchLayer.ImageSlice->GetPosition(targetPosition);
 
   targetPosition[0] = patchRegion.GetIndex()[0];
   targetPosition[1] = patchRegion.GetIndex()[1];
-  this->TargetPatchSlice->SetPosition(targetPosition);
+  this->TargetPatchLayer.ImageSlice->SetPosition(targetPosition);
 
   // Update the TopPatches widget
   this->TopPatchesPanel->SetTargetRegion(patchRegion);
@@ -433,11 +404,11 @@ void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageReg
 void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageRegion<2>& patchRegion)
 {
   double sourcePosition[3];
-  this->SourcePatchSlice->GetPosition(sourcePosition);
+  this->SourcePatchLayer.ImageSlice->GetPosition(sourcePosition);
 
   sourcePosition[0] = patchRegion.GetIndex()[0];
   sourcePosition[1] = patchRegion.GetIndex()[1];
-  this->SourcePatchSlice->SetPosition(sourcePosition);
+  this->SourcePatchLayer.ImageSlice->SetPosition(sourcePosition);
 
   Refresh();
   UpdatePatches();
@@ -447,7 +418,7 @@ void InteractivePatchComparisonWidget::UpdatePatches()
 {
   // Source patch
   double sourcePosition[3];
-  this->SourcePatchSlice->GetPosition(sourcePosition);
+  this->SourcePatchLayer.ImageSlice->GetPosition(sourcePosition);
 
   itk::Index<2> sourceCorner;
   sourceCorner[0] = sourcePosition[0];
@@ -456,13 +427,13 @@ void InteractivePatchComparisonWidget::UpdatePatches()
   // Snap to grid
   sourcePosition[0] = sourceCorner[0];
   sourcePosition[1] = sourceCorner[1];
-  this->SourcePatchSlice->SetPosition(sourcePosition);
+  this->SourcePatchLayer.ImageSlice->SetPosition(sourcePosition);
 
   itk::ImageRegion<2> sourceRegion(sourceCorner, this->PatchSize);
 
   // Patch 2
   double targetPosition[3];
-  this->TargetPatchSlice->GetPosition(targetPosition);
+  this->TargetPatchLayer.ImageSlice->GetPosition(targetPosition);
 
   itk::Index<2> targetCorner;
   targetCorner[0] = targetPosition[0];
@@ -471,7 +442,7 @@ void InteractivePatchComparisonWidget::UpdatePatches()
   // Snap to grid
   targetPosition[0] = targetCorner[0];
   targetPosition[1] = targetCorner[1];
-  this->TargetPatchSlice->SetPosition(targetPosition);
+  this->TargetPatchLayer.ImageSlice->SetPosition(targetPosition);
 
   itk::ImageRegion<2> targetRegion(targetCorner, this->PatchSize);
 
@@ -525,13 +496,13 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler(vtkObject* calle
                                                                 void* callData)
 {
   vtkProp* prop = static_cast<vtkProp*>(callData);
-  if(prop == static_cast<vtkProp*>(TargetPatchSlice) || prop == static_cast<vtkProp*>(SourcePatchSlice)) // These casts are necessary because the compiler complains (warns) about mismatched pointer types
+  if(prop == static_cast<vtkProp*>(TargetPatchLayer.ImageSlice) || prop == static_cast<vtkProp*>(SourcePatchLayer.ImageSlice)) // These casts are necessary because the compiler complains (warns) about mismatched pointer types
     {
     UpdatePatches();
     }
 }
 
-void InteractivePatchComparisonWidget::on_btnSavePatches_clicked()
+void InteractivePatchComparisonWidget::on_action_SavePatches_activated()
 {
 //   TargetPatchInfoWidget->Save("target");
 //   SourcePatchInfoWidget->Save("source");

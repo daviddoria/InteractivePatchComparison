@@ -52,6 +52,7 @@ TopPatchesWidget.cpp
 SelfPatchCompare.cpp
 PixmapDelegate.cpp
 TableModelTopPatches.cpp
+Layer.cpp
 ${InteractivePatchComparisonWidgetUISrcs} ${InteractivePatchComparisonWidgetMOCSrcs})
 TARGET_LINK_LIBRARIES(InteractivePatchComparison 
 EigenHelpers QtHelpers Helpers VTKHelpers ITKHelpers ITKVTKHelpers
