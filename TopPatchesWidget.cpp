@@ -9,6 +9,8 @@
 
 // Qt
 #include <QGraphicsPixmapItem>
+#include <QProgressDialog>
+#include <QtConcurrentRun>
 
 // Submodules
 #include "ITKVTKHelpers/ITKHelpers/Helpers/Helpers.h"
@@ -27,10 +29,10 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
 {
   this->setupUi(this);
 
-  if(parent)
-  {
-    this->setGeometry(QRect(parent->pos().x() + parent->width(), parent->pos().y(), this->width(), this->height()));
-  }
+//   if(parent)
+//   {
+//     this->setGeometry(QRect(parent->pos().x() + parent->width(), parent->pos().y(), this->width(), this->height()));
+//   }
 
   this->TargetPatchItem = new QGraphicsPixmapItem;
   this->TargetPatchScene = new QGraphicsScene();
@@ -49,6 +51,19 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
   connect(this->tblviewTopPatches->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
           this, SLOT(slot_SelectionChanged(const QItemSelection &, const QItemSelection &)));
 
+  // Setup progress bar
+  this->ProgressDialog = new QProgressDialog();
+  this->ProgressDialog->setMinimum(0);
+  this->ProgressDialog->setMaximum(0);
+  this->ProgressDialog->hide();
+
+  connect(&this->FutureWatcher, SIGNAL(finished()), this, SLOT(slot_Finished()));
+  connect(&this->FutureWatcher, SIGNAL(finished()), this->ProgressDialog , SLOT(cancel()));
+}
+
+void TopPatchesWidget::slot_Finished()
+{
+  std::cout << "Finshed" << std::endl;
 }
 
 void TopPatchesWidget::SetTargetRegion(const itk::ImageRegion<2>& targetRegion)
@@ -92,6 +107,19 @@ void TopPatchesWidget::SetImage(ImageType* const image)
 }
 
 void TopPatchesWidget::on_btnCompute_clicked()
+{
+  // Start the computation.
+  QFuture<void> future = QtConcurrent::run(this, &TopPatchesWidget::Compute);
+  this->FutureWatcher.setFuture(future);
+
+  this->ProgressDialog->setMinimum(0);
+  this->ProgressDialog->setMaximum(0);
+  this->ProgressDialog->setWindowModality(Qt::WindowModal);
+  this->ProgressDialog->exec();
+
+}
+
+void TopPatchesWidget::Compute()
 {
   SelfPatchCompare patchCompare;
   patchCompare.SetImage(this->Image);

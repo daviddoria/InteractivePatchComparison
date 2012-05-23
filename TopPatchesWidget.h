@@ -24,6 +24,8 @@
 // Qt
 #include <QDialog>
 #include <QObject>
+#include <QFutureWatcher>
+class QProgressDialog;
 
 // ITK
 #include "itkVectorImage.h"
@@ -56,6 +58,9 @@ public slots:
 
   void on_btnCompute_clicked();
 
+  /** Called when the progress bar is complete. */
+  void slot_Finished();
+
 signals:
   //void signal_TopPatchSelected(const itk::ImageRegion<2>& region);
   void signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >& region);
@@ -63,6 +68,8 @@ signals:
 private:
   ImageType* Image;
 
+  void Compute();
+  
   QGraphicsScene* TargetPatchScene;
   QGraphicsPixmapItem* TargetPatchItem;
   TableModelTopPatches* TopPatchesModel;
@@ -72,6 +79,10 @@ private:
   void Cluster();
 
   std::vector<SelfPatchCompare::PatchDataType> TopPatchData;
+
+  /** To monitor the progress. */
+  QFutureWatcher<void> FutureWatcher;
+  QProgressDialog* ProgressDialog;
 };
 
 #endif // TopPatchesWidget_H
