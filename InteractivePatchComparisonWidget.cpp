@@ -124,10 +124,13 @@ void InteractivePatchComparisonWidget::SharedConstructor()
 
   this->InteractorStyle = vtkSmartPointer<SwitchBetweenStyle>::New();
 
-  // Initialize and link the image display objects
+  // Setup the image display objects
   this->ImageLayer.ImageSlice->PickableOff();
   this->ImageLayer.ImageSlice->VisibilityOff(); // There are errors if this is visible and therefore displayed before it has data ("This data object does not contain the requested extent.")
 
+  this->SelectedSourcePatchesLayer.ImageSlice->PickableOff();
+  this->SelectedSourcePatchesLayer.ImageSlice->VisibilityOff();
+  
   // Initialize and link the mask image display objects
   this->MaskImageLayer.ImageSlice->PickableOff();
   this->MaskImageLayer.ImageSlice->VisibilityOff();
@@ -144,6 +147,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->Renderer->AddViewProp(this->MaskImageLayer.ImageSlice);
   this->Renderer->AddViewProp(this->SourcePatchLayer.ImageSlice);
   this->Renderer->AddViewProp(this->TargetPatchLayer.ImageSlice);
+  this->Renderer->AddViewProp(this->SelectedSourcePatchesLayer.ImageSlice);
 
   this->InteractorStyle->SetCurrentRenderer(this->Renderer);
   this->qvtkWidget->GetRenderWindow()->GetInteractor()->SetInteractorStyle(this->InteractorStyle);
@@ -379,7 +383,24 @@ void InteractivePatchComparisonWidget::on_actionFlipImage_activated()
 
 void InteractivePatchComparisonWidget::slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& patches)
 {
+  if(patches.size() == 0)
+  {
+    return;
+  }
+  
+  slot_SourcePatchMoved(patches[0]);
+  
+  VTKHelpers::SetImageSizeToMatch(this->ImageLayer.ImageData, this->SelectedSourcePatchesLayer.ImageData);
+  VTKHelpers::ZeroImage(this->SelectedSourcePatchesLayer.ImageData, 4);
+  VTKHelpers::MakeImageTransparent(this->SelectedSourcePatchesLayer.ImageData);
 
+  const unsigned char red[3] = {255,0,0};
+  for(unsigned int i = 0; i < patches.size(); ++i)
+  {
+    ITKVTKHelpers::OutlineRegion(this->SelectedSourcePatchesLayer.ImageData, patches[i], red);
+  }
+  
+  this->SelectedSourcePatchesLayer.ImageSlice->VisibilityOn();
 }
 
 void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageRegion<2>& patchRegion)

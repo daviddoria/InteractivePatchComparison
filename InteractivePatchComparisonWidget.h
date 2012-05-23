@@ -121,17 +121,19 @@ private:
   ITKVTKCamera itkvtkCamera;
 
   vtkSmartPointer<vtkRenderer> Renderer;
-  
+
   // Image display
   Layer ImageLayer;
-  
+
   // Mask image display
   Layer MaskImageLayer;
-  
+
   // Movable patches
   Layer SourcePatchLayer;
   Layer TargetPatchLayer;
-  
+
+  Layer SelectedSourcePatchesLayer;
+
   // The data that the user loads
   ImageType::Pointer Image;
   Mask::Pointer MaskImage;
