@@ -42,6 +42,9 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
   this->tblviewTopPatches->setModel(TopPatchesModel);
   this->TopPatchesModel->SetMaxTopPatchesToDisplay(this->txtNumberOfPatches->text().toInt());
 
+  std::cout << "Set patch display size to: " << this->gfxTargetPatch->size().height() << std::endl;
+  this->TopPatchesModel->SetPatchDisplaySize(this->gfxTargetPatch->size().height());
+  
   PixmapDelegate* pixmapDelegate = new PixmapDelegate;
 
   this->tblviewTopPatches->setItemDelegate(pixmapDelegate);
@@ -73,6 +76,8 @@ void TopPatchesWidget::SetTargetRegion(const itk::ImageRegion<2>& targetRegion)
   QImage patchImage = ITKQtHelpers::GetQImageColor(this->Image, targetRegion);
 
   QPixmap pixmap = QPixmap::fromImage(patchImage);
+  std::cout << "Set target patch display height to: " << this->gfxTargetPatch->size().height() << std::endl;
+  pixmap = pixmap.scaledToHeight(this->gfxTargetPatch->size().height());
 
   this->TargetPatchScene = new QGraphicsScene();
   this->gfxTargetPatch->setScene(TargetPatchScene);
@@ -108,6 +113,9 @@ void TopPatchesWidget::SetImage(ImageType* const image)
 
 void TopPatchesWidget::on_btnCompute_clicked()
 {
+  std::cout << "Set patch display size to: " << this->gfxTargetPatch->size().height() << std::endl;
+  this->TopPatchesModel->SetPatchDisplaySize(this->gfxTargetPatch->size().height());
+  
   // Start the computation.
   QFuture<void> future = QtConcurrent::run(this, &TopPatchesWidget::Compute);
   this->FutureWatcher.setFuture(future);

@@ -33,6 +33,12 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
         </widget>
        </item>
        <item>
@@ -82,7 +88,11 @@
         </widget>
        </item>
        <item>
-        <widget class="QTableView" name="tblviewTopPatches"/>
+        <widget class="QTableView" name="tblviewTopPatches">
+         <property name="sortingEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>

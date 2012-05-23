@@ -66,6 +66,7 @@ public:
   
 private:
 
+  /** This is how big to draw the patches in the table. */
   unsigned int PatchDisplaySize; // TODO: This should be set by the size of the target patch, or a multiplier, or something
 
   unsigned int MaxTopPatchesToDisplay;

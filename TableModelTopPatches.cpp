@@ -75,7 +75,8 @@ QVariant TableModelTopPatches::data(const QModelIndex& index, int role) const
         QImage patchImage = ITKQtHelpers::GetQImageColor(this->Image, sourceRegion);
 
         patchImage = patchImage.scaledToHeight(this->PatchDisplaySize);
-        //std::cout << "Size: " << patchImage.size().width() << std::endl;
+
+        std::cout << "patchImage.size: w=" << patchImage.size().width() << "h=" << patchImage.size().height() << std::endl;
 
         returnValue = QPixmap::fromImage(patchImage);
         break;
