@@ -223,7 +223,7 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
   QFileInfo fileInfo(fileName.c_str());
   std::string workingDirectory = fileInfo.absoluteDir().absolutePath().toStdString() + "/";
 
-  std::cout << "Working directory set to: " << workingDirectory << std::endl;
+  //std::cout << "Working directory set to: " << workingDirectory << std::endl;
   QDir::setCurrent(QString(workingDirectory.c_str()));
 
   typedef itk::ImageFileReader<ImageType> ReaderType;
@@ -288,7 +288,7 @@ void InteractivePatchComparisonWidget::on_actionOpenImage_activated()
   // Get a filename to open
   QString fileName = QFileDialog::getOpenFileName(this, "Open File", ".", "Image Files (*.jpg *.jpeg *.bmp *.png *.mha);;PNG Files (*.png)");
 
-  std::cout << "Got filename: " << fileName.toStdString() << std::endl;
+  //std::cout << "Got filename: " << fileName.toStdString() << std::endl;
   if(fileName.toStdString().empty())
     {
     std::cout << "Filename was empty." << std::endl;
@@ -341,7 +341,7 @@ void InteractivePatchComparisonWidget::InitializePatch(vtkImageData* image, cons
 
 void InteractivePatchComparisonWidget::on_actionOpenMaskInverted_activated()
 {
-  std::cout << "on_actionOpenMaskInverted_activated()" << std::endl;
+  //std::cout << "on_actionOpenMaskInverted_activated()" << std::endl;
   on_actionOpenMask_activated();
   this->MaskImage->Invert();
   this->MaskImage->Cleanup();
@@ -352,7 +352,7 @@ void InteractivePatchComparisonWidget::on_actionOpenMask_activated()
   // Get a filename to open
   QString fileName = QFileDialog::getOpenFileName(this, "Open File", ".", "Image Files (*.png *.bmp);;Image Files(*.mha)");
 
-  std::cout << "Got filename: " << fileName.toStdString() << std::endl;
+  //std::cout << "Got filename: " << fileName.toStdString() << std::endl;
   if(fileName.toStdString().empty())
     {
     std::cout << "Filename was empty." << std::endl;
@@ -401,11 +401,12 @@ void InteractivePatchComparisonWidget::slot_SelectedPatchesChanged(const std::ve
   }
   
   this->SelectedSourcePatchesLayer.ImageSlice->VisibilityOn();
+  Refresh();
 }
 
 void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageRegion<2>& patchRegion)
 {
-  std::cout << "slot_TargetPatchMoved" << std::endl;
+  //std::cout << "slot_TargetPatchMoved" << std::endl;
   
   double targetPosition[3];
   this->TargetPatchLayer.ImageSlice->GetPosition(targetPosition);
@@ -424,6 +425,8 @@ void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageReg
 
 void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageRegion<2>& patchRegion)
 {
+  std::cout << "slot_SourcePatchMoved to " << patchRegion << std::endl;
+  
   double sourcePosition[3];
   this->SourcePatchLayer.ImageSlice->GetPosition(sourcePosition);
 

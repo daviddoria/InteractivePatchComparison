@@ -67,7 +67,7 @@ QVariant TableModelTopPatches::data(const QModelIndex& index, int role) const
   if(role == Qt::DisplayRole && index.row() >= 0)
     {
     itk::ImageRegion<2> sourceRegion = this->TopPatchData[index.row()].first;
-    std::cout << "sourceRegion: " << index.row() << " " << sourceRegion << std::endl;
+    //std::cout << "sourceRegion: " << index.row() << " " << sourceRegion << std::endl;
     switch(index.column())
       {
       case 0:
@@ -75,7 +75,7 @@ QVariant TableModelTopPatches::data(const QModelIndex& index, int role) const
         QImage patchImage = ITKQtHelpers::GetQImageColor(this->Image, sourceRegion);
 
         patchImage = patchImage.scaledToHeight(this->PatchDisplaySize);
-        std::cout << "Size: " << patchImage.size().width() << std::endl;
+        //std::cout << "Size: " << patchImage.size().width() << std::endl;
 
         returnValue = QPixmap::fromImage(patchImage);
         break;
