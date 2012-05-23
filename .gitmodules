@@ -22,3 +22,6 @@
 [submodule "ITKVTKCamera"]
 	path = ITKVTKCamera
 	url = git@github.com:daviddoria/ITKVTKCamera.git
+[submodule "PatchClustering"]
+	path = PatchClustering
+	url = git@github.com:daviddoria/PatchClustering.git

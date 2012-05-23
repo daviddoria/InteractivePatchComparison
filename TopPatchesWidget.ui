@@ -38,16 +38,16 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QLabel" name="label_5">
+          <widget class="QLabel" name="label">
            <property name="text">
-            <string>Best source patches:</string>
+            <string>Clusters:</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="chkFillPatch">
+          <widget class="QLineEdit" name="txtClusters">
            <property name="text">
-            <string>Fill patch</string>
+            <string>3</string>
            </property>
           </widget>
          </item>
@@ -58,7 +58,7 @@
          <item>
           <widget class="QLabel" name="label_6">
            <property name="text">
-            <string>Number of best patches:</string>
+            <string>Best patches:</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>

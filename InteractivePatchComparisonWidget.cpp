@@ -425,7 +425,7 @@ void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageReg
 
 void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageRegion<2>& patchRegion)
 {
-  std::cout << "slot_SourcePatchMoved to " << patchRegion << std::endl;
+  //std::cout << "slot_SourcePatchMoved to " << patchRegion << std::endl;
   
   double sourcePosition[3];
   this->SourcePatchLayer.ImageSlice->GetPosition(sourcePosition);

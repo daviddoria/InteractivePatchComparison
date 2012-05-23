@@ -27,8 +27,8 @@
 #include "QtHelpers/QtHelpers.h"
 #include "ITKQtHelpers/ITKQtHelpers.h"
 
-TableModelTopPatches::TableModelTopPatches(QObject * parent) :
-    QAbstractTableModel(parent), PatchDisplaySize(20), MaxTopPatchesToDisplay(0), Image(NULL)
+TableModelTopPatches::TableModelTopPatches(const std::vector<SelfPatchCompare::PatchDataType>& patchData, QObject * parent) :
+    QAbstractTableModel(parent), PatchDisplaySize(20), MaxTopPatchesToDisplay(0), TopPatchData(patchData), Image(NULL)
 {
 }
 
@@ -86,9 +86,14 @@ QVariant TableModelTopPatches::data(const QModelIndex& index, int role) const
         returnValue = this->TopPatchData[index.row()].second;
         break;
         }
+//       case 2:
+//         {
+//         returnValue = ITKHelpers::GetIndexString(sourceRegion.GetIndex()).c_str();
+//         break;
+//         }
       case 2:
         {
-        returnValue = ITKHelpers::GetIndexString(sourceRegion.GetIndex()).c_str();
+        returnValue = ClusterIDs[index.row()];
         break;
         }
       } // end switch
@@ -113,8 +118,11 @@ QVariant TableModelTopPatches::headerData(int section, Qt::Orientation orientati
         case 1:
           returnValue = "Score";
           break;
+//         case 2:
+//           returnValue = "Location";
+//           break;
         case 2:
-          returnValue = "Location";
+          returnValue = "Cluster";
           break;
         } // end switch
       }// end Horizontal orientation
@@ -142,10 +150,16 @@ void TableModelTopPatches::SetImage(ImageType* const image)
 void TableModelTopPatches::SetTopPatchData(const std::vector<SelfPatchCompare::PatchDataType>& topPatchData)
 {
   this->TopPatchData = topPatchData;
+  this->ClusterIDs.resize(this->TopPatchData.size(), 0);
   Refresh();
 }
 
 std::vector<SelfPatchCompare::PatchDataType> TableModelTopPatches::GetTopPatchData()
 {
   return this->TopPatchData;
+}
+
+void TableModelTopPatches::SetClusterIDs(const std::vector<unsigned int>& clusterIDs)
+{
+  this->ClusterIDs = clusterIDs;
 }

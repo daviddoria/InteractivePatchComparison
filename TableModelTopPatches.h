@@ -38,7 +38,8 @@ class TableModelTopPatches : public QAbstractTableModel
 public:
   typedef itk::VectorImage<float, 2> ImageType;
   
-  TableModelTopPatches(QObject * parent);
+  //TableModelTopPatches(QObject * parent);
+  TableModelTopPatches(const std::vector<SelfPatchCompare::PatchDataType>& patchData, QObject * parent);
 
   int rowCount(const QModelIndex& parent) const;
   int columnCount(const QModelIndex& parent) const;
@@ -57,9 +58,10 @@ public:
 
   void SetImage(ImageType* const image);
 
-  //void SetTopPatchRegions(const std::vector<itk::ImageRegion<2> >& topPatchRegions);
   void SetTopPatchData(const std::vector<SelfPatchCompare::PatchDataType>& topPatchData);
 
+  void SetClusterIDs(const std::vector<unsigned int>& clusterIDs);
+  
   std::vector<SelfPatchCompare::PatchDataType> GetTopPatchData();
   
 private:
@@ -68,9 +70,10 @@ private:
 
   unsigned int MaxTopPatchesToDisplay;
 
-  //std::vector<itk::ImageRegion<2> > TopPatchRegions;
   std::vector<SelfPatchCompare::PatchDataType> TopPatchData;
 
+  std::vector<unsigned int> ClusterIDs;
+  
   ImageType* Image;
 };
 

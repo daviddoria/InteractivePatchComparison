@@ -21,6 +21,7 @@ add_subdirectory(QtHelpers)
 add_subdirectory(ITKQtHelpers)
 add_subdirectory(PatchComparison)
 add_subdirectory(ITKVTKCamera)
+add_subdirectory(PatchClustering)
 
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})
@@ -56,7 +57,9 @@ Layer.cpp
 ${InteractivePatchComparisonWidgetUISrcs} ${InteractivePatchComparisonWidgetMOCSrcs})
 TARGET_LINK_LIBRARIES(InteractivePatchComparison 
 EigenHelpers QtHelpers Helpers VTKHelpers ITKHelpers ITKVTKHelpers
-PatchComparison Mask ITKVTKCamera
+Mask ITKVTKCamera
+PatchComparison
+PatchClustering
 ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
 INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )
 

@@ -68,6 +68,10 @@ private:
   TableModelTopPatches* TopPatchesModel;
 
   itk::ImageRegion<2> TargetRegion;
+
+  void Cluster();
+
+  std::vector<SelfPatchCompare::PatchDataType> TopPatchData;
 };
 
 #endif // TopPatchesWidget_H
