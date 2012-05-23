@@ -204,8 +204,10 @@ void InteractivePatchComparisonWidget::SharedConstructor()
           SourcePatchInfoWidget, SLOT(slot_Update(const itk::ImageRegion<2>& )));
 
   /** This is used when the user clicks on a top patch in the view of the top patches. */
-  connect(this->TopPatchesPanel, SIGNAL(signal_TopPatchSelected(const itk::ImageRegion<2>&)),
-          this, SLOT(slot_SourcePatchMoved(const itk::ImageRegion<2>& )));
+//   connect(this->TopPatchesPanel, SIGNAL(signal_TopPatchSelected(const itk::ImageRegion<2>&)),
+//           this, SLOT(slot_SourcePatchMoved(const itk::ImageRegion<2>& )));
+  connect(this->TopPatchesPanel, SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
+          this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
 
 }
   
@@ -402,6 +404,11 @@ void InteractivePatchComparisonWidget::Refresh()
 void InteractivePatchComparisonWidget::on_actionFlipImage_activated()
 {
 // camera->Flip
+}
+
+void InteractivePatchComparisonWidget::slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& patches)
+{
+
 }
 
 void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageRegion<2>& patchRegion)

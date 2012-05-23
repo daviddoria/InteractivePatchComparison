@@ -89,6 +89,7 @@ public slots:
   void slot_TargetPatchMoved(const itk::ImageRegion<2>&);
   void slot_SourcePatchMoved(const itk::ImageRegion<2>&);
 
+  void slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& );
 private:
 
   void UpdatePatches();

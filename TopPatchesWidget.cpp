@@ -42,7 +42,11 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
 
   this->tblviewTopPatches->setItemDelegate(pixmapDelegate);
 
-  connect(this->tblviewTopPatches, SIGNAL(clicked(const QModelIndex&)), this, SLOT(slot_SingleClicked(const QModelIndex&)));
+  //connect(this->tblviewTopPatches, SIGNAL(clicked(const QModelIndex&)), this, SLOT(slot_SingleClicked(const QModelIndex&)));
+
+  connect(this->tblviewTopPatches->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+          this, SLOT(slot_SelectionChanged(const QItemSelection &, const QItemSelection &)));
+
 }
 
 void TopPatchesWidget::SetTargetRegion(const itk::ImageRegion<2>& targetRegion)
@@ -59,10 +63,26 @@ void TopPatchesWidget::SetTargetRegion(const itk::ImageRegion<2>& targetRegion)
   this->TargetPatchScene->addPixmap(pixmap);
 }
 
-void TopPatchesWidget::slot_SingleClicked(const QModelIndex& selected)
+void TopPatchesWidget::slot_SelectionChanged(const QItemSelection &, const QItemSelection &)
 {
-  emit signal_TopPatchSelected(this->TopPatchesModel->GetTopPatchData()[selected.row()].first);
+  QModelIndexList indexes = this->tblviewTopPatches->selectionModel()->selection().indexes();
+
+  std::vector<itk::ImageRegion<2> > regions;
+
+  for (int i = 0; i < indexes.count(); ++i)
+  {
+    //std::cout << "selectedIndexes: " << indexes.at(i).row() << std::endl;
+    regions.push_back(this->TopPatchesModel->GetTopPatchData()[indexes.at(i).row()].first);
+  }
+  
+  //emit signal_TopPatchSelected(this->TopPatchesModel->GetTopPatchData()[selected.row()].first);
+  emit signal_TopPatchesSelected(regions);
 }
+
+// void TopPatchesWidget::slot_SingleClicked(const QModelIndex& selected)
+// {
+//   emit signal_TopPatchSelected(this->TopPatchesModel->GetTopPatchData()[selected.row()].first);
+// }
 
 void TopPatchesWidget::SetImage(ImageType* const image)
 {

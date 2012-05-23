@@ -51,12 +51,14 @@ public:
 public slots:
 
   /** When a patch is clicked, emit a signal. */
-  void slot_SingleClicked(const QModelIndex & index);
+  // void slot_SingleClicked(const QModelIndex & index);
+  void slot_SelectionChanged(const QItemSelection &, const QItemSelection &);
 
   void on_btnCompute_clicked();
 
 signals:
-  void signal_TopPatchSelected(const itk::ImageRegion<2>& region);
+  //void signal_TopPatchSelected(const itk::ImageRegion<2>& region);
+  void signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >& region);
 
 private:
   ImageType* Image;
