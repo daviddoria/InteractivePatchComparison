@@ -26,6 +26,7 @@
 #include <QObject>
 #include <QFutureWatcher>
 class QProgressDialog;
+class QSortFilterProxyModel;
 
 // ITK
 #include "itkVectorImage.h"
@@ -52,8 +53,7 @@ public:
   
 public slots:
 
-  /** When a patch is clicked, emit a signal. */
-  // void slot_SingleClicked(const QModelIndex & index);
+  /** When a patch (or patches) is clicked or the arrow keys are used, emit a signal. */
   void slot_SelectionChanged(const QItemSelection &, const QItemSelection &);
 
   void on_btnCompute_clicked();
@@ -62,7 +62,7 @@ public slots:
   void slot_Finished();
 
 signals:
-  //void signal_TopPatchSelected(const itk::ImageRegion<2>& region);
+
   void signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >& region);
 
 private:
@@ -73,7 +73,8 @@ private:
   QGraphicsScene* TargetPatchScene;
   QGraphicsPixmapItem* TargetPatchItem;
   TableModelTopPatches* TopPatchesModel;
-
+  QSortFilterProxyModel* ProxyModel;
+  
   itk::ImageRegion<2> TargetRegion;
 
   void Cluster();

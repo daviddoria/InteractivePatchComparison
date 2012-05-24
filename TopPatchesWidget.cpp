@@ -11,6 +11,7 @@
 #include <QGraphicsPixmapItem>
 #include <QProgressDialog>
 #include <QtConcurrentRun>
+#include <QSortFilterProxyModel>
 
 // Submodules
 #include "ITKVTKHelpers/ITKHelpers/Helpers/Helpers.h"
@@ -42,8 +43,10 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
   this->TargetPatchScene = new QGraphicsScene();
   this->gfxTargetPatch->setScene(this->TargetPatchScene);
 
+  this->ProxyModel = new QSortFilterProxyModel;
   this->TopPatchesModel = new TableModelTopPatches(this->TopPatchData, this);
-  this->tblviewTopPatches->setModel(TopPatchesModel);
+  this->ProxyModel->setSourceModel(this->TopPatchesModel);
+  this->tblviewTopPatches->setModel(ProxyModel);
   this->TopPatchesModel->SetMaxTopPatchesToDisplay(this->txtNumberOfPatches->text().toInt());
 
   std::cout << "Set patch display size to: " << this->gfxTargetPatch->size().height() << std::endl;
@@ -52,9 +55,6 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
   PixmapDelegate* pixmapDelegate = new PixmapDelegate;
 
   this->tblviewTopPatches->setItemDelegate(pixmapDelegate);
-
-  //connect(this->tblviewTopPatches, SIGNAL(clicked(const QModelIndex&)),
-  //        this, SLOT(slot_SingleClicked(const QModelIndex&)));
 
   connect(this->tblviewTopPatches->selectionModel(),
           SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
@@ -100,7 +100,10 @@ void TopPatchesWidget::slot_SelectionChanged(const QItemSelection &, const QItem
   for (int i = 0; i < indexes.count(); ++i)
   {
     //std::cout << "selectedIndexes: " << indexes.at(i).row() << std::endl;
-    topSourceRegions.push_back(this->TopPatchesModel->GetTopPatchData()[indexes.at(i).row()].first);
+    //topSourceRegions.push_back(this->TopPatchesModel->GetTopPatchData()[indexes.at(i).row()].first);
+    unsigned int originalRowId = this->ProxyModel->mapToSource(indexes.at(i)).row(); // This was the row id before sorting
+    topSourceRegions.push_back(this->TopPatchesModel->GetTopPatchData()[originalRowId].first);
+    
   }
 
   emit signal_TopPatchesSelected(topSourceRegions);
@@ -174,8 +177,7 @@ void TopPatchesWidget::Cluster()
   kmeans.SetK(numberOfClusters);
   kmeans.SetPoints(vectors);
   kmeans.SetInitMethod(KMeansClustering::KMEANSPP);
-  //kmeans.SetRandom(false); // for repeatable results
-  kmeans.SetRandom(true); // for real, random results
+  kmeans.SetRandom(true);
   kmeans.Cluster();
 
   std::vector<unsigned int> labels = kmeans.GetLabels();
