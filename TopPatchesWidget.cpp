@@ -34,6 +34,10 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
 //     this->setGeometry(QRect(parent->pos().x() + parent->width(), parent->pos().y(), this->width(), this->height()));
 //   }
 
+  // Make the cells fit the images (based on the sizeHint from the PixmapDelegate)
+  this->tblviewTopPatches->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+  this->tblviewTopPatches->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+  
   this->TargetPatchItem = new QGraphicsPixmapItem;
   this->TargetPatchScene = new QGraphicsScene();
   this->gfxTargetPatch->setScene(this->TargetPatchScene);
@@ -49,9 +53,11 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
 
   this->tblviewTopPatches->setItemDelegate(pixmapDelegate);
 
-  //connect(this->tblviewTopPatches, SIGNAL(clicked(const QModelIndex&)), this, SLOT(slot_SingleClicked(const QModelIndex&)));
+  //connect(this->tblviewTopPatches, SIGNAL(clicked(const QModelIndex&)),
+  //        this, SLOT(slot_SingleClicked(const QModelIndex&)));
 
-  connect(this->tblviewTopPatches->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+  connect(this->tblviewTopPatches->selectionModel(),
+          SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
           this, SLOT(slot_SelectionChanged(const QItemSelection &, const QItemSelection &)));
 
   // Setup progress bar
@@ -115,7 +121,7 @@ void TopPatchesWidget::on_btnCompute_clicked()
 {
   std::cout << "Set patch display size to: " << this->gfxTargetPatch->size().height() << std::endl;
   this->TopPatchesModel->SetPatchDisplaySize(this->gfxTargetPatch->size().height());
-  
+  this->tblviewTopPatches->resizeRowsToContents(); 
   // Start the computation.
   QFuture<void> future = QtConcurrent::run(this, &TopPatchesWidget::Compute);
   this->FutureWatcher.setFuture(future);

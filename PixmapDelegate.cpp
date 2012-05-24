@@ -44,19 +44,23 @@ void PixmapDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option
   unsigned int originalWidth = rect.width();
   unsigned int originalHeight = rect.height();
 
-  std::cout << "width: " << originalWidth << " height: " << originalHeight << std::endl;
+  //std::cout << "width: " << originalWidth << " height: " << originalHeight << std::endl;
 
   int minSize = std::min(rect.width(), rect.height()) - Padding*2; // We have to double the padding because we want it taken off from both sides.
-  std::cout << "minSize: " << minSize << std::endl;
+  //std::cout << "minSize: " << minSize << std::endl;
 
   // These setLeft and setTop calls must come before setHeight and setWidth
-//   rect.setLeft(originalWidth/2 - minSize/2 + Padding);
-//   rect.setTop(rect.top() + originalHeight/2 - minSize/2 + Padding);
   rect.setLeft(originalWidth/2 - minSize/2);
   rect.setTop(rect.top() + originalHeight/2 - minSize/2);
-  
+
   rect.setHeight(minSize);
   rect.setWidth(minSize);
 
   painter->drawPixmap(rect, pixmap, pixmap.rect());
+}
+
+QSize PixmapDelegate::sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index ) const
+{
+  QPixmap pixmap = index.data(Qt::DisplayRole).value<QPixmap>();
+  return pixmap.size();
 }

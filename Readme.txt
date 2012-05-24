@@ -1,6 +1,20 @@
-This software allows the user to interactively select two patches to compare.
-
-In this program, we use the SwitchBetweenStyle class to use the InteractorStyleTrackballActor for the left mouse button and the InteractorStyleImage for the other buttons.
-This switching, along with setting the image and mask Pickable=off allows us to drag around the small image patches, while still controlling the camera (to pan and zoom) with the other mouse buttons.
-
 License: See LICENSE file in base directory.
+
+This software has two main purposes.
+1) The user can interactively select two patches to compare.
+2) The user can see the list of "top patches" to the selected target patch. This section of the program
+also allows the top patches to be clustered.
+
+Required Dependencies
+---------------------
+Eigen 3
+VTK 6
+ITK 4
+
+Installation Notes
+------------------
+ITK MUST be configured and then bulit with 
+
+ccmake ~/src/ITK -DCMAKE_CXX_FLAGS=-std=gnu++0x
+
+the VERY first time. I.e. you cannot configure once, then set the CMAKE_CXX_FLAGS, then configure again.

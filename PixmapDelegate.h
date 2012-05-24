@@ -34,6 +34,8 @@ public:
 
   void SetPadding(const unsigned int padding);
 
+  QSize sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index ) const ;
+  
 private:
   unsigned int Padding; // This padding will be placed around the entire image in the cell
 };

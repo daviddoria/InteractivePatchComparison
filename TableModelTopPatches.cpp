@@ -76,7 +76,7 @@ QVariant TableModelTopPatches::data(const QModelIndex& index, int role) const
 
         patchImage = patchImage.scaledToHeight(this->PatchDisplaySize);
 
-        std::cout << "patchImage.size: w=" << patchImage.size().width() << "h=" << patchImage.size().height() << std::endl;
+        //std::cout << "patchImage.size: w=" << patchImage.size().width() << "h=" << patchImage.size().height() << std::endl;
 
         returnValue = QPixmap::fromImage(patchImage);
         break;
