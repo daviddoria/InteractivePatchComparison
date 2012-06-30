@@ -50,7 +50,7 @@ void PixmapDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option
   //std::cout << "minSize: " << minSize << std::endl;
 
   // These setLeft and setTop calls must come before setHeight and setWidth
-  rect.setLeft(originalWidth/2 - minSize/2);
+  rect.setLeft(rect.left() + originalWidth/2 - minSize/2);
   rect.setTop(rect.top() + originalHeight/2 - minSize/2);
 
   rect.setHeight(minSize);
