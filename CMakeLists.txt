@@ -13,7 +13,6 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) #fix the dynamic linking error (RPAT
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 # Submodules
-add_subdirectory(EigenHelpers)
 add_subdirectory(VTKHelpers)
 add_subdirectory(ITKVTKHelpers)
 add_subdirectory(Mask)
@@ -22,6 +21,7 @@ add_subdirectory(ITKQtHelpers)
 add_subdirectory(PatchComparison)
 add_subdirectory(ITKVTKCamera)
 add_subdirectory(PatchClustering)
+add_subdirectory(PatchProjection)
 
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})

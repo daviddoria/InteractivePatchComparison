@@ -165,7 +165,7 @@ void TopPatchesWidget::Compute()
 
 void TopPatchesWidget::Cluster()
 {
-  EigenHelpers::VectorOfVectors vectors(this->TopPatchData.size());
+  EigenHelpers::VectorOfFloatVectors vectors(this->TopPatchData.size());
   for(unsigned int i = 0; i < this->TopPatchData.size(); ++i)
     {
     Eigen::VectorXf v = PatchClustering::VectorizePatch(this->Image, this->TopPatchData[i].first);

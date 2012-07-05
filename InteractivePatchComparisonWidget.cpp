@@ -65,7 +65,7 @@
 #include "Mask/Mask.h"
 #include "Mask/MaskOperations.h"
 #include "VTKHelpers/VTKHelpers.h"
-#include "EigenHelpers/EigenHelpers.h"
+#include "PatchProjection/EigenHelpers/EigenHelpers.h"
 #include "PatchProjection/PatchProjection.h"
 
 // Custom
