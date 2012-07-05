@@ -66,6 +66,7 @@
 #include "Mask/MaskOperations.h"
 #include "VTKHelpers/VTKHelpers.h"
 #include "EigenHelpers/EigenHelpers.h"
+#include "PatchProjection/PatchProjection.h"
 
 // Custom
 #include "SwitchBetweenStyle.h"
@@ -244,9 +245,11 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
 
   this->TopPatchesPanel->SetImage(this->Image.GetPointer());
 
-   this->ImageLayer.ImageSlice->VisibilityOn();
-   this->SourcePatchLayer.ImageSlice->VisibilityOn();
-   this->TargetPatchLayer.ImageSlice->VisibilityOn();
+  this->ImageLayer.ImageSlice->VisibilityOn();
+  this->SourcePatchLayer.ImageSlice->VisibilityOn();
+  this->TargetPatchLayer.ImageSlice->VisibilityOn();
+
+  ComputeProjectionMatrix();
 }
 
 void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
@@ -505,15 +508,29 @@ void InteractivePatchComparisonWidget::UpdatePatches()
     float averageSqPixelDifference = ssdFunctor(this->Image.GetPointer(),
                                                  sourceRegion, targetRegion);
 
-    CorrelationScore correlationScoreFunctor;
-    float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), sourceRegion, targetRegion);
+    VectorType vectorizedSource = PatchProjection<MatrixType, VectorType>::VectorizePatch(this->Image.GetPointer(),
+                                                               sourceRegion);
+
+    VectorType vectorizedTarget = PatchProjection<MatrixType, VectorType>::VectorizePatch(this->Image.GetPointer(),
+                                                                targetRegion);
+
+    VectorType projectedSource = this->ProjectionMatrix.transpose() * vectorizedSource;
+
+    VectorType projectedTarget = this->ProjectionMatrix.transpose() * vectorizedTarget;
+
+    // Compute distance between patches in PCA space
+    float pcaScore = (projectedSource - projectedTarget).squaredNorm();
+
+//     CorrelationScore correlationScoreFunctor;
+//     float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), sourceRegion, targetRegion);
 
     Refresh();
 
     this->lblSumSquaredPixelDifference->setNum(averageSqPixelDifference);
 
     this->lblSumAbsolutePixelDifference->setNum(averageAbsPixelDifference);
-    this->lblCorrelation->setNum(correlationScore);
+    // this->lblCorrelation->setNum(correlationScore);
+    this->lblPCAScore->setNum(pcaScore);
   }
 }
 
@@ -583,4 +600,30 @@ void InteractivePatchComparisonWidget::on_actionScreenshot_activated()
 void InteractivePatchComparisonWidget::on_action_View_TopPatches_activated()
 {
   TopPatchesPanel->setVisible(!TopPatchesPanel->isVisible());
+}
+
+
+void InteractivePatchComparisonWidget::ComputeProjectionMatrix()
+{
+  if(this->PatchSize[0]/2 == 0)
+  {
+    throw std::runtime_error("Must set PatchSize before calling ComputeProjectionMatrix()!");
+  }
+
+  if(this->Image->GetLargestPossibleRegion().GetSize()[0] == 0)
+  {
+    throw std::runtime_error("Cannot ComputeProjectionMatrix() before calling SetImage()!");
+  }
+  std::vector<typename VectorType::Scalar> sortedEigenvalues; // unused
+  VectorType meanVector; // unused
+  this->ProjectionMatrix = PatchProjection<MatrixType, VectorType>::
+                              ComputeProjectionMatrix_CovarianceEigen(this->Image.GetPointer(),
+                                                                      this->PatchSize[0]/2,
+                                                                      meanVector,
+                                                                      sortedEigenvalues);
+
+  unsigned int numberOfDimensionsToProjectTo = 150;
+  this->ProjectionMatrix =
+         EigenHelpers::TruncateColumns(this->ProjectionMatrix, numberOfDimensionsToProjectTo);
+
 }

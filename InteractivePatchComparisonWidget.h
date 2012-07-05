@@ -91,6 +91,7 @@ public slots:
   void slot_SourcePatchMoved(const itk::ImageRegion<2>&);
 
   void slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& );
+  
 private:
 
   void UpdatePatches();
@@ -114,32 +115,41 @@ private:
 
   void SetupPatches();
 
-  // Allow us to interact with the objects as we would like.
+  /** Allow us to interact with the objects as we would like. */
   vtkSmartPointer<SwitchBetweenStyle> InteractorStyle;
 
-  // Display the image appropriately
+  /** Display the image appropriately */
   ITKVTKCamera itkvtkCamera;
 
+  /** The main renderer */
   vtkSmartPointer<vtkRenderer> Renderer;
 
-  // Image display
+  /** Image display */
   Layer ImageLayer;
 
-  // Mask image display
+  /** Mask image display */
   Layer MaskImageLayer;
 
-  // Movable patches
+  /** Movable patches */
   Layer SourcePatchLayer;
   Layer TargetPatchLayer;
 
+  /** A layer to display all of the selected source patches. */
   Layer SelectedSourcePatchesLayer;
 
-  // The data that the user loads
+  /** The data that the user loads */
   ImageType::Pointer Image;
   Mask::Pointer MaskImage;
 
+  /** The size of the patches to compare. */
   itk::Size<2> PatchSize;
 
+  /** The projection matrix to project patches to a lower dimensional space. */
+  typedef Eigen::MatrixXf MatrixType;
+  typedef Eigen::VectorXf VectorType;
+  MatrixType ProjectionMatrix;
+
+  void ComputeProjectionMatrix();
 };
 
 #endif // InteractivePatchComparisonWidget_H

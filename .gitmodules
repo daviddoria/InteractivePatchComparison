@@ -13,9 +13,6 @@
 [submodule "ITKQtHelpers"]
 	path = ITKQtHelpers
 	url = git@github.com:daviddoria/ITKQtHelpers.git
-[submodule "EigenHelpers"]
-	path = EigenHelpers
-	url = git@github.com:daviddoria/EigenHelpers.git
 [submodule "PatchComparison"]
 	path = PatchComparison
 	url = git@github.com:daviddoria/PatchComparison.git
@@ -25,3 +22,6 @@
 [submodule "PatchClustering"]
 	path = PatchClustering
 	url = git@github.com:daviddoria/PatchClustering.git
+[submodule "PatchProjection"]
+	path = PatchProjection
+	url = https://github.com/daviddoria/PatchProjection.git
