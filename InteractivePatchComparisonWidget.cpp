@@ -72,10 +72,11 @@
 #include "Types.h"
 
 // Patch Comparison Submodule
-#include "PatchComparison/CorrelationScore.hpp"
-#include "PatchComparison/AveragePixelDifference.hpp"
-#include "PatchComparison/PixelDifferences.hpp"
+#include "PatchComparison/AverageValueDifference.h"
 #include "PatchComparison/DiffusionDistance.h"
+#include "PatchComparison/CorrelationScore.h"
+#include "PatchComparison/PixelDifferences.h"
+#include "PatchComparison/SSD.h"
 
 const unsigned char InteractivePatchComparisonWidget::Green[3] = {0,255,0};
 const unsigned char InteractivePatchComparisonWidget::Red[3] = {255,0,0};
@@ -496,16 +497,16 @@ void InteractivePatchComparisonWidget::UpdatePatches()
   if(Image->GetLargestPossibleRegion().IsInside(targetRegion) &&
     Image->GetLargestPossibleRegion().IsInside(sourceRegion))
   {
-    AveragePixelDifference<SumOfAbsoluteDifferences> averageAbsPixelDifferenceFunctor;
-    float averageAbsPixelDifference = averageAbsPixelDifferenceFunctor(this->Image.GetPointer(),
-                                                                  this->MaskImage, sourceRegion, targetRegion);
+    AverageValueDifference averageValueDifferenceFunctor;
+    float averageAbsPixelDifference = averageValueDifferenceFunctor(this->Image.GetPointer(),
+                                                                   sourceRegion, targetRegion);
 
-    AveragePixelDifference<SumOfSquaredDifferences> averageSqPixelDifferenceFunctor;
-    float averageSqPixelDifference = averageSqPixelDifferenceFunctor(this->Image.GetPointer(),
-                                                                this->MaskImage, sourceRegion, targetRegion);
+    SSDGeneral ssdFunctor;
+    float averageSqPixelDifference = ssdFunctor(this->Image.GetPointer(),
+                                                 sourceRegion, targetRegion);
 
     CorrelationScore correlationScoreFunctor;
-    float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), this->MaskImage, sourceRegion, targetRegion);
+    float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), sourceRegion, targetRegion);
 
     Refresh();
 
@@ -546,9 +547,9 @@ void InteractivePatchComparisonWidget::on_action_SavePatches_activated()
     return;
   }
   
-  AveragePixelDifference<SumOfAbsoluteDifferences> averagePixelDifferenceFunctor;
-  float averagePixelDifference = averagePixelDifferenceFunctor(this->Image.GetPointer(),
-                                                               this->MaskImage, sourceRegion, targetRegion);
+  AverageValueDifference averageValueDifferenceFunctor;
+  float averageValueDifference = averageValueDifferenceFunctor(this->Image.GetPointer(),
+                                                               sourceRegion, targetRegion);
 
   //ITKHelpers::WriteVectorImageRegionAsRGB(this->Image.GetPointer(), sourceRegion, "SourcePatch.png");
   //Helpers::WriteRGBRegion(this->Image.GetPointer(), targetRegion, "TargetPatch.png");
@@ -560,7 +561,7 @@ void InteractivePatchComparisonWidget::on_action_SavePatches_activated()
   ITKHelpers::WriteRegion(this->MaskImage.GetPointer(), targetRegion, "MaskPatch.png");
   
   std::ofstream fout("score.txt");
-  fout << averagePixelDifference << std::endl;
+  fout << averageValueDifference << std::endl;
   fout.close();
 }
 

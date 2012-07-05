@@ -28,9 +28,9 @@
 #include "ITKQtHelpers/ITKQtHelpers.h"
 
 // Patch Comparison Submodule
-#include "PatchComparison/AverageScore.hpp"
-#include "PatchComparison/VarianceScore.hpp"
-#include "PatchComparison/AveragePixelDifference.hpp"
+#include "PatchComparison/AverageValueDifference.hpp"
+#include "PatchComparison/VarianceDifference.hpp"
+#include "PatchComparison/SSD.hpp"
 #include "PatchComparison/PixelDifferences.hpp"
 
 // ITK
@@ -122,8 +122,11 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   }
 
   // Patch display
-  QImage sourcePatchImage = MaskOperations::GetQImageMasked(this->Image, this->MaskImage,
-                            patchRegion);
+  // If we want to use a mask, then the new method is to just call ITKHelpers::GetImageMasked
+  // followed by GetQImage.
+//   QImage sourcePatchImage = MaskOperations::GetQImageMasked(this->Image, this->MaskImage,
+//                             patchRegion);
+  QImage sourcePatchImage = ITKQtHelpers::GetQImageColor(this->Image, patchRegion);
 
   sourcePatchImage = QtHelpers::FitToGraphicsView(sourcePatchImage, this->graphicsView_Patch);
 
