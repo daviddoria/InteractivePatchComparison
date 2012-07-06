@@ -35,6 +35,7 @@
 
 // Submodules
 #include "ITKVTKHelpers/ITKHelpers/Helpers/Helpers.h"
+#include "PatchComparison/SSD.h"
 
 // ITK
 #include "itkImageRegion.h"
@@ -57,21 +58,15 @@ public:
 
   void SetTargetRegion(const itk::ImageRegion<2>& targetRegion);
 
-  float SlowTotalAbsoluteDifference(const itk::ImageRegion<2>& sourceRegion);
-  float SlowTotalSquaredDifference(const itk::ImageRegion<2>& sourceRegion);
-
-  float SlowAverageAbsoluteDifference(const itk::ImageRegion<2>& sourceRegion);
-  float SlowAverageSquaredDifference(const itk::ImageRegion<2>& sourceRegion);
-
-  float PixelDifference(const VectorType &a, const VectorType &b);
-  float PixelSquaredDifference(const VectorType &a, const VectorType &b);
-
   void ComputePatchScores();
 
+  /** A structure to store the source patch patch regions and their corresponding distances. */
   typedef std::pair<itk::ImageRegion<2>, float> PatchDataType;
 
+  /** Get the patch data (the regions and their corresponding distances). */
   std::vector<PatchDataType> GetPatchData();
 
+  /** Set the projection matrix to use in a projected distance comparison. */
   void SetProjectionMatrix(const MatrixType& projectionMatrix);
 
 private:
@@ -84,14 +79,16 @@ private:
   /** This is the target region we wish to compare. It may be partially invalid. */
   itk::ImageRegion<2> TargetRegion;
   
-  /** This is the image from which to take the patches */
+  /** This is the image from which to take the patches. */
   ImageType* Image;
 
-  /** This is the mask to check the validity of target pixels */
+  /** This is the mask to check the validity of target pixels. */
   Mask* MaskImage;
 
+  /** Maintain a fully valid mask in case no real mask is specified. */
   Mask::Pointer FullyValidMask;
 
+  /** Find all source patches that are entirely valid. */
   std::vector<itk::ImageRegion<2> > FindFullSourcePatches();
 
   std::vector<PatchDataType> PatchData;
