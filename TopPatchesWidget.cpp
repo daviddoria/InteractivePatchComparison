@@ -24,7 +24,6 @@
 
 // Custom
 #include "PixmapDelegate.h"
-#include "SelfPatchCompare.h"
 
 TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
 {
@@ -138,15 +137,15 @@ void TopPatchesWidget::on_btnCompute_clicked()
 
 void TopPatchesWidget::Compute()
 {
-  SelfPatchCompare patchCompare;
-  patchCompare.SetImage(this->Image);
+  
+  SelfPatchCompareFunctor.SetImage(this->Image);
   //this->PatchCompare.SetMask(this->MaskImage);
 
-  patchCompare.SetTargetRegion(this->TargetRegion);
+  SelfPatchCompareFunctor.SetTargetRegion(this->TargetRegion);
 
-  patchCompare.ComputePatchScores();
+  SelfPatchCompareFunctor.ComputePatchScores();
 
-  this->TopPatchData = patchCompare.GetPatchData();
+  this->TopPatchData = SelfPatchCompareFunctor.GetPatchData();
 
   //std::sort(topPatchData.begin(), topPatchData.end(), Helpers::SortBySecondAccending<PatchDataType>);
   unsigned int numberOfPatches = this->txtNumberOfPatches->text().toInt();
@@ -168,7 +167,7 @@ void TopPatchesWidget::Cluster()
   EigenHelpers::VectorOfFloatVectors vectors(this->TopPatchData.size());
   for(unsigned int i = 0; i < this->TopPatchData.size(); ++i)
     {
-    Eigen::VectorXf v = PatchClustering::VectorizePatch(this->Image, this->TopPatchData[i].first);
+    VectorType v = PatchClustering::VectorizePatch(this->Image, this->TopPatchData[i].first);
     vectors[i] = v;
     }
 
@@ -183,4 +182,9 @@ void TopPatchesWidget::Cluster()
   std::vector<unsigned int> labels = kmeans.GetLabels();
 
   this->TopPatchesModel->SetClusterIDs(labels);
+}
+
+void TopPatchesWidget::SetProjectionMatrix(const MatrixType& projectionMatrix)
+{
+  this->SelfPatchCompareFunctor.SetProjectionMatrix(projectionMatrix);
 }

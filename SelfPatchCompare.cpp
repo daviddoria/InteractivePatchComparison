@@ -321,3 +321,8 @@ std::vector<itk::ImageRegion<2> > SelfPatchCompare::FindFullSourcePatches()
 
   return fullSourcePatches;
 }
+
+void SelfPatchCompare::SetProjectionMatrix(const MatrixType& projectionMatrix)
+{
+  this->ProjectionMatrix = projectionMatrix;
+}

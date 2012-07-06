@@ -111,7 +111,6 @@ void InteractivePatchComparisonWidget::SharedConstructor()
 
   // Setup icons
   QIcon openIcon = QIcon::fromTheme("document-open");
-  QIcon saveIcon = QIcon::fromTheme("document-save");
 
   // Setup toolbar
   actionOpenImage->setIcon(openIcon);
@@ -120,9 +119,6 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   actionOpenMask->setIcon(openIcon);
   this->toolBar->addAction(actionOpenMask);
   actionOpenMask->setEnabled(false);
-/*
-  actionSaveResult->setIcon(saveIcon);
-  this->toolBar->addAction(actionSaveResult);*/
 
   this->InteractorStyle = vtkSmartPointer<SwitchBetweenStyle>::New();
 
@@ -616,14 +612,29 @@ void InteractivePatchComparisonWidget::ComputeProjectionMatrix()
   }
   std::vector<typename VectorType::Scalar> sortedEigenvalues; // unused
   VectorType meanVector; // unused
+
   this->ProjectionMatrix = PatchProjection<MatrixType, VectorType>::
-                              ComputeProjectionMatrix_CovarianceEigen(this->Image.GetPointer(),
-                                                                      this->PatchSize[0]/2,
-                                                                      meanVector,
-                                                                      sortedEigenvalues);
+                              ComputeProjectionMatrixFromImagePartialMatrix(this->Image.GetPointer(),
+                                                               this->PatchSize[0]/2,
+                                                               meanVector,
+                                                               sortedEigenvalues);
+                              
+//   this->ProjectionMatrix = PatchProjection<MatrixType, VectorType>::
+//                               ComputeProjectionMatrixFromImageOuterProduct(this->Image.GetPointer(),
+//                                                                this->PatchSize[0]/2,
+//                                                                meanVector,
+//                                                                sortedEigenvalues);
+
+  // This function would be preferred, but typically the feature matrix does not fit into memory.
+//   this->ProjectionMatrix = PatchProjection<MatrixType, VectorType>::
+//                               ComputeProjectionMatrix_CovarianceEigen(this->Image.GetPointer(),
+//                                                                       this->PatchSize[0]/2,
+//                                                                       meanVector,
+//                                                                       sortedEigenvalues);
 
   unsigned int numberOfDimensionsToProjectTo = 150;
   this->ProjectionMatrix =
          EigenHelpers::TruncateColumns(this->ProjectionMatrix, numberOfDimensionsToProjectTo);
 
+  this->TopPatchesPanel->SetProjectionMatrix(this->ProjectionMatrix);
 }

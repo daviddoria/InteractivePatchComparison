@@ -36,6 +36,7 @@ class QSortFilterProxyModel;
 
 // Custom
 #include "TableModelTopPatches.h"
+#include "SelfPatchCompare.h"
 
 /** This class is necessary because a class template cannot have the Q_OBJECT macro directly. */
 class TopPatchesWidget : public QWidget, public Ui::TopPatchesWidget
@@ -43,6 +44,9 @@ class TopPatchesWidget : public QWidget, public Ui::TopPatchesWidget
 Q_OBJECT
 
 public:
+  typedef Eigen::MatrixXf MatrixType;
+  typedef Eigen::VectorXf VectorType;
+  
   typedef itk::VectorImage<float, 2> ImageType;
   
   TopPatchesWidget(QWidget* parent = NULL);
@@ -50,7 +54,9 @@ public:
   void SetTargetRegion(const itk::ImageRegion<2>& targetRegion);
 
   void SetImage(ImageType* const image);
-  
+
+  void SetProjectionMatrix(const MatrixType& projectionMatrix);
+
 public slots:
 
   /** When a patch (or patches) is clicked or the arrow keys are used, emit a signal. */
@@ -84,6 +90,8 @@ private:
   /** To monitor the progress. */
   QFutureWatcher<void> FutureWatcher;
   QProgressDialog* ProgressDialog;
+
+  SelfPatchCompare SelfPatchCompareFunctor;
 };
 
 #endif // TopPatchesWidget_H

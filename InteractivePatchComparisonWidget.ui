@@ -39,10 +39,10 @@
          <item>
           <widget class="QLineEdit" name="txtPatchRadius">
            <property name="toolTip">
-            <string>Sets the width/height of a square patch</string>
+            <string>Sets the half width (radius) of a square patch</string>
            </property>
            <property name="text">
-            <string>15</string>
+            <string>7</string>
            </property>
           </widget>
          </item>

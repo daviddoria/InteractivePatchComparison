@@ -1,6 +1,6 @@
 /*=========================================================================
  *
- *  Copyright David Doria 2011 daviddoria@gmail.com
+ *  Copyright David Doria 2012 daviddoria@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 #ifndef SelfPatchCompare_H
 #define SelfPatchCompare_H
 
-/*
+/**
  * This class is for situations when you have a very large set of source patches
  * that are entirely valid, and you want to compare them all to a target patch
  * that is partially masked. It computes the linear offsets of the masked pixels
@@ -29,6 +29,9 @@
 // Custom
 #include "Mask/Mask.h"
 #include "Types.h"
+
+// Eigen
+#include <Eigen/Dense>
 
 // Submodules
 #include "ITKVTKHelpers/ITKHelpers/Helpers/Helpers.h"
@@ -42,6 +45,8 @@
 class SelfPatchCompare
 {
 public:
+  typedef Eigen::MatrixXf MatrixType;
+  
   typedef itk::VectorImage<float, 2> ImageType;
   
   SelfPatchCompare();
@@ -67,6 +72,8 @@ public:
 
   std::vector<PatchDataType> GetPatchData();
 
+  void SetProjectionMatrix(const MatrixType& projectionMatrix);
+
 private:
   /** If a channel of one pixel was white (255) and the corresponding channel of the other pixel
    * was black (0), the difference would be 255, so the difference squared would be 255*255
@@ -88,6 +95,8 @@ private:
   std::vector<itk::ImageRegion<2> > FindFullSourcePatches();
 
   std::vector<PatchDataType> PatchData;
+
+  MatrixType ProjectionMatrix;
 };
 
 #endif
