@@ -500,8 +500,7 @@ void InteractivePatchComparisonWidget::UpdatePatches()
     float averageAbsPixelDifference = averageValueDifferenceFunctor(this->Image.GetPointer(),
                                                                    sourceRegion, targetRegion);
 
-    SSDGeneral ssdFunctor;
-    float averageSqPixelDifference = ssdFunctor(this->Image.GetPointer(),
+    float averageSqPixelDifference = SSD<ImageType>::Difference(this->Image.GetPointer(),
                                                  sourceRegion, targetRegion);
 
     VectorType vectorizedSource = PatchProjection<MatrixType, VectorType>::VectorizePatch(this->Image.GetPointer(),

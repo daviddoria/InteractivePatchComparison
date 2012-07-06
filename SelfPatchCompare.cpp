@@ -57,12 +57,14 @@ void SelfPatchCompare::ComputePatchScores()
   this->PatchData.clear();
   
   std::vector<itk::ImageRegion<2> > fullSourcePatches = FindFullSourcePatches();
+
+  SSD<ImageType> differenceFunctor;
+  differenceFunctor.Image = this->Image;
   
   for(unsigned int i = 0; i < fullSourcePatches.size(); ++i)
     {
     //std::cout << "Comparing " << this->TargetRegion << " to " << fullSourcePatches[i] << std::endl;
-    SSD<ImageType> differenceFunctor;
-    float averageAbsoluteScore = differenceFunctor(this->TargetRegion, fullSourcePatches[i]);
+    float averageAbsoluteScore = differenceFunctor.Difference(this->Image, this->TargetRegion, fullSourcePatches[i]);
 
     //std::cout << "score: " << averageAbsoluteScore << std::endl;
     PatchDataType patchData;
