@@ -34,23 +34,11 @@
 #include <QTextEdit>
 
 // VTK
-#include <vtkActor.h>
-#include <vtkCamera.h>
-#include <vtkFloatArray.h>
 #include <vtkImageData.h>
 #include <vtkImageProperty.h>
 #include <vtkImageSlice.h>
 #include <vtkImageSliceMapper.h>
-#include <vtkLookupTable.h>
-#include <vtkMath.h>
 #include <vtkPNGWriter.h>
-#include <vtkPointData.h>
-#include <vtkProperty2D.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkPoints.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
@@ -86,7 +74,7 @@ const unsigned char InteractivePatchComparisonWidget::Blue[3] = {0,0,255};
 void InteractivePatchComparisonWidget::on_actionHelp_activated()
 {
   QTextEdit* help=new QTextEdit();
-  
+
   help->setReadOnly(true);
   help->append("<h1>Interactive Patch Comparison</h1>\
   Position the two patches. <br/>\
@@ -96,13 +84,27 @@ void InteractivePatchComparisonWidget::on_actionHelp_activated()
 }
 
 // Constructors
+InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(QWidget* parent) : QMainWindow(parent)
+{
+  SharedConstructor();
+};
+
 InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(const std::string& imageFileName,
-                                                                   const std::string& maskFileName, QWidget* parent)
+                                                                   QWidget* parent)
 : QMainWindow(parent)
 {
   SharedConstructor();
-  OpenImage(imageFileName);
-  OpenMask(maskFileName);
+  this->ImageFileName = imageFileName;
+}
+
+InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(const std::string& imageFileName,
+                                                                   const std::string& maskFileName,
+                                                                   QWidget* parent)
+: QMainWindow(parent)
+{
+  SharedConstructor();
+  this->ImageFileName = imageFileName;
+  this->MaskFileName = maskFileName;
 }
 
 void InteractivePatchComparisonWidget::SharedConstructor()
@@ -114,7 +116,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   SourcePatchInfoWidget->txtYCenter->installEventFilter(this);
   TargetPatchInfoWidget->txtXCenter->installEventFilter(this);
   TargetPatchInfoWidget->txtYCenter->installEventFilter(this);
-  
+
   // Setup icons
   QIcon openIcon = QIcon::fromTheme("document-open");
 
@@ -130,11 +132,13 @@ void InteractivePatchComparisonWidget::SharedConstructor()
 
   // Setup the image display objects
   this->ImageLayer.ImageSlice->PickableOff();
-  this->ImageLayer.ImageSlice->VisibilityOff(); // There are errors if this is visible and therefore displayed before it has data ("This data object does not contain the requested extent.")
+  // There are errors if this is visible and therefore displayed before it has data
+  // ("This data object does not contain the requested extent.")
+  this->ImageLayer.ImageSlice->VisibilityOff();
 
   this->SelectedSourcePatchesLayer.ImageSlice->PickableOff();
   this->SelectedSourcePatchesLayer.ImageSlice->VisibilityOff();
-  
+
   // Initialize and link the mask image display objects
   this->MaskImageLayer.ImageSlice->PickableOff();
   this->MaskImageLayer.ImageSlice->VisibilityOff();
@@ -157,16 +161,19 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->qvtkWidget->GetRenderWindow()->GetInteractor()->SetInteractorStyle(this->InteractorStyle);
   this->InteractorStyle->Init();
 
-  this->Image = ImageType::New();
+  // I can never decide if it is better to create these here and then check for their
+  // existance with if(this->MaskImage->GetLargestPossibleRegion().GetSize()[0] > 0)
+  // or to set these to NULL and create them when the are set.
+  //this->Image = ImageType::New();
   //this->MaskImage = Mask::New();
-  
+  this->Image = NULL;
   this->MaskImage = NULL;
 
   SetupPatches();
-  
+
   /** When the patches are dragged with the mouse, alert the GUI. */
   this->InteractorStyle->TrackballStyle->AddObserver(CustomTrackballStyle::PatchesMovedEvent, this,
-                                                     &InteractivePatchComparisonWidget::PatchesMovedEventHandler);
+                                 &InteractivePatchComparisonWidget::PatchesMovedEventHandler);
 
   /** Connect the PatchInfoWidgets signals (e.g. when the user changes the patch locations
    * using the text boxes). */
@@ -175,7 +182,8 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   connect(SourcePatchInfoWidget, SIGNAL(signal_PatchMoved(const itk::ImageRegion<2>&)),
           this, SLOT(slot_SourcePatchMoved(const itk::ImageRegion<2>&)));
 
-  /** Alert the PatchInfoWidgets when the patches have moved. These are typically called when the user specifies the position of the patches using the text boxes.*/
+  /** Alert the PatchInfoWidgets when the patches have moved. These are typically called when the
+    * user specifies the position of the patches using the text boxes.*/
   connect(this, SIGNAL(signal_TargetPatchMoved(const itk::ImageRegion<2>&)),
           TargetPatchInfoWidget, SLOT(slot_Update(const itk::ImageRegion<2>& )));
 
@@ -183,38 +191,48 @@ void InteractivePatchComparisonWidget::SharedConstructor()
           SourcePatchInfoWidget, SLOT(slot_Update(const itk::ImageRegion<2>& )));
 
   /** This is used when the user clicks on a top patch in the view of the top patches. */
-//   connect(this->TopPatchesPanel, SIGNAL(signal_TopPatchSelected(const itk::ImageRegion<2>&)),
-//           this, SLOT(slot_SourcePatchMoved(const itk::ImageRegion<2>& )));
   connect(this->TopPatchesPanel, SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
           this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
-
 }
-  
-InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(QWidget* parent) : QMainWindow(parent)
-{
-  SharedConstructor();
-};
 
 void InteractivePatchComparisonWidget::on_actionQuit_activated()
 {
   exit(0);
 }
 
+void InteractivePatchComparisonWidget::on_txtPatchRadius_textEdited()
+{
+  // When the focus enters one of the text boxes
+  QColor activeColor = QColor(255, 0, 0);
+  QPalette p = this->txtPatchRadius->palette();
+  p.setColor( QPalette::Normal, QPalette::Base, activeColor);
+  this->txtPatchRadius->setPalette(p);
+}
+
 void InteractivePatchComparisonWidget::showEvent(QShowEvent* event)
 {
   GetPatchSize();
 
-  // Initialize
+  // Set the patches to be somewhere near the middle of the image
 //   this->SourcePatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2,
 //                                       this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
-//   this->TargetPatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2 + this->PatchSize[0],
+//   this->TargetPatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2 +
+//                                       this->PatchSize[0],
 //                                       this->Image->GetLargestPossibleRegion().GetSize()[1]/2, 0);
+
+  // Set the patches to be near the bottom left of the image
   this->SourcePatchLayer.ImageSlice->SetPosition(0, 0, 0);
   this->TargetPatchLayer.ImageSlice->SetPosition(20, 20, 0);
 
-  //SetupPatches();
+  if(this->MaskFileName.size() > 0)
+  {
+    OpenMask(this->MaskFileName);
+  }
 
-  //PatchesMovedEventHandler();
+  if(this->ImageFileName.size() > 0)
+  {
+    OpenImage(this->ImageFileName);
+  }
 
   this->Renderer->ResetCamera();
 
@@ -223,6 +241,8 @@ void InteractivePatchComparisonWidget::showEvent(QShowEvent* event)
 
 void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
 {
+  this->Image = ImageType::New();
+  
   // Set the working directory
   QFileInfo fileInfo(fileName.c_str());
   std::string workingDirectory = fileInfo.absoluteDir().absolutePath().toStdString() + "/";
@@ -252,6 +272,20 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
   this->TargetPatchLayer.ImageSlice->VisibilityOn();
 
   ComputeProjectionMatrix();
+
+  // Generate a fully valid mask if one has not been set.
+  //if(this->MaskImage->GetLargestPossibleRegion().GetSize()[0] == 0)
+  if(!this->MaskImage)
+  {
+    this->MaskImage = Mask::New();
+    this->MaskImage->SetRegions(this->Image->GetLargestPossibleRegion());
+    this->MaskImage->Allocate();
+    ITKHelpers::SetImageToConstant(this->MaskImage.GetPointer(), this->MaskImage->GetValidValue());
+    this->TargetPatchInfoWidget->SetMask(this->MaskImage);
+    this->SourcePatchInfoWidget->SetMask(this->MaskImage);
+  }
+
+  UpdatePatches();
 }
 
 void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
@@ -261,9 +295,11 @@ void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
   reader->SetFileName(fileName);
   reader->Update();
 
-  if(this->Image->GetLargestPossibleRegion() != reader->GetOutput()->GetLargestPossibleRegion())
+  // If the image has already been loaded, make sure the image size matches the mask size
+  if( (this->Image->GetLargestPossibleRegion().GetSize()[0] > 0) &&
+      (this->Image->GetLargestPossibleRegion() != reader->GetOutput()->GetLargestPossibleRegion()) )
     {
-    std::cerr << "Image and mask must be the same size!" << std::endl;
+    std::cerr << "OpenMask(): Image and mask must be the same size!" << std::endl;
     return;
     }
   this->MaskImage = Mask::New();
@@ -281,18 +317,19 @@ void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
 
   this->statusBar()->showMessage("Opened mask.");
 
-  TargetPatchInfoWidget->SetMask(this->MaskImage);
-  SourcePatchInfoWidget->SetMask(this->MaskImage);
+  this->TargetPatchInfoWidget->SetMask(this->MaskImage);
+  this->SourcePatchInfoWidget->SetMask(this->MaskImage);
 
   this->MaskImageLayer.ImageSlice->VisibilityOn();
-  
+
   Refresh();
 }
 
 void InteractivePatchComparisonWidget::on_actionOpenImage_activated()
 {
   // Get a filename to open
-  QString fileName = QFileDialog::getOpenFileName(this, "Open File", ".", "Image Files (*.jpg *.jpeg *.bmp *.png *.mha);;PNG Files (*.png)");
+  QString fileName = QFileDialog::getOpenFileName(this, "Open File", ".",
+                                    "Image Files (*.jpg *.jpeg *.bmp *.png *.mha);;PNG Files (*.png)");
 
   //std::cout << "Got filename: " << fileName.toStdString() << std::endl;
   if(fileName.toStdString().empty())
@@ -306,6 +343,11 @@ void InteractivePatchComparisonWidget::on_actionOpenImage_activated()
 
 void InteractivePatchComparisonWidget::on_txtPatchRadius_returnPressed()
 {
+  QColor normalColor = QColor(255, 255, 255);
+  QPalette p = this->txtPatchRadius->palette();
+  p.setColor( QPalette::Normal, QPalette::Base, normalColor);
+  this->txtPatchRadius->setPalette(p);
+
   SetupPatches();
 }
 
@@ -326,23 +368,20 @@ void InteractivePatchComparisonWidget::SetupPatches()
   GetPatchSize();
 
   InitializePatch(this->SourcePatchLayer.ImageData, this->Green);
-  
+
   InitializePatch(this->TargetPatchLayer.ImageData, this->Blue);
-  
-  //PatchesMovedEventHandler();
+
   Refresh();
 }
 
-void InteractivePatchComparisonWidget::InitializePatch(vtkImageData* image, const unsigned char color[3])
+void InteractivePatchComparisonWidget::InitializePatch(vtkImageData* const image,
+                                                       const unsigned char color[3])
 {
   // Setup and allocate the image data
-  //image->SetNumberOfScalarComponents(4);
-  //image->SetScalarTypeToUnsignedChar();
   image->SetDimensions(this->PatchSize[0], this->PatchSize[1], 1);
-  //image->AllocateScalars();
   image->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
-  
-  VTKHelpers::BlankAndOutlineImage(image,color);
+
+  VTKHelpers::BlankAndOutlineImage(image, color);
 }
 
 void InteractivePatchComparisonWidget::on_actionOpenMaskInverted_activated()
@@ -377,9 +416,8 @@ void InteractivePatchComparisonWidget::Refresh()
 {
   //std::cout << "Refresh()" << std::endl;
   // this->MaskImageSlice->SetVisibility(this->chkShowMask->isChecked());
-  
+
   this->qvtkWidget->GetRenderWindow()->Render();
-  
 }
 
 void InteractivePatchComparisonWidget::on_actionFlipImage_activated()
@@ -393,9 +431,9 @@ void InteractivePatchComparisonWidget::slot_SelectedPatchesChanged(const std::ve
   {
     return;
   }
-  
+
   slot_SourcePatchMoved(patches[0]);
-  
+
   VTKHelpers::SetImageSizeToMatch(this->ImageLayer.ImageData, this->SelectedSourcePatchesLayer.ImageData);
   VTKHelpers::ZeroImage(this->SelectedSourcePatchesLayer.ImageData, 4);
   VTKHelpers::MakeImageTransparent(this->SelectedSourcePatchesLayer.ImageData);
@@ -405,7 +443,7 @@ void InteractivePatchComparisonWidget::slot_SelectedPatchesChanged(const std::ve
   {
     ITKVTKHelpers::OutlineRegion(this->SelectedSourcePatchesLayer.ImageData, patches[i], red);
   }
-  
+
   this->SelectedSourcePatchesLayer.ImageSlice->VisibilityOn();
   Refresh();
 }
@@ -413,7 +451,13 @@ void InteractivePatchComparisonWidget::slot_SelectedPatchesChanged(const std::ve
 void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageRegion<2>& patchRegion)
 {
   //std::cout << "slot_TargetPatchMoved" << std::endl;
-  
+
+  if(!this->Image->GetLargestPossibleRegion().IsInside(patchRegion))
+  {
+    std::cerr << "Invalid patch position specified!" << std::endl;
+    return;
+  }
+
   double targetPosition[3];
   this->TargetPatchLayer.ImageSlice->GetPosition(targetPosition);
 
@@ -423,7 +467,7 @@ void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageReg
 
   // Update the TopPatches widget
   this->TopPatchesPanel->SetTargetRegion(patchRegion);
-  
+
   // Refresh
   Refresh();
   UpdatePatches();
@@ -432,7 +476,7 @@ void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageReg
 void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageRegion<2>& patchRegion)
 {
   //std::cout << "slot_SourcePatchMoved to " << patchRegion << std::endl;
-  
+
   double sourcePosition[3];
   this->SourcePatchLayer.ImageSlice->GetPosition(sourcePosition);
 
@@ -509,11 +553,11 @@ void InteractivePatchComparisonWidget::UpdatePatches()
     float averageSqPixelDifference = SSD<ImageType>::Difference(this->Image.GetPointer(),
                                                  sourceRegion, targetRegion);
 
-    VectorType vectorizedSource = PatchProjection<MatrixType, VectorType>::VectorizePatch(this->Image.GetPointer(),
-                                                               sourceRegion);
+    VectorType vectorizedSource = PatchProjection<MatrixType, VectorType>::
+                                  VectorizePatch(this->Image.GetPointer(), sourceRegion);
 
-    VectorType vectorizedTarget = PatchProjection<MatrixType, VectorType>::VectorizePatch(this->Image.GetPointer(),
-                                                                targetRegion);
+    VectorType vectorizedTarget = PatchProjection<MatrixType, VectorType>::
+                                  VectorizePatch(this->Image.GetPointer(), targetRegion);
 
     VectorType projectedSource = this->ProjectionMatrix.transpose() * vectorizedSource;
 
@@ -539,7 +583,9 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler(vtkObject* calle
                                                                 void* callData)
 {
   vtkProp* prop = static_cast<vtkProp*>(callData);
-  if(prop == static_cast<vtkProp*>(TargetPatchLayer.ImageSlice) || prop == static_cast<vtkProp*>(SourcePatchLayer.ImageSlice)) // These casts are necessary because the compiler complains (warns) about mismatched pointer types
+  // These casts are necessary because the compiler complains (warns) about mismatched pointer types
+  if(prop == static_cast<vtkProp*>(TargetPatchLayer.ImageSlice) ||
+     prop == static_cast<vtkProp*>(SourcePatchLayer.ImageSlice)) 
     {
     UpdatePatches();
     }
@@ -564,7 +610,7 @@ void InteractivePatchComparisonWidget::on_action_SavePatches_activated()
     std::cerr << "Target region not inside image!" << targetRegion << std::endl;
     return;
   }
-  
+
   AverageValueDifference averageValueDifferenceFunctor;
   float averageValueDifference = averageValueDifferenceFunctor(this->Image.GetPointer(),
                                                                sourceRegion, targetRegion);
@@ -574,10 +620,11 @@ void InteractivePatchComparisonWidget::on_action_SavePatches_activated()
   ImageType::PixelType holeColor;
   holeColor.SetSize(3);
   holeColor.Fill(0);
-  MaskOperations::WriteMaskedRegionPNG(this->Image.GetPointer(), this->MaskImage.GetPointer(), targetRegion, "TargetPatch.png", holeColor);
+  MaskOperations::WriteMaskedRegionPNG(this->Image.GetPointer(), this->MaskImage.GetPointer(),
+                                       targetRegion, "TargetPatch.png", holeColor);
 
   ITKHelpers::WriteRegion(this->MaskImage.GetPointer(), targetRegion, "MaskPatch.png");
-  
+
   std::ofstream fout("score.txt");
   fout << averageValueDifference << std::endl;
   fout.close();
@@ -588,7 +635,8 @@ void InteractivePatchComparisonWidget::on_actionScreenshot_activated()
   vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =
     vtkSmartPointer<vtkWindowToImageFilter>::New();
   windowToImageFilter->SetInput(this->qvtkWidget->GetRenderWindow());
-  //windowToImageFilter->SetMagnification(3); //set the resolution of the output image (3 times the current resolution of vtk render window)
+  // Set the resolution of the output image (3 times the current resolution of vtk render window)
+  //windowToImageFilter->SetMagnification(3); 
   //windowToImageFilter->SetInputBufferTypeToRGBA(); //also record the alpha (transparency) channel
   windowToImageFilter->Update();
 
@@ -602,7 +650,6 @@ void InteractivePatchComparisonWidget::on_action_View_TopPatches_activated()
 {
   TopPatchesPanel->setVisible(!TopPatchesPanel->isVisible());
 }
-
 
 void InteractivePatchComparisonWidget::ComputeProjectionMatrix()
 {
@@ -618,14 +665,13 @@ void InteractivePatchComparisonWidget::ComputeProjectionMatrix()
   std::vector<typename VectorType::Scalar> sortedEigenvalues; // unused
   VectorType meanVector; // unused
 
+  // This function is used for debugging only
   this->ProjectionMatrix = PatchProjection<MatrixType, VectorType>::
-                              ComputeProjectionMatrixFromImagePartialMatrix(this->Image.GetPointer(),
-                                                               this->PatchSize[0]/2,
-                                                               meanVector,
-                                                               sortedEigenvalues);
-                              
+                           GetDummyProjectionMatrix(this->Image.GetPointer(), this->PatchSize[0]/2);
+
+  // This function is preferred
 //   this->ProjectionMatrix = PatchProjection<MatrixType, VectorType>::
-//                               ComputeProjectionMatrixFromImageOuterProduct(this->Image.GetPointer(),
+//                               ComputeProjectionMatrixFromImagePartialMatrix(this->Image.GetPointer(),
 //                                                                this->PatchSize[0]/2,
 //                                                                meanVector,
 //                                                                sortedEigenvalues);
@@ -647,65 +693,13 @@ void InteractivePatchComparisonWidget::ComputeProjectionMatrix()
 bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *event)
 {
   // When the focus leaves one of the text boxes, update the patches
-  if(object == SourcePatchInfoWidget->txtXCenter && event->type() == QEvent::FocusOut)
+  QColor normalColor = QColor(255, 255, 255);
+  if(object == txtPatchRadius && event->type() == QEvent::FocusOut)
   {
-    QPalette p = SourcePatchInfoWidget->txtXCenter->palette();
-    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
-    SourcePatchInfoWidget->txtXCenter->setPalette(p);
+    QPalette p = txtPatchRadius->palette();
+    p.setColor( QPalette::Normal, QPalette::Base, normalColor);
+    txtPatchRadius->setPalette(p);
     SetupPatches();
-  }
-
-  if(object == SourcePatchInfoWidget->txtYCenter && event->type() == QEvent::FocusOut)
-  {
-    QPalette p = SourcePatchInfoWidget->txtYCenter->palette();
-    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
-    SourcePatchInfoWidget->txtYCenter->setPalette(p);
-    SetupPatches();
-  }
-
-  if(object == TargetPatchInfoWidget->txtXCenter && event->type() == QEvent::FocusOut)
-  {
-    QPalette p = TargetPatchInfoWidget->txtXCenter->palette();
-    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
-    TargetPatchInfoWidget->txtXCenter->setPalette(p);
-    SetupPatches();
-  }
-
-  if(object == TargetPatchInfoWidget->txtYCenter && event->type() == QEvent::FocusOut)
-  {
-    QPalette p = TargetPatchInfoWidget->txtYCenter->palette();
-    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
-    TargetPatchInfoWidget->txtYCenter->setPalette(p);
-    SetupPatches();
-  }
-
-  // When the focus enters one of the text boxes
-  if(object == SourcePatchInfoWidget->txtXCenter && event->type() == QEvent::FocusIn)
-  {
-    QPalette p = SourcePatchInfoWidget->txtXCenter->palette();
-    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
-    SourcePatchInfoWidget->txtXCenter->setPalette(p);
-  }
-
-  if(object == SourcePatchInfoWidget->txtYCenter && event->type() == QEvent::FocusIn)
-  {
-    QPalette p = SourcePatchInfoWidget->txtYCenter->palette();
-    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
-    SourcePatchInfoWidget->txtYCenter->setPalette(p);
-  }
-
-  if(object == TargetPatchInfoWidget->txtXCenter && event->type() == QEvent::FocusIn)
-  {
-    QPalette p = TargetPatchInfoWidget->txtXCenter->palette();
-    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
-    TargetPatchInfoWidget->txtXCenter->setPalette(p);
-  }
-
-  if(object == TargetPatchInfoWidget->txtYCenter && event->type() == QEvent::FocusIn)
-  {
-    QPalette p = TargetPatchInfoWidget->txtYCenter->palette();
-    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
-    TargetPatchInfoWidget->txtYCenter->setPalette(p);
   }
 
   return false; // Pass the event along (don't consume it)

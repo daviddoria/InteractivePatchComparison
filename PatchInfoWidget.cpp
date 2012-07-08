@@ -38,6 +38,9 @@
 
 PatchInfoWidget::PatchInfoWidget(QWidget* parent) : QWidget(parent)
 {
+  this->MaskImage = NULL;
+  this->Image = NULL;
+
   setupUi(this);
 }
 
@@ -56,7 +59,24 @@ void PatchInfoWidget::SetMask(Mask* const mask)
 {
   this->MaskImage = mask;
 }
-  
+
+void PatchInfoWidget::on_txtXCenter_textEdited()
+{
+  // When the focus enters one of the text boxes
+  QColor activeColor = QColor(255, 0, 0);
+  QPalette p = this->txtXCenter->palette();
+  p.setColor( QPalette::Normal, QPalette::Base, activeColor);
+  this->txtXCenter->setPalette(p);
+}
+
+void PatchInfoWidget::on_txtYCenter_textEdited()
+{
+  QColor activeColor = QColor(255, 0, 0);
+  QPalette p = this->txtYCenter->palette();
+  p.setColor( QPalette::Normal, QPalette::Base, activeColor);
+  this->txtYCenter->setPalette(p);
+}
+
 void PatchInfoWidget::on_txtXCenter_returnPressed()
 {
   itk::Index<2> currentCenter = ITKHelpers::GetRegionCenter(this->Region);
@@ -65,6 +85,11 @@ void PatchInfoWidget::on_txtXCenter_returnPressed()
   newCenter[0] = txtXCenter->text().toUInt();
 
   this->Region = ITKHelpers::GetRegionInRadiusAroundPixel(newCenter, this->GetRadius());
+
+  QColor normalColor = QColor(255, 255, 255);
+  QPalette p = this->txtXCenter->palette();
+  p.setColor( QPalette::Normal, QPalette::Base, normalColor);
+  this->txtXCenter->setPalette(p);
 
   emit signal_PatchMoved(Region);
 }
@@ -78,18 +103,23 @@ void PatchInfoWidget::on_txtYCenter_returnPressed()
 
   this->Region = ITKHelpers::GetRegionInRadiusAroundPixel(newCenter, this->GetRadius());
 
+  QColor normalColor = QColor(255, 255, 255);
+  QPalette p = this->txtYCenter->palette();
+  p.setColor( QPalette::Normal, QPalette::Base, normalColor);
+  this->txtYCenter->setPalette(p);
+
   emit signal_PatchMoved(Region);
 }
 
 
 void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
 {
-  if(!Image->GetLargestPossibleRegion().IsInside(patchRegion))
+  if(!this->Image->GetLargestPossibleRegion().IsInside(patchRegion))
   {
     return;
   }
 
-  Region = patchRegion;
+  this->Region = patchRegion;
   itk::Index<2> patchCenter = ITKHelpers::GetRegionCenter(patchRegion);
   this->txtXCenter->setText(QString::number(patchCenter[0]));
   this->txtYCenter->setText(QString::number(patchCenter[1]));
@@ -102,23 +132,23 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   variance.SetSize(Image->GetNumberOfComponentsPerPixel());
   variance.Fill(0);
   
-  if(MaskImage->CountValidPixels(patchRegion) > 0)
+  if(this->MaskImage && this->MaskImage->CountValidPixels(patchRegion) > 0)
   {
     //average = Helpers::AverageInRegionMasked(Image.GetPointer(), MaskImage.GetPointer(), patchRegion);
 
     // This assumes both patches are fully valid (often the case when exploring)
     average = ITKHelpers::AverageInRegion(Image, patchRegion);
 
-    lblPixelMean->setText(ITKHelpers::VectorToString(average).c_str());
+    this->lblPixelMean->setText(ITKHelpers::VectorToString(average).c_str());
 
     variance = MaskOperations::VarianceInRegionMasked(this->Image, this->MaskImage, patchRegion);
 
-    lblPixelVariance->setText(ITKHelpers::VectorToString(variance).c_str());
+    this->lblPixelVariance->setText(ITKHelpers::VectorToString(variance).c_str());
   }
   else
   {
-    lblPixelMean->setText("Invalid");
-    lblPixelVariance->setText("Invalid");
+    this->lblPixelMean->setText("Invalid");
+    this->lblPixelVariance->setText("Invalid");
   }
 
   // Patch display
@@ -151,7 +181,7 @@ void PatchInfoWidget::Save(const std::string& prefix)
   typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> RegionOfInterestImageFilterType;
   RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
   regionOfInterestImageFilter->SetRegionOfInterest(this->Region);
-  regionOfInterestImageFilter->SetInput(Image);
+  regionOfInterestImageFilter->SetInput(this->Image);
   regionOfInterestImageFilter->Update();
 
   std::stringstream ss;
@@ -179,4 +209,28 @@ void PatchInfoWidget::MakeInvalid()
 
   lblPixelMean->setText("Invalid");
   lblPixelVariance->setText("Invalid");
+}
+
+bool PatchInfoWidget::eventFilter(QObject *object, QEvent *event)
+{
+  // When the focus leaves one of the text boxes, update the patch
+  // and set the background color back to normal
+  QColor normalColor = QColor(255, 255, 255);
+  if(object == this->txtXCenter && event->type() == QEvent::FocusOut)
+  {
+    QPalette p = this->txtXCenter->palette();
+    p.setColor( QPalette::Normal, QPalette::Base, normalColor);
+    this->txtXCenter->setPalette(p);
+    emit signal_PatchMoved(Region);
+  }
+
+  if(object == this->txtYCenter && event->type() == QEvent::FocusOut)
+  {
+    QPalette p = this->txtYCenter->palette();
+    p.setColor( QPalette::Normal, QPalette::Base, normalColor);
+    this->txtYCenter->setPalette(p);
+    emit signal_PatchMoved(Region);
+  }
+
+  return false; // Pass the event along (don't consume it)
 }

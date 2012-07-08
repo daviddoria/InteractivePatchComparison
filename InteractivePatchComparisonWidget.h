@@ -57,7 +57,10 @@ public:
 
   // Constructor/Destructor
   InteractivePatchComparisonWidget(QWidget* parent = 0);
-  InteractivePatchComparisonWidget(const std::string& imageFileName, const std::string& maskFileName, QWidget* parent = 0);
+  InteractivePatchComparisonWidget(const std::string& imageFileName,
+                                   QWidget* parent = 0);
+  InteractivePatchComparisonWidget(const std::string& imageFileName, const std::string& maskFileName,
+                                   QWidget* parent = 0);
   void SharedConstructor();
 
   void Refresh();
@@ -76,13 +79,13 @@ public slots:
   void on_actionOpenMaskInverted_activated();
 
   void on_action_SavePatches_activated();
-  
+
   void on_actionHelp_activated();
   void on_actionQuit_activated();
-  
+
   void on_actionFlipImage_activated();
   void on_actionScreenshot_activated();
-  
+
   void on_txtPatchRadius_returnPressed();
 
   void RefreshSlot();
@@ -91,18 +94,25 @@ public slots:
   void slot_SourcePatchMoved(const itk::ImageRegion<2>&);
 
   void slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& );
-  
+
+  void on_txtPatchRadius_textEdited();
+
 private:
 
   void UpdatePatches();
-  
+
   unsigned int GetPatchRadius();
 
+  /** When either the target patch or source patch is moved, this function should be called. */
   void PatchesMovedEventHandler(vtkObject* caller, long unsigned int eventId, void* callData);
 
+  /** When the widget finishes loading, this function is called. */
   void showEvent(QShowEvent* event);
 
+  /** Open an image. */
   void OpenImage(const std::string& filename);
+
+  /** Open a mask. */
   void OpenMask(const std::string& filename);
 
   static const unsigned char Green[3];
@@ -111,7 +121,7 @@ private:
 
   void GetPatchSize();
 
-  void InitializePatch(vtkImageData* image, const unsigned char color[3]);
+  void InitializePatch(vtkImageData* const image, const unsigned char color[3]);
 
   void SetupPatches();
 
@@ -152,6 +162,9 @@ private:
   void ComputeProjectionMatrix();
 
   bool eventFilter(QObject *object, QEvent *event);
+
+  std::string ImageFileName;
+  std::string MaskFileName;
 };
 
 #endif // InteractivePatchComparisonWidget_H

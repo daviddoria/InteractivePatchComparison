@@ -47,15 +47,17 @@ public:
   itk::ImageRegion<2> GetRegion() const;
 
   void MakeInvalid();
-  
+
 signals:
   void signal_PatchMoved(const itk::ImageRegion<2>& patchRegion);
-  
+
 public slots:
 
   void on_txtXCenter_returnPressed();
   void on_txtYCenter_returnPressed();
-
+  void on_txtXCenter_textEdited();
+  void on_txtYCenter_textEdited();
+  
   void slot_Update(const itk::ImageRegion<2>& patchRegion);
 
 private:
@@ -65,6 +67,8 @@ private:
   Mask* MaskImage;
 
   itk::ImageRegion<2> Region;
+
+  bool eventFilter(QObject *object, QEvent *event);
 };
 
 #endif

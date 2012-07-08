@@ -33,6 +33,14 @@ int main( int argc, char** argv )
   {
     interactivePatchComparisonWidget = new InteractivePatchComparisonWidget;
   }
+  else if(argc == 2)
+  {
+    std::string imageFileName = argv[1];
+
+    std::cout << "imageFileName: " << imageFileName << std::endl;
+
+    interactivePatchComparisonWidget = new InteractivePatchComparisonWidget(imageFileName);
+  }
   else if(argc == 3)
   {
     std::string imageFileName = argv[1];
@@ -40,7 +48,7 @@ int main( int argc, char** argv )
 
     std::cout << "imageFileName: " << imageFileName << std::endl;
     std::cout << "maskFileName: " << maskFileName << std::endl;
-    
+
     interactivePatchComparisonWidget = new InteractivePatchComparisonWidget(imageFileName, maskFileName);
   }
   else

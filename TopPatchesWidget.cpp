@@ -81,7 +81,8 @@ void TopPatchesWidget::SetTargetRegion(const itk::ImageRegion<2>& targetRegion)
   QImage patchImage = ITKQtHelpers::GetQImageColor(this->Image, targetRegion);
 
   QPixmap pixmap = QPixmap::fromImage(patchImage);
-  std::cout << "Set target patch display height to: " << this->gfxTargetPatch->size().height() << std::endl;
+  //std::cout << "Set target patch display height to: "
+  //          << this->gfxTargetPatch->size().height() << std::endl;
   pixmap = pixmap.scaledToHeight(this->gfxTargetPatch->size().height());
 
   this->TargetPatchScene = new QGraphicsScene();
