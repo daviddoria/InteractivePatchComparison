@@ -109,6 +109,12 @@ void InteractivePatchComparisonWidget::SharedConstructor()
 {
   this->setupUi(this);
 
+  // Use event filters to handle focus change events
+  SourcePatchInfoWidget->txtXCenter->installEventFilter(this);
+  SourcePatchInfoWidget->txtYCenter->installEventFilter(this);
+  TargetPatchInfoWidget->txtXCenter->installEventFilter(this);
+  TargetPatchInfoWidget->txtYCenter->installEventFilter(this);
+  
   // Setup icons
   QIcon openIcon = QIcon::fromTheme("document-open");
 
@@ -636,4 +642,71 @@ void InteractivePatchComparisonWidget::ComputeProjectionMatrix()
          EigenHelpers::TruncateColumns(this->ProjectionMatrix, numberOfDimensionsToProjectTo);
 
   this->TopPatchesPanel->SetProjectionMatrix(this->ProjectionMatrix);
+}
+
+bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *event)
+{
+  // When the focus leaves one of the text boxes, update the patches
+  if(object == SourcePatchInfoWidget->txtXCenter && event->type() == QEvent::FocusOut)
+  {
+    QPalette p = SourcePatchInfoWidget->txtXCenter->palette();
+    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
+    SourcePatchInfoWidget->txtXCenter->setPalette(p);
+    SetupPatches();
+  }
+
+  if(object == SourcePatchInfoWidget->txtYCenter && event->type() == QEvent::FocusOut)
+  {
+    QPalette p = SourcePatchInfoWidget->txtYCenter->palette();
+    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
+    SourcePatchInfoWidget->txtYCenter->setPalette(p);
+    SetupPatches();
+  }
+
+  if(object == TargetPatchInfoWidget->txtXCenter && event->type() == QEvent::FocusOut)
+  {
+    QPalette p = TargetPatchInfoWidget->txtXCenter->palette();
+    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
+    TargetPatchInfoWidget->txtXCenter->setPalette(p);
+    SetupPatches();
+  }
+
+  if(object == TargetPatchInfoWidget->txtYCenter && event->type() == QEvent::FocusOut)
+  {
+    QPalette p = TargetPatchInfoWidget->txtYCenter->palette();
+    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
+    TargetPatchInfoWidget->txtYCenter->setPalette(p);
+    SetupPatches();
+  }
+
+  // When the focus enters one of the text boxes
+  if(object == SourcePatchInfoWidget->txtXCenter && event->type() == QEvent::FocusIn)
+  {
+    QPalette p = SourcePatchInfoWidget->txtXCenter->palette();
+    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
+    SourcePatchInfoWidget->txtXCenter->setPalette(p);
+  }
+
+  if(object == SourcePatchInfoWidget->txtYCenter && event->type() == QEvent::FocusIn)
+  {
+    QPalette p = SourcePatchInfoWidget->txtYCenter->palette();
+    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
+    SourcePatchInfoWidget->txtYCenter->setPalette(p);
+  }
+
+  if(object == TargetPatchInfoWidget->txtXCenter && event->type() == QEvent::FocusIn)
+  {
+    QPalette p = TargetPatchInfoWidget->txtXCenter->palette();
+    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
+    TargetPatchInfoWidget->txtXCenter->setPalette(p);
+  }
+
+  if(object == TargetPatchInfoWidget->txtYCenter && event->type() == QEvent::FocusIn)
+  {
+    QPalette p = TargetPatchInfoWidget->txtYCenter->palette();
+    p.setColor( QPalette::Normal, QPalette::Base, QColor(255, 255, 255) );
+    TargetPatchInfoWidget->txtYCenter->setPalette(p);
+  }
+
+  return false; // Pass the event along (don't consume it)
 }

@@ -150,6 +150,8 @@ private:
   MatrixType ProjectionMatrix;
 
   void ComputeProjectionMatrix();
+
+  bool eventFilter(QObject *object, QEvent *event);
 };
 
 #endif // InteractivePatchComparisonWidget_H
