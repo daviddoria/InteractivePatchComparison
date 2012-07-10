@@ -29,7 +29,7 @@
 // STL
 #include <algorithm> // for sort()
 
-SelfPatchCompare::SelfPatchCompare() : Image(NULL), MaskImage(NULL)
+SelfPatchCompare::SelfPatchCompare() : Image(NULL), MaskImage(NULL), PatchDistanceFunctor(NULL)
 {
   this->FullyValidMask = Mask::New();
 }
@@ -74,6 +74,8 @@ void SelfPatchCompare::SetTargetRegion(const itk::ImageRegion<2>& region)
 
 void SelfPatchCompare::ComputePatchScores()
 {
+  assert(this->PatchDistanceFunctor);
+
   this->PatchData.clear();
 
   //std::vector<itk::ImageRegion<2> > fullSourcePatches = FindFullSourcePatches();

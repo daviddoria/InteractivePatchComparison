@@ -192,13 +192,17 @@ void TopPatchesWidget::SetPatchDistanceFunctor(PatchDistance* const patchDistanc
   this->SelfPatchCompareFunctor.SetPatchDistanceFunctor(patchDistanceFunctor);
 }
 
-
 bool TopPatchesWidget::eventFilter(QObject *object, QEvent *event)
 {
   // When the focus leaves one of the text boxes, update the patches
   QColor normalColor = QColor(255, 255, 255);
   if(object == txtClusters && event->type() == QEvent::FocusOut)
   {
+    if(!this->txtClusters->hasAcceptableInput())
+    {
+      std::cerr << "Invalid number of clusters!" << std::endl;
+      return false; // Pass the event along (don't consume it)
+    }
     QPalette p = txtClusters->palette();
     p.setColor( QPalette::Normal, QPalette::Base, normalColor);
     txtClusters->setPalette(p);
@@ -206,6 +210,11 @@ bool TopPatchesWidget::eventFilter(QObject *object, QEvent *event)
 
   if(object == txtNumberOfPatches && event->type() == QEvent::FocusOut)
   {
+    if(!this->txtNumberOfPatches->hasAcceptableInput())
+    {
+      std::cerr << "Invalid number of patches!" << std::endl;
+      return false; // Pass the event along (don't consume it)
+    }
     QPalette p = txtNumberOfPatches->palette();
     p.setColor( QPalette::Normal, QPalette::Base, normalColor);
     txtNumberOfPatches->setPalette(p);
@@ -216,6 +225,12 @@ bool TopPatchesWidget::eventFilter(QObject *object, QEvent *event)
 
 void TopPatchesWidget::on_txtClusters_returnPressed()
 {
+  if(!this->txtClusters->hasAcceptableInput())
+  {
+    std::cerr << "Invalid patch radius!" << std::endl;
+    return;
+  }
+
   QColor normalColor = QColor(255, 255, 255);
   QPalette p = this->txtClusters->palette();
   p.setColor( QPalette::Normal, QPalette::Base, normalColor);
@@ -224,6 +239,12 @@ void TopPatchesWidget::on_txtClusters_returnPressed()
 
 void TopPatchesWidget::on_txtNumberOfPatches_returnPressed()
 {
+  if(!this->txtNumberOfPatches->hasAcceptableInput())
+  {
+    std::cerr << "Invalid patch radius!" << std::endl;
+    return;
+  }
+  
   QColor normalColor = QColor(255, 255, 255);
   QPalette p = this->txtNumberOfPatches->palette();
   p.setColor( QPalette::Normal, QPalette::Base, normalColor);

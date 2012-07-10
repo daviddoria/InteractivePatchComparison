@@ -99,9 +99,8 @@ public slots:
 
 private:
 
+  /** Compute the difference between selected patches. */
   void UpdatePatches();
-
-  unsigned int GetPatchRadius();
 
   /** When either the target patch or source patch is moved, this function should be called. */
   void PatchesMovedEventHandler(vtkObject* caller, long unsigned int eventId, void* callData);
@@ -115,14 +114,18 @@ private:
   /** Open a mask. */
   void OpenMask(const std::string& filename);
 
+  /** Define some colors. */
   static const unsigned char Green[3];
   static const unsigned char Red[3];
   static const unsigned char Blue[3];
 
-  void GetPatchSize();
+  /** Get the size of the patches from the line edit. */
+  void GetPatchSizeFromGUI();
 
+  /** Set the size and color of a patch. */
   void InitializePatch(vtkImageData* const image, const unsigned char color[3]);
 
+  /** Set the sizes of the layers used to display and interact with the patches. */
   void SetupPatches();
 
   /** Allow us to interact with the objects as we would like. */
@@ -157,10 +160,14 @@ private:
   /** The projection matrix to project patches to a lower dimensional space. */
   typedef Eigen::MatrixXf MatrixType;
   typedef Eigen::VectorXf VectorType;
+
+  /** The projection matrix used project patches to a lower dimensional space. */
   MatrixType ProjectionMatrix;
 
+  /** Compute the projection matrix to project patches to a lower dimensional space. */
   void ComputeProjectionMatrix();
 
+  /** Handle events (not signals) so we don't have to subclass things like QLineEdit. */
   bool eventFilter(QObject *object, QEvent *event);
 
   std::string ImageFileName;

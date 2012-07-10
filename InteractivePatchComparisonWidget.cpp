@@ -213,7 +213,7 @@ void InteractivePatchComparisonWidget::on_txtPatchRadius_textEdited()
 
 void InteractivePatchComparisonWidget::showEvent(QShowEvent* event)
 {
-  GetPatchSize();
+  GetPatchSizeFromGUI();
 
   // Set the patches to be somewhere near the middle of the image
 //   this->SourcePatchSlice->SetPosition(this->Image->GetLargestPossibleRegion().GetSize()[0]/2,
@@ -345,31 +345,39 @@ void InteractivePatchComparisonWidget::on_actionOpenImage_activated()
 
 void InteractivePatchComparisonWidget::on_txtPatchRadius_returnPressed()
 {
+  if(!this->txtPatchRadius->hasAcceptableInput())
+  {
+    std::cerr << "Invalid patch radius!" << std::endl;
+    return;
+  }
+  
   QColor normalColor = QColor(255, 255, 255);
   QPalette p = this->txtPatchRadius->palette();
   p.setColor( QPalette::Normal, QPalette::Base, normalColor);
   this->txtPatchRadius->setPalette(p);
 
-  SetupPatches();
-  ComputeProjectionMatrix();
-  UpdatePatches();
+  unsigned int guiPatchRadius = this->txtPatchRadius->text().toUInt();
+  // If the radius has changed
+  if(this->PatchSize[0] != Helpers::SideLengthFromRadius(guiPatchRadius))
+  {
+    GetPatchSizeFromGUI();
+    SetupPatches();
+    ComputeProjectionMatrix();
+    UpdatePatches();
+  }
 }
 
-unsigned int InteractivePatchComparisonWidget::GetPatchRadius()
+void InteractivePatchComparisonWidget::GetPatchSizeFromGUI()
 {
-  return this->txtPatchRadius->text().toUInt();
-}
+  unsigned int patchRadius = this->txtPatchRadius->text().toUInt();
 
-void InteractivePatchComparisonWidget::GetPatchSize()
-{
-  // The edge length of the patch is the (radius*2) + 1
-  this->PatchSize[0] = GetPatchRadius() * 2 + 1;
-  this->PatchSize[1] = GetPatchRadius() * 2 + 1;
+  this->PatchSize[0] = Helpers::SideLengthFromRadius(patchRadius);
+  this->PatchSize[1] = Helpers::SideLengthFromRadius(patchRadius);
 }
 
 void InteractivePatchComparisonWidget::SetupPatches()
 {
-  GetPatchSize();
+  GetPatchSizeFromGUI();
 
   InitializePatch(this->SourcePatchLayer.ImageData, this->Green);
 
@@ -701,12 +709,23 @@ bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *even
   QColor normalColor = QColor(255, 255, 255);
   if(object == txtPatchRadius && event->type() == QEvent::FocusOut)
   {
+    if(!this->txtPatchRadius->hasAcceptableInput())
+    {
+      std::cerr << "Invalid patch radius!" << std::endl;
+      return false; // Pass the event along (don't consume it)
+    }
+    unsigned int guiPatchRadius = this->txtPatchRadius->text().toUInt();
+    // If the radius has changed
+    if(this->PatchSize[0] != Helpers::SideLengthFromRadius(guiPatchRadius))
+    {
+      GetPatchSizeFromGUI();
+      SetupPatches();
+      ComputeProjectionMatrix();
+      UpdatePatches();
+    }
     QPalette p = txtPatchRadius->palette();
     p.setColor( QPalette::Normal, QPalette::Base, normalColor);
     txtPatchRadius->setPalette(p);
-    SetupPatches();
-    ComputeProjectionMatrix();
-    UpdatePatches();
   }
 
   return false; // Pass the event along (don't consume it)
