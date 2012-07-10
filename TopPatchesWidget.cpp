@@ -9,9 +9,11 @@
 
 // Qt
 #include <QGraphicsPixmapItem>
+#include <QLineEdit>
 #include <QProgressDialog>
-#include <QtConcurrentRun>
 #include <QSortFilterProxyModel>
+
+#include <QtConcurrentRun>
 
 // Submodules
 #include "ITKVTKHelpers/ITKHelpers/Helpers/Helpers.h"
@@ -29,15 +31,9 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
 {
   this->setupUi(this);
 
-  this->txtNumberOfPatches->installEventFilter(this);
-  this->txtClusters->installEventFilter(this);
+//   this->txtNumberOfPatches->installEventFilter(this);
+//   this->txtClusters->installEventFilter(this);
 
-  QIntValidator* clusterValidator = new QIntValidator(1, 5);
-  this->txtClusters->setValidator(clusterValidator);
-
-  QIntValidator* numberOfPatchesValidator = new QIntValidator(1, 5000);
-  this->txtNumberOfPatches->setValidator(numberOfPatchesValidator);
-  
   // Make the cells fit the images (based on the sizeHint from the PixmapDelegate)
   this->tblviewTopPatches->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
   this->tblviewTopPatches->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
@@ -50,7 +46,7 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
   this->TopPatchesModel = new TableModelTopPatches(this->TopPatchData, this);
   this->ProxyModel->setSourceModel(this->TopPatchesModel);
   this->tblviewTopPatches->setModel(ProxyModel);
-  this->TopPatchesModel->SetMaxTopPatchesToDisplay(this->txtNumberOfPatches->text().toInt());
+  this->TopPatchesModel->SetMaxTopPatchesToDisplay(this->spinNumberOfBestPatches->value());
 
   std::cout << "Set patch display size to: " << this->gfxTargetPatch->size().height() << std::endl;
   this->TopPatchesModel->SetPatchDisplaySize(this->gfxTargetPatch->size().height());
@@ -151,14 +147,14 @@ void TopPatchesWidget::Compute()
   this->TopPatchData = this->SelfPatchCompareFunctor.GetPatchData();
 
   //std::sort(topPatchData.begin(), topPatchData.end(), Helpers::SortBySecondAccending<PatchDataType>);
-  unsigned int numberOfPatches = this->txtNumberOfPatches->text().toInt();
+  unsigned int numberOfPatches = this->spinNumberOfBestPatches->value();
   std::partial_sort(this->TopPatchData.begin(), this->TopPatchData.begin() + numberOfPatches,
                     this->TopPatchData.end(), Helpers::SortBySecondAccending<SelfPatchCompare::PatchDataType>);
 
   this->TopPatchData.resize(numberOfPatches);
   std::cout << "There are " << this->TopPatchData.size() << " top patches." << std::endl;
 
-  this->TopPatchesModel->SetMaxTopPatchesToDisplay(this->txtNumberOfPatches->text().toInt());
+  this->TopPatchesModel->SetMaxTopPatchesToDisplay(this->spinNumberOfBestPatches->value());
   this->TopPatchesModel->SetTopPatchData(this->TopPatchData);
   this->TopPatchesModel->Refresh();
 
@@ -174,7 +170,7 @@ void TopPatchesWidget::Cluster()
     vectors[i] = v;
     }
 
-  unsigned int numberOfClusters = this->txtClusters->text().toInt();
+  unsigned int numberOfClusters = this->spinClusters->value();
   KMeansClustering kmeans;
   kmeans.SetK(numberOfClusters);
   kmeans.SetPoints(vectors);
@@ -196,73 +192,73 @@ bool TopPatchesWidget::eventFilter(QObject *object, QEvent *event)
 {
   // When the focus leaves one of the text boxes, update the patches
   QColor normalColor = QColor(255, 255, 255);
-  if(object == txtClusters && event->type() == QEvent::FocusOut)
+  if(dynamic_cast<QLineEdit*>(object) == spinClusters->findChild<QLineEdit*>() && event->type() == QEvent::FocusOut)
   {
-    if(!this->txtClusters->hasAcceptableInput())
+    if(!this->spinClusters->findChild<QLineEdit*>()->hasAcceptableInput())
     {
       std::cerr << "Invalid number of clusters!" << std::endl;
       return false; // Pass the event along (don't consume it)
     }
-    QPalette p = txtClusters->palette();
+    QPalette p = spinClusters->findChild<QLineEdit*>()->palette();
     p.setColor( QPalette::Normal, QPalette::Base, normalColor);
-    txtClusters->setPalette(p);
+    spinClusters->findChild<QLineEdit*>()->setPalette(p);
   }
 
-  if(object == txtNumberOfPatches && event->type() == QEvent::FocusOut)
+  if(dynamic_cast<QLineEdit*>(object) == spinNumberOfBestPatches->findChild<QLineEdit*>() && event->type() == QEvent::FocusOut)
   {
-    if(!this->txtNumberOfPatches->hasAcceptableInput())
+    if(!this->spinNumberOfBestPatches->findChild<QLineEdit*>()->hasAcceptableInput())
     {
       std::cerr << "Invalid number of patches!" << std::endl;
       return false; // Pass the event along (don't consume it)
     }
-    QPalette p = txtNumberOfPatches->palette();
+    QPalette p = spinNumberOfBestPatches->findChild<QLineEdit*>()->palette();
     p.setColor( QPalette::Normal, QPalette::Base, normalColor);
-    txtNumberOfPatches->setPalette(p);
+    spinNumberOfBestPatches->findChild<QLineEdit*>()->setPalette(p);
   }
 
   return false; // Pass the event along (don't consume it)
 }
 
-void TopPatchesWidget::on_txtClusters_returnPressed()
+void TopPatchesWidget::on_spinClusters_valueChanged(int value)
 {
-  if(!this->txtClusters->hasAcceptableInput())
+  if(!this->spinClusters->findChild<QLineEdit*>()->hasAcceptableInput())
   {
     std::cerr << "Invalid patch radius!" << std::endl;
     return;
   }
 
   QColor normalColor = QColor(255, 255, 255);
-  QPalette p = this->txtClusters->palette();
-  p.setColor( QPalette::Normal, QPalette::Base, normalColor);
-  this->txtClusters->setPalette(p);
+  QPalette p = this->spinClusters->findChild<QLineEdit*>()->palette();
+  p.setColor(QPalette::Normal, QPalette::Base, normalColor);
+  this->spinClusters->findChild<QLineEdit*>()->setPalette(p);
 }
 
-void TopPatchesWidget::on_txtNumberOfPatches_returnPressed()
-{
-  if(!this->txtNumberOfPatches->hasAcceptableInput())
-  {
-    std::cerr << "Invalid patch radius!" << std::endl;
-    return;
-  }
-  
-  QColor normalColor = QColor(255, 255, 255);
-  QPalette p = this->txtNumberOfPatches->palette();
-  p.setColor( QPalette::Normal, QPalette::Base, normalColor);
-  this->txtNumberOfPatches->setPalette(p);
-}
+// void TopPatchesWidget::on_txtNumberOfPatches_returnPressed()
+// {
+//   if(!this->txtNumberOfPatches->hasAcceptableInput())
+//   {
+//     std::cerr << "Invalid patch radius!" << std::endl;
+//     return;
+//   }
+//   
+//   QColor normalColor = QColor(255, 255, 255);
+//   QPalette p = this->txtNumberOfPatches->palette();
+//   p.setColor( QPalette::Normal, QPalette::Base, normalColor);
+//   this->txtNumberOfPatches->setPalette(p);
+// }
 
-void TopPatchesWidget::on_txtClusters_textEdited()
+// void TopPatchesWidget::on_txtClusters_textEdited()
+// {
+//   QColor activeColor = QColor(255, 0, 0);
+//   QPalette p = this->txtClusters->palette();
+//   p.setColor( QPalette::Normal, QPalette::Base, activeColor);
+//   this->txtClusters->setPalette(p);
+// }
+
+void TopPatchesWidget::on_spinNumberOfBestPatches_valueChanged(int value)
 {
   QColor activeColor = QColor(255, 0, 0);
-  QPalette p = this->txtClusters->palette();
+  QPalette p = this->spinNumberOfBestPatches->findChild<QLineEdit*>()->palette();
   p.setColor( QPalette::Normal, QPalette::Base, activeColor);
-  this->txtClusters->setPalette(p);
-}
-
-void TopPatchesWidget::on_txtNumberOfPatches_textEdited()
-{
-  QColor activeColor = QColor(255, 0, 0);
-  QPalette p = this->txtNumberOfPatches->palette();
-  p.setColor( QPalette::Normal, QPalette::Base, activeColor);
-  this->txtNumberOfPatches->setPalette(p);
+  this->spinNumberOfBestPatches->findChild<QLineEdit*>()->setPalette(p);
 }

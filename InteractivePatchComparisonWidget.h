@@ -86,7 +86,7 @@ public slots:
   void on_actionFlipImage_activated();
   void on_actionScreenshot_activated();
 
-  void on_txtPatchRadius_returnPressed();
+  void on_spinPatchRadius_valueChanged(int value);
 
   void RefreshSlot();
 
@@ -95,7 +95,7 @@ public slots:
 
   void slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& );
 
-  void on_txtPatchRadius_textEdited();
+  //void on_txtPatchRadius_textEdited();
 
 private:
 

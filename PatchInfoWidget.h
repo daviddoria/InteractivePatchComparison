@@ -53,11 +53,9 @@ signals:
 
 public slots:
 
-  void on_txtXCenter_returnPressed();
-  void on_txtYCenter_returnPressed();
-  void on_txtXCenter_textEdited();
-  void on_txtYCenter_textEdited();
-  
+  void on_spinXCenter_valueChanged(int);
+  void on_spinYCenter_valueChanged(int);
+
   void slot_Update(const itk::ImageRegion<2>& patchRegion);
 
 private:

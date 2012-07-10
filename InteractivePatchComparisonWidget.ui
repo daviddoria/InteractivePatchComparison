@@ -37,12 +37,15 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="txtPatchRadius">
-           <property name="toolTip">
-            <string>Sets the half width (radius) of a square patch</string>
+          <widget class="QSpinBox" name="spinPatchRadius">
+           <property name="minimum">
+            <number>1</number>
            </property>
-           <property name="text">
-            <string>7</string>
+           <property name="singleStep">
+            <number>2</number>
+           </property>
+           <property name="value">
+            <number>7</number>
            </property>
           </widget>
          </item>

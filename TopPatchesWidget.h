@@ -68,10 +68,15 @@ public slots:
   /** Called when the progress bar is complete. */
   void slot_Finished();
 
-  void on_txtClusters_returnPressed();
-  void on_txtNumberOfPatches_returnPressed();
-  void on_txtClusters_textEdited();
-  void on_txtNumberOfPatches_textEdited();
+//   void on_txtClusters_returnPressed();
+//   void on_txtClusters_textEdited();
+  void on_spinClusters_valueChanged(int);
+
+//   void on_txtNumberOfPatches_returnPressed();
+//   void on_txtNumberOfPatches_textEdited();
+  void on_spinNumberOfBestPatches_valueChanged(int);
+  
+  
 signals:
 
   void signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >& region);

@@ -31,7 +31,8 @@
 // Qt
 #include <QFileDialog>
 #include <QIcon>
-#include <QTextEdit>
+#include <QLineEdit>
+#include <QTextEdit> // For the help()
 
 // VTK
 #include <vtkImageData.h>
@@ -114,10 +115,10 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->setupUi(this);
 
   OddValidator* oddValidator = new OddValidator;
-  this->txtPatchRadius->setValidator(oddValidator);
+  this->spinPatchRadius->findChild<QLineEdit*>()->setValidator(oddValidator);
 
-  // Use event filters to handle focus change events
-  this->txtPatchRadius->installEventFilter(this);
+//   // Use event filters to handle focus change events
+   this->spinPatchRadius->findChild<QLineEdit*>()->installEventFilter(this);
 
   // Setup icons
   QIcon openIcon = QIcon::fromTheme("document-open");
@@ -200,15 +201,6 @@ void InteractivePatchComparisonWidget::SharedConstructor()
 void InteractivePatchComparisonWidget::on_actionQuit_activated()
 {
   exit(0);
-}
-
-void InteractivePatchComparisonWidget::on_txtPatchRadius_textEdited()
-{
-  // When the focus enters one of the text boxes
-  QColor activeColor = QColor(255, 0, 0);
-  QPalette p = this->txtPatchRadius->palette();
-  p.setColor( QPalette::Normal, QPalette::Base, activeColor);
-  this->txtPatchRadius->setPalette(p);
 }
 
 void InteractivePatchComparisonWidget::showEvent(QShowEvent* event)
@@ -343,20 +335,20 @@ void InteractivePatchComparisonWidget::on_actionOpenImage_activated()
   OpenImage(fileName.toStdString());
 }
 
-void InteractivePatchComparisonWidget::on_txtPatchRadius_returnPressed()
+void InteractivePatchComparisonWidget::on_spinPatchRadius_valueChanged(int value)
 {
-  if(!this->txtPatchRadius->hasAcceptableInput())
+  if(!this->spinPatchRadius->hasAcceptableInput())
   {
     std::cerr << "Invalid patch radius!" << std::endl;
     return;
   }
-  
-  QColor normalColor = QColor(255, 255, 255);
-  QPalette p = this->txtPatchRadius->palette();
-  p.setColor( QPalette::Normal, QPalette::Base, normalColor);
-  this->txtPatchRadius->setPalette(p);
 
-  unsigned int guiPatchRadius = this->txtPatchRadius->text().toUInt();
+  QColor normalColor = QColor(255, 255, 255);
+  QPalette p = this->spinPatchRadius->findChild<QLineEdit*>()->palette();
+  p.setColor( QPalette::Normal, QPalette::Base, normalColor);
+  this->spinPatchRadius->findChild<QLineEdit*>()->setPalette(p);
+
+  unsigned int guiPatchRadius = this->spinPatchRadius->value();
   // If the radius has changed
   if(this->PatchSize[0] != Helpers::SideLengthFromRadius(guiPatchRadius))
   {
@@ -369,7 +361,7 @@ void InteractivePatchComparisonWidget::on_txtPatchRadius_returnPressed()
 
 void InteractivePatchComparisonWidget::GetPatchSizeFromGUI()
 {
-  unsigned int patchRadius = this->txtPatchRadius->text().toUInt();
+  unsigned int patchRadius = this->spinPatchRadius->value();
 
   this->PatchSize[0] = Helpers::SideLengthFromRadius(patchRadius);
   this->PatchSize[1] = Helpers::SideLengthFromRadius(patchRadius);
@@ -707,14 +699,14 @@ bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *even
 {
   // When the focus leaves one of the text boxes, update the patches
   QColor normalColor = QColor(255, 255, 255);
-  if(object == txtPatchRadius && event->type() == QEvent::FocusOut)
+  if(object == spinPatchRadius->findChild<QLineEdit*>() && event->type() == QEvent::FocusOut)
   {
-    if(!this->txtPatchRadius->hasAcceptableInput())
+    if(!this->spinPatchRadius->hasAcceptableInput())
     {
       std::cerr << "Invalid patch radius!" << std::endl;
       return false; // Pass the event along (don't consume it)
     }
-    unsigned int guiPatchRadius = this->txtPatchRadius->text().toUInt();
+    unsigned int guiPatchRadius = this->spinPatchRadius->value();
     // If the radius has changed
     if(this->PatchSize[0] != Helpers::SideLengthFromRadius(guiPatchRadius))
     {
@@ -723,9 +715,9 @@ bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *even
       ComputeProjectionMatrix();
       UpdatePatches();
     }
-    QPalette p = txtPatchRadius->palette();
+    QPalette p = spinPatchRadius->findChild<QLineEdit*>()->palette();
     p.setColor( QPalette::Normal, QPalette::Base, normalColor);
-    txtPatchRadius->setPalette(p);
+    spinPatchRadius->findChild<QLineEdit*>()->setPalette(p);
   }
 
   return false; // Pass the event along (don't consume it)

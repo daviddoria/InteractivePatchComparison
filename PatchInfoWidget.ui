@@ -58,11 +58,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="txtXCenter">
-       <property name="text">
-        <string>0</string>
-       </property>
-      </widget>
+      <widget class="QSpinBox" name="spinXCenter"/>
      </item>
      <item>
       <widget class="QLabel" name="label_6">
@@ -72,11 +68,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="txtYCenter">
-       <property name="text">
-        <string>0</string>
-       </property>
-      </widget>
+      <widget class="QSpinBox" name="spinYCenter"/>
      </item>
     </layout>
    </item>

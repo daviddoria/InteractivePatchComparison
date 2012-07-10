@@ -19,7 +19,7 @@
 #include "PatchInfoWidget.h"
 
 // Qt
-#include <QTextEdit>
+#include <QLineEdit>
 
 // Submodules
 #include "Mask/ITKHelpers/Helpers/Helpers.h"
@@ -42,27 +42,23 @@ PatchInfoWidget::PatchInfoWidget(QWidget* parent) : QWidget(parent)
   this->Image = NULL;
 
   setupUi(this);
-  this->txtXCenter->installEventFilter(this);
-  this->txtYCenter->installEventFilter(this);
+//   this->txtXCenter->installEventFilter(this);
+//   this->txtYCenter->installEventFilter(this);
 
   QIntValidator* intValidator = new QIntValidator(0, 0, this);
-  this->txtXCenter->setValidator(intValidator);
-  this->txtYCenter->setValidator(intValidator);
+  this->spinXCenter->findChild<QLineEdit*>()->setValidator(intValidator);
+  this->spinYCenter->findChild<QLineEdit*>()->setValidator(intValidator);
 }
 
 void PatchInfoWidget::SetImage(ImageType* const image)
 {
   this->Image = image;
 
-//   QIntValidator* xValidator = new QIntValidator(0, image->GetLargestPossibleRegion().GetSize()[0] - 1);
-//   QIntValidator* yValidator = new QIntValidator(0, image->GetLargestPossibleRegion().GetSize()[1] - 1);
   unsigned int radius = this->Region.GetSize()[0] / 2;
   QIntValidator* xValidator = new QIntValidator(radius, image->GetLargestPossibleRegion().GetSize()[0] - 1 - radius);
   QIntValidator* yValidator = new QIntValidator(radius, image->GetLargestPossibleRegion().GetSize()[1] - 1 - radius);
-  this->txtXCenter->setValidator(xValidator);
-  this->txtYCenter->setValidator(yValidator);
-  //this->txtXCenter->validator()->setRange(0, image->GetLargestPossibleRegion().GetSize()[0] - 1);
-  //this->txtYCenter->validator()->setRange(0, image->GetLargestPossibleRegion().GetSize()[1] - 1);
+  this->spinXCenter->findChild<QLineEdit*>()->setValidator(xValidator);
+  this->spinYCenter->findChild<QLineEdit*>()->setValidator(yValidator);
 }
 
 unsigned int PatchInfoWidget::GetRadius()
@@ -76,53 +72,53 @@ void PatchInfoWidget::SetMask(Mask* const mask)
   this->MaskImage = mask;
 }
 
-void PatchInfoWidget::on_txtXCenter_textEdited()
-{
-  // When the focus enters one of the text boxes
-  QColor activeColor = QColor(255, 0, 0);
-  QPalette p = this->txtXCenter->palette();
-  p.setColor( QPalette::Normal, QPalette::Base, activeColor);
-  this->txtXCenter->setPalette(p);
-}
+// void PatchInfoWidget::on_txtXCenter_valueChanged(int value)
+// {
+//   // When the focus enters one of the text boxes
+//   QColor activeColor = QColor(255, 0, 0);
+//   QPalette p = this->spinXCenter->findChild<QLineEdit*>()->palette();
+//   p.setColor( QPalette::Normal, QPalette::Base, activeColor);
+//   this->spinXCenter->findChild<QLineEdit*>()->setPalette(p);
+// }
+// 
+// void PatchInfoWidget::on_txtYCenter_valueChanged(int value)
+// {
+//   QColor activeColor = QColor(255, 0, 0);
+//   QPalette p = this->spinYCenter->findChild<QLineEdit*>()->palette();
+//   p.setColor( QPalette::Normal, QPalette::Base, activeColor);
+//   this->spinYCenter->findChild<QLineEdit*>()->setPalette(p);
+// }
 
-void PatchInfoWidget::on_txtYCenter_textEdited()
-{
-  QColor activeColor = QColor(255, 0, 0);
-  QPalette p = this->txtYCenter->palette();
-  p.setColor( QPalette::Normal, QPalette::Base, activeColor);
-  this->txtYCenter->setPalette(p);
-}
-
-void PatchInfoWidget::on_txtXCenter_returnPressed()
+void PatchInfoWidget::on_spinXCenter_valueChanged(int value)
 {
   itk::Index<2> currentCenter = ITKHelpers::GetRegionCenter(this->Region);
 
   itk::Index<2> newCenter = currentCenter;
-  newCenter[0] = txtXCenter->text().toUInt();
+  newCenter[0] = spinXCenter->value();
 
   this->Region = ITKHelpers::GetRegionInRadiusAroundPixel(newCenter, this->GetRadius());
 
   QColor normalColor = QColor(255, 255, 255);
-  QPalette p = this->txtXCenter->palette();
+  QPalette p = this->spinXCenter->findChild<QLineEdit*>()->palette();
   p.setColor( QPalette::Normal, QPalette::Base, normalColor);
-  this->txtXCenter->setPalette(p);
+  this->spinXCenter->findChild<QLineEdit*>()->setPalette(p);
 
   emit signal_PatchMoved(Region);
 }
 
-void PatchInfoWidget::on_txtYCenter_returnPressed()
+void PatchInfoWidget::on_spinYCenter_valueChanged(int value)
 {
   itk::Index<2> currentCenter = ITKHelpers::GetRegionCenter(this->Region);
 
   itk::Index<2> newCenter = currentCenter;
-  newCenter[1] = txtYCenter->text().toUInt();
+  newCenter[1] = spinYCenter->value();
 
   this->Region = ITKHelpers::GetRegionInRadiusAroundPixel(newCenter, this->GetRadius());
 
   QColor normalColor = QColor(255, 255, 255);
-  QPalette p = this->txtYCenter->palette();
+  QPalette p = this->spinYCenter->findChild<QLineEdit*>()->palette();
   p.setColor( QPalette::Normal, QPalette::Base, normalColor);
-  this->txtYCenter->setPalette(p);
+  this->spinYCenter->findChild<QLineEdit*>()->setPalette(p);
 
   emit signal_PatchMoved(Region);
 }
@@ -137,8 +133,8 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
 
   this->Region = patchRegion;
   itk::Index<2> patchCenter = ITKHelpers::GetRegionCenter(patchRegion);
-  this->txtXCenter->setText(QString::number(patchCenter[0]));
-  this->txtYCenter->setText(QString::number(patchCenter[1]));
+  this->spinXCenter->setValue(QString::number(patchCenter[0]).toUInt());
+  this->spinYCenter->setValue(QString::number(patchCenter[1]).toUInt());
 
   ImageType::PixelType average;
   average.SetSize(Image->GetNumberOfComponentsPerPixel());
@@ -232,19 +228,19 @@ bool PatchInfoWidget::eventFilter(QObject *object, QEvent *event)
   // When the focus leaves one of the text boxes, update the patch
   // and set the background color back to normal
   QColor normalColor = QColor(255, 255, 255);
-  if(object == this->txtXCenter && event->type() == QEvent::FocusOut)
+  if(object == this->spinXCenter->findChild<QLineEdit*>() && event->type() == QEvent::FocusOut)
   {
-    QPalette p = this->txtXCenter->palette();
+    QPalette p = this->spinXCenter->findChild<QLineEdit*>()->palette();
     p.setColor( QPalette::Normal, QPalette::Base, normalColor);
-    this->txtXCenter->setPalette(p);
+    this->spinXCenter->findChild<QLineEdit*>()->setPalette(p);
     emit signal_PatchMoved(Region);
   }
 
-  if(object == this->txtYCenter && event->type() == QEvent::FocusOut)
+  if(object == this->spinYCenter->findChild<QLineEdit*>() && event->type() == QEvent::FocusOut)
   {
-    QPalette p = this->txtYCenter->palette();
+    QPalette p = this->spinYCenter->findChild<QLineEdit*>()->palette();
     p.setColor( QPalette::Normal, QPalette::Base, normalColor);
-    this->txtYCenter->setPalette(p);
+    this->spinYCenter->findChild<QLineEdit*>()->setPalette(p);
     emit signal_PatchMoved(Region);
   }
 
