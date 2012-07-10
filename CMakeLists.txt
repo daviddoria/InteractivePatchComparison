@@ -79,6 +79,7 @@ SwitchBetweenStyle.cxx
 CustomImageStyle.cxx
 CustomTrackballStyle.cxx
 PatchInfoWidget.cpp
+OddValidator.cpp
 TopPatchesWidget.cpp
 SelfPatchCompare.cpp
 PixmapDelegate.cpp

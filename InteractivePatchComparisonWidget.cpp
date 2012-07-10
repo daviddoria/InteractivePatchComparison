@@ -1,6 +1,6 @@
 /*=========================================================================
  *
- *  Copyright David Doria 2011 daviddoria@gmail.com
+ *  Copyright David Doria 2012 daviddoria@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@
 // Custom
 #include "SwitchBetweenStyle.h"
 #include "Types.h"
+#include "OddValidator.h"
 
 // Patch Comparison Submodule
 #include "PatchComparison/AverageValueDifference.h"
@@ -112,11 +113,11 @@ void InteractivePatchComparisonWidget::SharedConstructor()
 {
   this->setupUi(this);
 
+  OddValidator* oddValidator = new OddValidator;
+  this->txtPatchRadius->setValidator(oddValidator);
+
   // Use event filters to handle focus change events
-  SourcePatchInfoWidget->txtXCenter->installEventFilter(this);
-  SourcePatchInfoWidget->txtYCenter->installEventFilter(this);
-  TargetPatchInfoWidget->txtXCenter->installEventFilter(this);
-  TargetPatchInfoWidget->txtYCenter->installEventFilter(this);
+  this->txtPatchRadius->installEventFilter(this);
 
   // Setup icons
   QIcon openIcon = QIcon::fromTheme("document-open");
@@ -350,6 +351,8 @@ void InteractivePatchComparisonWidget::on_txtPatchRadius_returnPressed()
   this->txtPatchRadius->setPalette(p);
 
   SetupPatches();
+  ComputeProjectionMatrix();
+  UpdatePatches();
 }
 
 unsigned int InteractivePatchComparisonWidget::GetPatchRadius()
@@ -415,9 +418,6 @@ void InteractivePatchComparisonWidget::RefreshSlot()
 
 void InteractivePatchComparisonWidget::Refresh()
 {
-  //std::cout << "Refresh()" << std::endl;
-  // this->MaskImageSlice->SetVisibility(this->chkShowMask->isChecked());
-
   this->qvtkWidget->GetRenderWindow()->Render();
 }
 
@@ -705,6 +705,8 @@ bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *even
     p.setColor( QPalette::Normal, QPalette::Base, normalColor);
     txtPatchRadius->setPalette(p);
     SetupPatches();
+    ComputeProjectionMatrix();
+    UpdatePatches();
   }
 
   return false; // Pass the event along (don't consume it)

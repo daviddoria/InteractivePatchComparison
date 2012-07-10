@@ -68,6 +68,10 @@ public slots:
   /** Called when the progress bar is complete. */
   void slot_Finished();
 
+  void on_txtClusters_returnPressed();
+  void on_txtNumberOfPatches_returnPressed();
+  void on_txtClusters_textEdited();
+  void on_txtNumberOfPatches_textEdited();
 signals:
 
   void signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >& region);
@@ -75,8 +79,10 @@ signals:
 private:
   ImageType* Image;
 
+  bool eventFilter(QObject *object, QEvent *event);
+
   void Compute();
-  
+
   QGraphicsScene* TargetPatchScene;
   QGraphicsPixmapItem* TargetPatchItem;
   TableModelTopPatches* TopPatchesModel;

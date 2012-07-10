@@ -29,10 +29,19 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
 {
   this->setupUi(this);
 
+  this->txtNumberOfPatches->installEventFilter(this);
+  this->txtClusters->installEventFilter(this);
+
+  QIntValidator* clusterValidator = new QIntValidator(1, 5);
+  this->txtClusters->setValidator(clusterValidator);
+
+  QIntValidator* numberOfPatchesValidator = new QIntValidator(1, 5000);
+  this->txtNumberOfPatches->setValidator(numberOfPatchesValidator);
+  
   // Make the cells fit the images (based on the sizeHint from the PixmapDelegate)
   this->tblviewTopPatches->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
   this->tblviewTopPatches->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
-  
+
   this->TargetPatchItem = new QGraphicsPixmapItem;
   this->TargetPatchScene = new QGraphicsScene();
   this->gfxTargetPatch->setScene(this->TargetPatchScene);
@@ -133,6 +142,7 @@ void TopPatchesWidget::Compute()
 {
   this->SelfPatchCompareFunctor.SetImage(this->Image);
   //this->PatchCompare.SetMask(this->MaskImage);
+  this->SelfPatchCompareFunctor.CreateFullyValidMask();
 
   this->SelfPatchCompareFunctor.SetTargetRegion(this->TargetRegion);
 
@@ -180,4 +190,58 @@ void TopPatchesWidget::Cluster()
 void TopPatchesWidget::SetPatchDistanceFunctor(PatchDistance* const patchDistanceFunctor)
 {
   this->SelfPatchCompareFunctor.SetPatchDistanceFunctor(patchDistanceFunctor);
+}
+
+
+bool TopPatchesWidget::eventFilter(QObject *object, QEvent *event)
+{
+  // When the focus leaves one of the text boxes, update the patches
+  QColor normalColor = QColor(255, 255, 255);
+  if(object == txtClusters && event->type() == QEvent::FocusOut)
+  {
+    QPalette p = txtClusters->palette();
+    p.setColor( QPalette::Normal, QPalette::Base, normalColor);
+    txtClusters->setPalette(p);
+  }
+
+  if(object == txtNumberOfPatches && event->type() == QEvent::FocusOut)
+  {
+    QPalette p = txtNumberOfPatches->palette();
+    p.setColor( QPalette::Normal, QPalette::Base, normalColor);
+    txtNumberOfPatches->setPalette(p);
+  }
+
+  return false; // Pass the event along (don't consume it)
+}
+
+void TopPatchesWidget::on_txtClusters_returnPressed()
+{
+  QColor normalColor = QColor(255, 255, 255);
+  QPalette p = this->txtClusters->palette();
+  p.setColor( QPalette::Normal, QPalette::Base, normalColor);
+  this->txtClusters->setPalette(p);
+}
+
+void TopPatchesWidget::on_txtNumberOfPatches_returnPressed()
+{
+  QColor normalColor = QColor(255, 255, 255);
+  QPalette p = this->txtNumberOfPatches->palette();
+  p.setColor( QPalette::Normal, QPalette::Base, normalColor);
+  this->txtNumberOfPatches->setPalette(p);
+}
+
+void TopPatchesWidget::on_txtClusters_textEdited()
+{
+  QColor activeColor = QColor(255, 0, 0);
+  QPalette p = this->txtClusters->palette();
+  p.setColor( QPalette::Normal, QPalette::Base, activeColor);
+  this->txtClusters->setPalette(p);
+}
+
+void TopPatchesWidget::on_txtNumberOfPatches_textEdited()
+{
+  QColor activeColor = QColor(255, 0, 0);
+  QPalette p = this->txtNumberOfPatches->palette();
+  p.setColor( QPalette::Normal, QPalette::Base, activeColor);
+  this->txtNumberOfPatches->setPalette(p);
 }

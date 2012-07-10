@@ -37,14 +37,33 @@ SelfPatchCompare::SelfPatchCompare() : Image(NULL), MaskImage(NULL)
 void SelfPatchCompare::SetImage(itk::VectorImage<float, 2>* const image)
 {
   this->Image = image;
+}
 
+void SelfPatchCompare::CreateFullyValidMask()
+{
   this->FullyValidMask->SetRegions(this->Image->GetLargestPossibleRegion());
   this->FullyValidMask->Allocate();
   ITKHelpers::SetImageToConstant(this->FullyValidMask.GetPointer(), this->FullyValidMask->GetValidValue());
+
+  this->MaskImage = this->FullyValidMask;
 }
 
 void SelfPatchCompare::SetMask(Mask* const mask)
 {
+  // Ensure the image is set first, so the mask size can be checked against the image.
+  if(!this->Image)
+  {
+    throw std::runtime_error("You must set the image before you set the mask!");
+  }
+
+  if(mask->GetLargestPossibleRegion() != this->Image->GetLargestPossibleRegion())
+  {
+    std::stringstream ss;
+    ss << "Mask size (" << mask->GetLargestPossibleRegion() << " does not match image size ("
+                        << this->Image->GetLargestPossibleRegion() << "!";
+    throw std::runtime_error(ss.str());
+  }
+
   this->MaskImage = mask;
 }
 

@@ -73,7 +73,12 @@ public:
   /** Set the projection matrix to use in a projected distance comparison. */
   void SetProjectionMatrix(const MatrixType& projectionMatrix);
 
+  /** Set the function to use to compare patches. */
   void SetPatchDistanceFunctor(PatchDistance* const patchDistanceFunctor);
+
+  /** If we do not want to use a mask, call this function. */
+  void CreateFullyValidMask();
+
 private:
 
   /** This is the target region we wish to compare. It may be partially invalid. */

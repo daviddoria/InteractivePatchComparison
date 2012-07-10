@@ -1,6 +1,6 @@
 /*=========================================================================
  *
- *  Copyright David Doria 2011 daviddoria@gmail.com
+ *  Copyright David Doria 2012 daviddoria@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -42,11 +42,27 @@ PatchInfoWidget::PatchInfoWidget(QWidget* parent) : QWidget(parent)
   this->Image = NULL;
 
   setupUi(this);
+  this->txtXCenter->installEventFilter(this);
+  this->txtYCenter->installEventFilter(this);
+
+  QIntValidator* intValidator = new QIntValidator(0, 0, this);
+  this->txtXCenter->setValidator(intValidator);
+  this->txtYCenter->setValidator(intValidator);
 }
 
 void PatchInfoWidget::SetImage(ImageType* const image)
 {
   this->Image = image;
+
+//   QIntValidator* xValidator = new QIntValidator(0, image->GetLargestPossibleRegion().GetSize()[0] - 1);
+//   QIntValidator* yValidator = new QIntValidator(0, image->GetLargestPossibleRegion().GetSize()[1] - 1);
+  unsigned int radius = this->Region.GetSize()[0] / 2;
+  QIntValidator* xValidator = new QIntValidator(radius, image->GetLargestPossibleRegion().GetSize()[0] - 1 - radius);
+  QIntValidator* yValidator = new QIntValidator(radius, image->GetLargestPossibleRegion().GetSize()[1] - 1 - radius);
+  this->txtXCenter->setValidator(xValidator);
+  this->txtYCenter->setValidator(yValidator);
+  //this->txtXCenter->validator()->setRange(0, image->GetLargestPossibleRegion().GetSize()[0] - 1);
+  //this->txtYCenter->validator()->setRange(0, image->GetLargestPossibleRegion().GetSize()[1] - 1);
 }
 
 unsigned int PatchInfoWidget::GetRadius()
