@@ -56,6 +56,7 @@
 #include "VTKHelpers/VTKHelpers.h"
 #include "PatchProjection/EigenHelpers/EigenHelpers.h"
 #include "PatchProjection/PatchProjection.h"
+#include "QtHelpers/QtHelpers.h"
 
 // Custom
 #include "SwitchBetweenStyle.h"
@@ -69,10 +70,11 @@
 #include "PatchComparison/PixelDifferences.h"
 #include "PatchComparison/SSD.h"
 #include "PatchComparison/ProjectedDistance.h"
+#include "PatchComparison/LocalPCADistance.h"
 
-const unsigned char InteractivePatchComparisonWidget::Green[3] = {0,255,0};
-const unsigned char InteractivePatchComparisonWidget::Red[3] = {255,0,0};
-const unsigned char InteractivePatchComparisonWidget::Blue[3] = {0,0,255};
+// const unsigned char InteractivePatchComparisonWidget::Green[3] = {0,255,0};
+// const unsigned char InteractivePatchComparisonWidget::Red[3] = {255,0,0};
+// const unsigned char InteractivePatchComparisonWidget::Blue[3] = {0,0,255};
 
 void InteractivePatchComparisonWidget::on_actionHelp_activated()
 {
@@ -114,6 +116,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
 {
   this->setupUi(this);
 
+  
   OddValidator* oddValidator = new OddValidator;
   this->spinPatchRadius->findChild<QLineEdit*>()->setValidator(oddValidator);
 
@@ -371,9 +374,18 @@ void InteractivePatchComparisonWidget::SetupPatches()
 {
   GetPatchSizeFromGUI();
 
-  InitializePatch(this->SourcePatchLayer.ImageData, this->Green);
+  QPalette sourcePalette = this->lblSourcePatch->palette();
+  QColor qsourceColor = sourcePalette.color( QPalette::Normal, QPalette::WindowText);
+  //std::cout << qsourceColor << std::endl;
+  unsigned char sourceColor[3];
+  QtHelpers::QColorToUCharColor(qsourceColor, sourceColor);
+  InitializePatch(this->SourcePatchLayer.ImageData, sourceColor);
 
-  InitializePatch(this->TargetPatchLayer.ImageData, this->Blue);
+  QPalette targetPalette = this->lblTargetPatch->palette();
+  QColor qtargetColor = targetPalette.color( QPalette::Normal, QPalette::WindowText);
+  unsigned char targetColor[3];
+  QtHelpers::QColorToUCharColor(qtargetColor, targetColor);
+  InitializePatch(this->TargetPatchLayer.ImageData, targetColor);
 
   Refresh();
 }
@@ -688,9 +700,12 @@ void InteractivePatchComparisonWidget::ComputeProjectionMatrix()
   this->ProjectionMatrix =
          EigenHelpers::TruncateColumns(this->ProjectionMatrix, numberOfDimensionsToProjectTo);
 
-  ProjectedDistance<ImageType>* patchDistanceFunctor = new ProjectedDistance<ImageType>;
+//   ProjectedDistance<ImageType>* patchDistanceFunctor = new ProjectedDistance<ImageType>;
+//   patchDistanceFunctor->SetImage(this->Image);
+//   patchDistanceFunctor->SetProjectionMatrix(this->ProjectionMatrix);
+
+  LocalPCADistance<ImageType>* patchDistanceFunctor = new LocalPCADistance<ImageType>;
   patchDistanceFunctor->SetImage(this->Image);
-  patchDistanceFunctor->SetProjectionMatrix(this->ProjectionMatrix);
 
   this->TopPatchesPanel->SetPatchDistanceFunctor(patchDistanceFunctor);
 }

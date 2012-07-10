@@ -123,7 +123,19 @@ void TopPatchesWidget::on_btnCompute_clicked()
 {
   std::cout << "Set patch display size to: " << this->gfxTargetPatch->size().height() << std::endl;
   this->TopPatchesModel->SetPatchDisplaySize(this->gfxTargetPatch->size().height());
-  this->tblviewTopPatches->resizeRowsToContents(); 
+  this->tblviewTopPatches->resizeRowsToContents();
+
+  // Lock in the settings. That is, once "Compute" is clicked,
+  // the values in the spin boxes correspond to what is being displayed.
+  QColor normalColor = QColor(255, 255, 255);
+  QPalette bestPatchesPalette = this->spinNumberOfBestPatches->findChild<QLineEdit*>()->palette();
+  bestPatchesPalette.setColor( QPalette::Normal, QPalette::Base, normalColor);
+  this->spinNumberOfBestPatches->findChild<QLineEdit*>()->setPalette(bestPatchesPalette);
+
+  QPalette clustersPalette = this->spinClusters->findChild<QLineEdit*>()->palette();
+  clustersPalette.setColor( QPalette::Normal, QPalette::Base, normalColor);
+  this->spinClusters->findChild<QLineEdit*>()->setPalette(clustersPalette);
+
   // Start the computation.
   QFuture<void> future = QtConcurrent::run(this, &TopPatchesWidget::Compute);
   this->FutureWatcher.setFuture(future);
@@ -221,39 +233,11 @@ bool TopPatchesWidget::eventFilter(QObject *object, QEvent *event)
 
 void TopPatchesWidget::on_spinClusters_valueChanged(int value)
 {
-  if(!this->spinClusters->findChild<QLineEdit*>()->hasAcceptableInput())
-  {
-    std::cerr << "Invalid patch radius!" << std::endl;
-    return;
-  }
-
-  QColor normalColor = QColor(255, 255, 255);
+  QColor normalColor = QColor(255, 0, 0);
   QPalette p = this->spinClusters->findChild<QLineEdit*>()->palette();
-  p.setColor(QPalette::Normal, QPalette::Base, normalColor);
+  p.setColor( QPalette::Normal, QPalette::Base, normalColor);
   this->spinClusters->findChild<QLineEdit*>()->setPalette(p);
 }
-
-// void TopPatchesWidget::on_txtNumberOfPatches_returnPressed()
-// {
-//   if(!this->txtNumberOfPatches->hasAcceptableInput())
-//   {
-//     std::cerr << "Invalid patch radius!" << std::endl;
-//     return;
-//   }
-//   
-//   QColor normalColor = QColor(255, 255, 255);
-//   QPalette p = this->txtNumberOfPatches->palette();
-//   p.setColor( QPalette::Normal, QPalette::Base, normalColor);
-//   this->txtNumberOfPatches->setPalette(p);
-// }
-
-// void TopPatchesWidget::on_txtClusters_textEdited()
-// {
-//   QColor activeColor = QColor(255, 0, 0);
-//   QPalette p = this->txtClusters->palette();
-//   p.setColor( QPalette::Normal, QPalette::Base, activeColor);
-//   this->txtClusters->setPalette(p);
-// }
 
 void TopPatchesWidget::on_spinNumberOfBestPatches_valueChanged(int value)
 {

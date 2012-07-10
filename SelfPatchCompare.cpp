@@ -70,6 +70,7 @@ void SelfPatchCompare::SetMask(Mask* const mask)
 void SelfPatchCompare::SetTargetRegion(const itk::ImageRegion<2>& region)
 {
   this->TargetRegion = region;
+  this->PatchDistanceFunctor->SetTargetPatch(region);
 }
 
 void SelfPatchCompare::ComputePatchScores()

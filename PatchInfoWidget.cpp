@@ -45,9 +45,9 @@ PatchInfoWidget::PatchInfoWidget(QWidget* parent) : QWidget(parent)
 //   this->txtXCenter->installEventFilter(this);
 //   this->txtYCenter->installEventFilter(this);
 
-  QIntValidator* intValidator = new QIntValidator(0, 0, this);
-  this->spinXCenter->findChild<QLineEdit*>()->setValidator(intValidator);
-  this->spinYCenter->findChild<QLineEdit*>()->setValidator(intValidator);
+//   QIntValidator* intValidator = new QIntValidator(0, 0, this);
+//   this->spinXCenter->findChild<QLineEdit*>()->setValidator(intValidator);
+//   this->spinYCenter->findChild<QLineEdit*>()->setValidator(intValidator);
 }
 
 void PatchInfoWidget::SetImage(ImageType* const image)
@@ -55,10 +55,17 @@ void PatchInfoWidget::SetImage(ImageType* const image)
   this->Image = image;
 
   unsigned int radius = this->Region.GetSize()[0] / 2;
-  QIntValidator* xValidator = new QIntValidator(radius, image->GetLargestPossibleRegion().GetSize()[0] - 1 - radius);
-  QIntValidator* yValidator = new QIntValidator(radius, image->GetLargestPossibleRegion().GetSize()[1] - 1 - radius);
-  this->spinXCenter->findChild<QLineEdit*>()->setValidator(xValidator);
-  this->spinYCenter->findChild<QLineEdit*>()->setValidator(yValidator);
+  
+//   QIntValidator* xValidator = new QIntValidator(radius, image->GetLargestPossibleRegion().GetSize()[0] - 1 - radius);
+//   QIntValidator* yValidator = new QIntValidator(radius, image->GetLargestPossibleRegion().GetSize()[1] - 1 - radius);
+//   this->spinXCenter->findChild<QLineEdit*>()->setValidator(xValidator);
+//   this->spinYCenter->findChild<QLineEdit*>()->setValidator(yValidator);
+
+  this->spinXCenter->setMinimum(radius);
+  this->spinXCenter->setMaximum(image->GetLargestPossibleRegion().GetSize()[0] - 1 - radius);
+
+  this->spinYCenter->setMinimum(radius);
+  this->spinYCenter->setMaximum(image->GetLargestPossibleRegion().GetSize()[1] - 1 - radius);
 }
 
 unsigned int PatchInfoWidget::GetRadius()

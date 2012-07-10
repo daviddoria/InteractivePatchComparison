@@ -115,9 +115,9 @@ private:
   void OpenMask(const std::string& filename);
 
   /** Define some colors. */
-  static const unsigned char Green[3];
-  static const unsigned char Red[3];
-  static const unsigned char Blue[3];
+//   static const unsigned char Green[3];
+//   static const unsigned char Red[3];
+//   static const unsigned char Blue[3];
 
   /** Get the size of the patches from the line edit. */
   void GetPatchSizeFromGUI();
