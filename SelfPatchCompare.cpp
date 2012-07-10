@@ -1,6 +1,6 @@
 /*=========================================================================
  *
- *  Copyright David Doria 2011 daviddoria@gmail.com
+ *  Copyright David Doria 2012 daviddoria@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 // Submodules
 #include "ITKVTKHelpers/ITKHelpers/Helpers/Helpers.h"
 #include "ITKVTKHelpers/ITKHelpers/ITKHelpers.h"
+#include "Mask/MaskOperations.h"
 
 // Custom
 #include "Types.h"
@@ -55,16 +56,15 @@ void SelfPatchCompare::SetTargetRegion(const itk::ImageRegion<2>& region)
 void SelfPatchCompare::ComputePatchScores()
 {
   this->PatchData.clear();
-  
-  std::vector<itk::ImageRegion<2> > fullSourcePatches = FindFullSourcePatches();
 
-  SSD<ImageType> differenceFunctor;
-  differenceFunctor.Image = this->Image;
-  
+  //std::vector<itk::ImageRegion<2> > fullSourcePatches = FindFullSourcePatches();
+  unsigned int patchRadius = this->TargetRegion.GetSize()[0]/2;
+  std::vector<itk::ImageRegion<2> > fullSourcePatches = MaskOperations::GetAllFullyValidRegions(this->MaskImage, patchRadius);
+
   for(unsigned int i = 0; i < fullSourcePatches.size(); ++i)
     {
     //std::cout << "Comparing " << this->TargetRegion << " to " << fullSourcePatches[i] << std::endl;
-    float averageAbsoluteScore = differenceFunctor.Difference(this->Image, this->TargetRegion, fullSourcePatches[i]);
+    float averageAbsoluteScore = this->PatchDistanceFunctor->Distance(this->TargetRegion, fullSourcePatches[i]);
 
     //std::cout << "score: " << averageAbsoluteScore << std::endl;
     PatchDataType patchData;
@@ -79,39 +79,7 @@ std::vector<SelfPatchCompare::PatchDataType> SelfPatchCompare::GetPatchData()
   return this->PatchData;
 }
 
-std::vector<itk::ImageRegion<2> > SelfPatchCompare::FindFullSourcePatches()
+void SelfPatchCompare::SetPatchDistanceFunctor(PatchDistance* const patchDistanceFunctor)
 {
-  // Find all full patches that are entirely Valid
-  std::cout << "Finding patches for TargetRegion " << this->TargetRegion << std::endl;
-  
-  std::vector<itk::ImageRegion<2> > fullSourcePatches;
-
-  itk::ImageRegionConstIterator<ImageType> imageIterator(this->Image, this->Image->GetLargestPossibleRegion());
-
-  while(!imageIterator.IsAtEnd())
-    {
-    itk::Index<2> currentPixel = imageIterator.GetIndex();
-    itk::ImageRegion<2> region = ITKHelpers::GetRegionInRadiusAroundPixel(currentPixel, this->TargetRegion.GetSize()[0]/2);
-
-    if(this->Image->GetLargestPossibleRegion().IsInside(region))
-      {
-      if(!this->MaskImage)
-        {
-        fullSourcePatches.push_back(region);
-        }
-      else if(this->MaskImage->IsValid(region))
-        {
-        fullSourcePatches.push_back(region);
-        }
-      }
-
-    ++imageIterator;
-    }
-
-  return fullSourcePatches;
-}
-
-void SelfPatchCompare::SetProjectionMatrix(const MatrixType& projectionMatrix)
-{
-  this->ProjectionMatrix = projectionMatrix;
+  this->PatchDistanceFunctor = patchDistanceFunctor;
 }

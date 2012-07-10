@@ -19,13 +19,6 @@
 #ifndef SelfPatchCompare_H
 #define SelfPatchCompare_H
 
-/**
- * This class is for situations when you have a very large set of source patches
- * that are entirely valid, and you want to compare them all to a target patch
- * that is partially masked. It computes the linear offsets of the masked pixels
- * once, and then uses them to do all of the patch comparisons.
- */
-
 // Custom
 #include "Mask/Mask.h"
 #include "Types.h"
@@ -35,7 +28,7 @@
 
 // Submodules
 #include "ITKVTKHelpers/ITKHelpers/Helpers/Helpers.h"
-#include "PatchComparison/SSD.h"
+#include "PatchComparison/PatchDistance.h"
 
 // ITK
 #include "itkImageRegion.h"
@@ -43,21 +36,32 @@
 // STL
 #include <vector>
 
+/**
+ * This class is for situations when you have a very large set of source patches
+ * that are entirely valid, and you want to compare them all to a target patch
+ * that is partially masked. It computes the linear offsets of the masked pixels
+ * once, and then uses them to do all of the patch comparisons.
+ */
 class SelfPatchCompare
 {
 public:
   typedef Eigen::MatrixXf MatrixType;
-  
+
   typedef itk::VectorImage<float, 2> ImageType;
-  
+
+  /** Constructor. */
   SelfPatchCompare();
 
+  /** Set the image to use to compare patch regions. */
   void SetImage(itk::VectorImage<float, 2>* const image);
 
+  /** Set the mask to use in the patch comparisons. */
   void SetMask(Mask* const mask);
 
+  /** Set the patch to compare all other patches to. */
   void SetTargetRegion(const itk::ImageRegion<2>& targetRegion);
 
+  /** Perform all of the patch comparisons. */
   void ComputePatchScores();
 
   /** A structure to store the source patch patch regions and their corresponding distances. */
@@ -69,16 +73,12 @@ public:
   /** Set the projection matrix to use in a projected distance comparison. */
   void SetProjectionMatrix(const MatrixType& projectionMatrix);
 
+  void SetPatchDistanceFunctor(PatchDistance* const patchDistanceFunctor);
 private:
-  /** If a channel of one pixel was white (255) and the corresponding channel of the other pixel
-   * was black (0), the difference would be 255, so the difference squared would be 255*255
-   * static const float MaxColorDifference = 255*255; // Doesn't work with c++0x
-   */
-  static float MaxColorDifference() { return 255.0f*255.0f; }
 
   /** This is the target region we wish to compare. It may be partially invalid. */
   itk::ImageRegion<2> TargetRegion;
-  
+
   /** This is the image from which to take the patches. */
   ImageType* Image;
 
@@ -88,12 +88,11 @@ private:
   /** Maintain a fully valid mask in case no real mask is specified. */
   Mask::Pointer FullyValidMask;
 
-  /** Find all source patches that are entirely valid. */
-  std::vector<itk::ImageRegion<2> > FindFullSourcePatches();
-
+  /** Stores a list of source regions and their associated distances. */
   std::vector<PatchDataType> PatchData;
 
-  MatrixType ProjectionMatrix;
+  /** The functor to use to compare two patches. */
+  PatchDistance* PatchDistanceFunctor;
 };
 
 #endif

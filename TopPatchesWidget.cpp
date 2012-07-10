@@ -29,11 +29,6 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
 {
   this->setupUi(this);
 
-//   if(parent)
-//   {
-//     this->setGeometry(QRect(parent->pos().x() + parent->width(), parent->pos().y(), this->width(), this->height()));
-//   }
-
   // Make the cells fit the images (based on the sizeHint from the PixmapDelegate)
   this->tblviewTopPatches->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
   this->tblviewTopPatches->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
@@ -50,7 +45,7 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
 
   std::cout << "Set patch display size to: " << this->gfxTargetPatch->size().height() << std::endl;
   this->TopPatchesModel->SetPatchDisplaySize(this->gfxTargetPatch->size().height());
-  
+
   PixmapDelegate* pixmapDelegate = new PixmapDelegate;
 
   this->tblviewTopPatches->setItemDelegate(pixmapDelegate);
@@ -103,7 +98,6 @@ void TopPatchesWidget::slot_SelectionChanged(const QItemSelection &, const QItem
     //topSourceRegions.push_back(this->TopPatchesModel->GetTopPatchData()[indexes.at(i).row()].first);
     unsigned int originalRowId = this->ProxyModel->mapToSource(indexes.at(i)).row(); // This was the row id before sorting
     topSourceRegions.push_back(this->TopPatchesModel->GetTopPatchData()[originalRowId].first);
-    
   }
 
   emit signal_TopPatchesSelected(topSourceRegions);
@@ -133,20 +127,18 @@ void TopPatchesWidget::on_btnCompute_clicked()
   this->ProgressDialog->setMaximum(0);
   this->ProgressDialog->setWindowModality(Qt::WindowModal);
   this->ProgressDialog->exec();
-
 }
 
 void TopPatchesWidget::Compute()
 {
-  
-  SelfPatchCompareFunctor.SetImage(this->Image);
+  this->SelfPatchCompareFunctor.SetImage(this->Image);
   //this->PatchCompare.SetMask(this->MaskImage);
 
-  SelfPatchCompareFunctor.SetTargetRegion(this->TargetRegion);
+  this->SelfPatchCompareFunctor.SetTargetRegion(this->TargetRegion);
 
-  SelfPatchCompareFunctor.ComputePatchScores();
+  this->SelfPatchCompareFunctor.ComputePatchScores();
 
-  this->TopPatchData = SelfPatchCompareFunctor.GetPatchData();
+  this->TopPatchData = this->SelfPatchCompareFunctor.GetPatchData();
 
   //std::sort(topPatchData.begin(), topPatchData.end(), Helpers::SortBySecondAccending<PatchDataType>);
   unsigned int numberOfPatches = this->txtNumberOfPatches->text().toInt();
@@ -185,7 +177,7 @@ void TopPatchesWidget::Cluster()
   this->TopPatchesModel->SetClusterIDs(labels);
 }
 
-void TopPatchesWidget::SetProjectionMatrix(const MatrixType& projectionMatrix)
+void TopPatchesWidget::SetPatchDistanceFunctor(PatchDistance* const patchDistanceFunctor)
 {
-  this->SelfPatchCompareFunctor.SetProjectionMatrix(projectionMatrix);
+  this->SelfPatchCompareFunctor.SetPatchDistanceFunctor(patchDistanceFunctor);
 }

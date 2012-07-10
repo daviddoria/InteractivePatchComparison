@@ -1,6 +1,6 @@
 /*=========================================================================
  *
- *  Copyright David Doria 2011 daviddoria@gmail.com
+ *  Copyright David Doria 2012 daviddoria@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ class QSortFilterProxyModel;
 
 // Submodules
 #include "Mask/Mask.h"
+#include "PatchComparison/PatchDistance.h"
 
 // Custom
 #include "TableModelTopPatches.h"
@@ -55,7 +56,7 @@ public:
 
   void SetImage(ImageType* const image);
 
-  void SetProjectionMatrix(const MatrixType& projectionMatrix);
+  void SetPatchDistanceFunctor(PatchDistance* const patchDistanceFunctor);
 
 public slots:
 

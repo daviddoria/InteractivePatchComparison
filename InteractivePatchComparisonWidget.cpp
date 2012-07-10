@@ -66,6 +66,7 @@
 #include "PatchComparison/CorrelationScore.h"
 #include "PatchComparison/PixelDifferences.h"
 #include "PatchComparison/SSD.h"
+#include "PatchComparison/ProjectedDistance.h"
 
 const unsigned char InteractivePatchComparisonWidget::Green[3] = {0,255,0};
 const unsigned char InteractivePatchComparisonWidget::Red[3] = {255,0,0};
@@ -550,7 +551,7 @@ void InteractivePatchComparisonWidget::UpdatePatches()
     float averageAbsPixelDifference = averageValueDifferenceFunctor(this->Image.GetPointer(),
                                                                    sourceRegion, targetRegion);
 
-    float averageSqPixelDifference = SSD<ImageType>::Difference(this->Image.GetPointer(),
+    float averageSqPixelDifference = SSD<ImageType>::Distance(this->Image.GetPointer(),
                                                  sourceRegion, targetRegion);
 
     VectorType vectorizedSource = PatchProjection<MatrixType, VectorType>::
@@ -687,7 +688,11 @@ void InteractivePatchComparisonWidget::ComputeProjectionMatrix()
   this->ProjectionMatrix =
          EigenHelpers::TruncateColumns(this->ProjectionMatrix, numberOfDimensionsToProjectTo);
 
-  this->TopPatchesPanel->SetProjectionMatrix(this->ProjectionMatrix);
+  ProjectedDistance<ImageType>* patchDistanceFunctor = new ProjectedDistance<ImageType>;
+  patchDistanceFunctor->SetImage(this->Image);
+  patchDistanceFunctor->SetProjectionMatrix(this->ProjectionMatrix);
+
+  this->TopPatchesPanel->SetPatchDistanceFunctor(patchDistanceFunctor);
 }
 
 bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *event)
