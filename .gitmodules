@@ -22,6 +22,3 @@
 [submodule "PatchClustering"]
 	path = PatchClustering
 	url = git@github.com:daviddoria/PatchClustering.git
-[submodule "PatchProjection"]
-	path = PatchProjection
-	url = https://github.com/daviddoria/PatchProjection.git
