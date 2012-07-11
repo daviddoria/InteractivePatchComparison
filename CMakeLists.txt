@@ -45,10 +45,6 @@ if(NOT TARGET PatchClustering)
   add_subdirectory(PatchClustering)
 endif()
 
-if(NOT TARGET PatchProjection)
-  add_subdirectory(PatchProjection)
-endif()
-
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})
 

@@ -54,8 +54,8 @@
 #include "Mask/Mask.h"
 #include "Mask/MaskOperations.h"
 #include "VTKHelpers/VTKHelpers.h"
-#include "PatchProjection/EigenHelpers/EigenHelpers.h"
-#include "PatchProjection/PatchProjection.h"
+#include "PatchComparison/EigenHelpers/EigenHelpers.h"
+#include "PatchComparison/PatchProjection/PatchProjection.h"
 #include "QtHelpers/QtHelpers.h"
 
 // Custom
@@ -676,24 +676,23 @@ void InteractivePatchComparisonWidget::ComputeProjectionMatrix()
     throw std::runtime_error("Cannot ComputeProjectionMatrix() before calling SetImage()!");
   }
   std::vector<typename VectorType::Scalar> sortedEigenvalues; // unused
-  VectorType meanVector; // unused
 
   // This function is used for debugging only
   this->ProjectionMatrix = PatchProjection<MatrixType, VectorType>::
-                           GetDummyProjectionMatrix(this->Image.GetPointer(), this->PatchSize[0]/2);
+                           GetDummyProjectionMatrix(this->Image.GetPointer(), this->PatchSize[0]/2, this->MeanVector);
 
   // This function is preferred
 //   this->ProjectionMatrix = PatchProjection<MatrixType, VectorType>::
 //                               ComputeProjectionMatrixFromImagePartialMatrix(this->Image.GetPointer(),
 //                                                                this->PatchSize[0]/2,
-//                                                                meanVector,
+//                                                                this->MeanVector,
 //                                                                sortedEigenvalues);
 
   // This function would be preferred, but typically the feature matrix does not fit into memory.
 //   this->ProjectionMatrix = PatchProjection<MatrixType, VectorType>::
 //                               ComputeProjectionMatrix_CovarianceEigen(this->Image.GetPointer(),
 //                                                                       this->PatchSize[0]/2,
-//                                                                       meanVector,
+//                                                                       this->MeanVector,
 //                                                                       sortedEigenvalues);
 
   unsigned int numberOfDimensionsToProjectTo = 150;
@@ -703,6 +702,7 @@ void InteractivePatchComparisonWidget::ComputeProjectionMatrix()
 //   ProjectedDistance<ImageType>* patchDistanceFunctor = new ProjectedDistance<ImageType>;
 //   patchDistanceFunctor->SetImage(this->Image);
 //   patchDistanceFunctor->SetProjectionMatrix(this->ProjectionMatrix);
+//   patchDistanceFunctor->SetMeanVector(this->MeanVector);
 
   LocalPCADistance<ImageType>* patchDistanceFunctor = new LocalPCADistance<ImageType>;
   patchDistanceFunctor->SetImage(this->Image);

@@ -23,7 +23,7 @@
       <widget class="QWidget" name="LeftPanelWidget" native="true">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
+         <horstretch>1</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
@@ -190,7 +190,7 @@
       <widget class="QVTKWidget" name="qvtkWidget">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-         <horstretch>0</horstretch>
+         <horstretch>5</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
@@ -198,7 +198,7 @@
       <widget class="TopPatchesWidget" name="TopPatchesPanel" native="true">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
+         <horstretch>2</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>

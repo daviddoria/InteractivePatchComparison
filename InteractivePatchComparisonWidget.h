@@ -164,6 +164,8 @@ private:
   /** The projection matrix used project patches to a lower dimensional space. */
   MatrixType ProjectionMatrix;
 
+  VectorType MeanVector;
+
   /** Compute the projection matrix to project patches to a lower dimensional space. */
   void ComputeProjectionMatrix();
 
