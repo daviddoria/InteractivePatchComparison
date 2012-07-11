@@ -53,6 +53,8 @@ signals:
 
 public slots:
 
+  void on_btnSavePatch_clicked();
+
   void on_spinXCenter_valueChanged(int);
   void on_spinYCenter_valueChanged(int);
 

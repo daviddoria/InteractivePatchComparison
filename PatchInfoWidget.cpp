@@ -19,7 +19,11 @@
 #include "PatchInfoWidget.h"
 
 // Qt
+#include <QFileInfo>
 #include <QLineEdit>
+#include <QInputDialog>
+#include <QMessageBox>
+#include <QDir>
 
 // Submodules
 #include "Mask/ITKHelpers/Helpers/Helpers.h"
@@ -195,7 +199,23 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   this->graphicsView_AverageColor->setScene(averageColorScene);
 }
 
-void PatchInfoWidget::Save(const std::string& prefix)
+void PatchInfoWidget::on_btnSavePatch_clicked()
+{
+  bool ok;
+  QString title("Filename");
+  QString label("Filename:");
+  QString defaultText("patch.png");
+  QString fileName = QInputDialog::getText(this, title,
+                                        label, QLineEdit::Normal,
+                                        defaultText, &ok);
+  QMessageBox msgBox;
+  if (ok && !fileName.isEmpty())
+  {
+    Save(fileName.toStdString());
+  }
+}
+
+void PatchInfoWidget::Save(const std::string& fileName)
 {
   typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> RegionOfInterestImageFilterType;
   RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
@@ -203,9 +223,16 @@ void PatchInfoWidget::Save(const std::string& prefix)
   regionOfInterestImageFilter->SetInput(this->Image);
   regionOfInterestImageFilter->Update();
 
-  std::stringstream ss;
-  ss << prefix << "_patch.png";
-  ITKHelpers::WriteImage(regionOfInterestImageFilter->GetOutput(), ss.str());
+  QFileInfo fileInfo(fileName.c_str());
+  
+  if(fileInfo.suffix().toStdString() == "png")
+  {
+    ITKHelpers::WriteRGBImage(regionOfInterestImageFilter->GetOutput(), fileName);
+  }
+  else
+  {
+    ITKHelpers::WriteImage(regionOfInterestImageFilter->GetOutput(), fileName);
+  }
 }
 
 itk::ImageRegion<2> PatchInfoWidget::GetRegion() const

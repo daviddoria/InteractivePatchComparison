@@ -116,6 +116,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
 {
   this->setupUi(this);
 
+  this->PatchDistanceFunctor = NULL;
   
   OddValidator* oddValidator = new OddValidator;
   this->spinPatchRadius->findChild<QLineEdit*>()->setValidator(oddValidator);
@@ -559,36 +560,41 @@ void InteractivePatchComparisonWidget::UpdatePatches()
   if(Image->GetLargestPossibleRegion().IsInside(targetRegion) &&
     Image->GetLargestPossibleRegion().IsInside(sourceRegion))
   {
-    AverageValueDifference averageValueDifferenceFunctor;
-    float averageAbsPixelDifference = averageValueDifferenceFunctor(this->Image.GetPointer(),
-                                                                   sourceRegion, targetRegion);
-
-    float averageSqPixelDifference = SSD<ImageType>::Distance(this->Image.GetPointer(),
-                                                 sourceRegion, targetRegion);
-
-    VectorType vectorizedSource = PatchProjection<MatrixType, VectorType>::
-                                  VectorizePatch(this->Image.GetPointer(), sourceRegion);
-
-    VectorType vectorizedTarget = PatchProjection<MatrixType, VectorType>::
-                                  VectorizePatch(this->Image.GetPointer(), targetRegion);
-
-    VectorType projectedSource = this->ProjectionMatrix.transpose() * vectorizedSource;
-
-    VectorType projectedTarget = this->ProjectionMatrix.transpose() * vectorizedTarget;
-
-    // Compute distance between patches in PCA space
-    float pcaScore = (projectedSource - projectedTarget).squaredNorm();
+//     AverageValueDifference averageValueDifferenceFunctor;
+//     float averageAbsPixelDifference = averageValueDifferenceFunctor(this->Image.GetPointer(),
+//                                                                    sourceRegion, targetRegion);
+// 
+//     float averageSqPixelDifference = SSD<ImageType>::Distance(this->Image.GetPointer(),
+//                                                  sourceRegion, targetRegion);
+// 
+//     VectorType vectorizedSource = PatchProjection<MatrixType, VectorType>::
+//                                   VectorizePatch(this->Image.GetPointer(), sourceRegion);
+//     vectorizedSource -= this->MeanVector;
+// 
+//     VectorType vectorizedTarget = PatchProjection<MatrixType, VectorType>::
+//                                   VectorizePatch(this->Image.GetPointer(), targetRegion);
+//     vectorizedTarget -= this->MeanVector;
+// 
+//     VectorType projectedSource = this->ProjectionMatrix.transpose() * vectorizedSource;
+// 
+//     VectorType projectedTarget = this->ProjectionMatrix.transpose() * vectorizedTarget;
+// 
+//     // Compute distance between patches in PCA space
+//     float pcaScore = (projectedSource - projectedTarget).squaredNorm();
 
 //     CorrelationScore correlationScoreFunctor;
 //     float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), sourceRegion, targetRegion);
 
+    float distance = this->PatchDistanceFunctor->Distance(sourceRegion, targetRegion);
+    this->lblSumSquaredPixelDifference->setNum(distance);
+
     Refresh();
 
-    this->lblSumSquaredPixelDifference->setNum(averageSqPixelDifference);
-
-    this->lblSumAbsolutePixelDifference->setNum(averageAbsPixelDifference);
-    // this->lblCorrelation->setNum(correlationScore);
-    this->lblPCAScore->setNum(pcaScore);
+//     this->lblSumSquaredPixelDifference->setNum(averageSqPixelDifference);
+// 
+//     this->lblSumAbsolutePixelDifference->setNum(averageAbsPixelDifference);
+//     // this->lblCorrelation->setNum(correlationScore);
+//     this->lblPCAScore->setNum(pcaScore);
   }
 }
 
@@ -606,9 +612,9 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler(vtkObject* calle
 
 void InteractivePatchComparisonWidget::on_action_SavePatches_activated()
 {
-//   TargetPatchInfoWidget->Save("target");
-//   SourcePatchInfoWidget->Save("source");
-
+  this->TargetPatchInfoWidget->Save("target");
+  this->SourcePatchInfoWidget->Save("source");
+/*
   itk::ImageRegion<2> sourceRegion = SourcePatchInfoWidget->GetRegion();
   itk::ImageRegion<2> targetRegion = TargetPatchInfoWidget->GetRegion();
 
@@ -640,7 +646,7 @@ void InteractivePatchComparisonWidget::on_action_SavePatches_activated()
 
   std::ofstream fout("score.txt");
   fout << averageValueDifference << std::endl;
-  fout.close();
+  fout.close();*/
 }
 
 void InteractivePatchComparisonWidget::on_actionScreenshot_activated()
@@ -699,14 +705,17 @@ void InteractivePatchComparisonWidget::ComputeProjectionMatrix()
   this->ProjectionMatrix =
          EigenHelpers::TruncateColumns(this->ProjectionMatrix, numberOfDimensionsToProjectTo);
 
-//   ProjectedDistance<ImageType>* patchDistanceFunctor = new ProjectedDistance<ImageType>;
-//   patchDistanceFunctor->SetImage(this->Image);
-//   patchDistanceFunctor->SetProjectionMatrix(this->ProjectionMatrix);
-//   patchDistanceFunctor->SetMeanVector(this->MeanVector);
-
-  LocalPCADistance<ImageType>* patchDistanceFunctor = new LocalPCADistance<ImageType>;
+  ProjectedDistance<ImageType>* patchDistanceFunctor = new ProjectedDistance<ImageType>;
   patchDistanceFunctor->SetImage(this->Image);
+  patchDistanceFunctor->SetProjectionMatrix(this->ProjectionMatrix);
+  patchDistanceFunctor->SetMeanVector(this->MeanVector);
 
+  // Local PCA
+//   LocalPCADistance<ImageType>* patchDistanceFunctor = new LocalPCADistance<ImageType>;
+//   patchDistanceFunctor->SetImage(this->Image);
+
+  this->PatchDistanceFunctor = patchDistanceFunctor;
+  
   this->TopPatchesPanel->SetPatchDistanceFunctor(patchDistanceFunctor);
 }
 

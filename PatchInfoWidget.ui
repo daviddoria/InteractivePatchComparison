@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>199</width>
-    <height>341</height>
+    <height>345</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -125,6 +125,13 @@
     <widget class="QLabel" name="lblPixelVariance">
      <property name="text">
       <string>0</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btnSavePatch">
+     <property name="text">
+      <string>Save</string>
      </property>
     </widget>
    </item>

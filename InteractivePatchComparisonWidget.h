@@ -40,6 +40,7 @@ class vtkImageSliceMapper;
 // Submodules
 #include "Mask/Mask.h"
 #include "ITKVTKCamera/ITKVTKCamera.h"
+#include "PatchComparison/PatchDistance.h"
 
 // Custom
 #include "Types.h"
@@ -174,6 +175,8 @@ private:
 
   std::string ImageFileName;
   std::string MaskFileName;
+
+  PatchDistance* PatchDistanceFunctor;
 };
 
 #endif // InteractivePatchComparisonWidget_H
