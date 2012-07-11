@@ -161,7 +161,7 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
 
     // This assumes both patches are fully valid (often the case when exploring)
     average = ITKHelpers::AverageInRegion(Image, patchRegion);
-
+    itk::VariableLengthVector<int> intAverage = average;
     this->lblPixelMean->setText(ITKHelpers::VectorToString(average).c_str());
 
     variance = MaskOperations::VarianceInRegionMasked(this->Image, this->MaskImage, patchRegion);

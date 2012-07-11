@@ -96,7 +96,9 @@ public slots:
 
   void slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& );
 
-  //void on_txtPatchRadius_textEdited();
+  void on_radDistanceSSD_clicked();
+  void on_radDistancePCA_clicked();
+  void on_radDistanceLocalPCA_clicked();
 
 private:
 
@@ -114,11 +116,6 @@ private:
 
   /** Open a mask. */
   void OpenMask(const std::string& filename);
-
-  /** Define some colors. */
-//   static const unsigned char Green[3];
-//   static const unsigned char Red[3];
-//   static const unsigned char Blue[3];
 
   /** Get the size of the patches from the line edit. */
   void GetPatchSizeFromGUI();
@@ -162,13 +159,8 @@ private:
   typedef Eigen::MatrixXf MatrixType;
   typedef Eigen::VectorXf VectorType;
 
-  /** The projection matrix used project patches to a lower dimensional space. */
-  MatrixType ProjectionMatrix;
-
-  VectorType MeanVector;
-
-  /** Compute the projection matrix to project patches to a lower dimensional space. */
-  void ComputeProjectionMatrix();
+  /** Setup the distance functors. */
+  void SetupDistanceFunctors();
 
   /** Handle events (not signals) so we don't have to subclass things like QLineEdit. */
   bool eventFilter(QObject *object, QEvent *event);
@@ -176,7 +168,9 @@ private:
   std::string ImageFileName;
   std::string MaskFileName;
 
-  PatchDistance* PatchDistanceFunctor;
+  std::vector<PatchDistance*> PatchDistanceFunctors;
+
+  PatchDistance* CurrentDistanceFunctor;
 };
 
 #endif // InteractivePatchComparisonWidget_H

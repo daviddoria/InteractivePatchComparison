@@ -72,10 +72,6 @@
 #include "PatchComparison/ProjectedDistance.h"
 #include "PatchComparison/LocalPCADistance.h"
 
-// const unsigned char InteractivePatchComparisonWidget::Green[3] = {0,255,0};
-// const unsigned char InteractivePatchComparisonWidget::Red[3] = {255,0,0};
-// const unsigned char InteractivePatchComparisonWidget::Blue[3] = {0,0,255};
-
 void InteractivePatchComparisonWidget::on_actionHelp_activated()
 {
   QTextEdit* help=new QTextEdit();
@@ -116,7 +112,7 @@ void InteractivePatchComparisonWidget::SharedConstructor()
 {
   this->setupUi(this);
 
-  this->PatchDistanceFunctor = NULL;
+  this->CurrentDistanceFunctor = NULL;
   
   OddValidator* oddValidator = new OddValidator;
   this->spinPatchRadius->findChild<QLineEdit*>()->setValidator(oddValidator);
@@ -269,7 +265,7 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
   this->SourcePatchLayer.ImageSlice->VisibilityOn();
   this->TargetPatchLayer.ImageSlice->VisibilityOn();
 
-  ComputeProjectionMatrix();
+  SetupDistanceFunctors();
 
   // Generate a fully valid mask if one has not been set.
   //if(this->MaskImage->GetLargestPossibleRegion().GetSize()[0] == 0)
@@ -358,7 +354,7 @@ void InteractivePatchComparisonWidget::on_spinPatchRadius_valueChanged(int value
   {
     GetPatchSizeFromGUI();
     SetupPatches();
-    ComputeProjectionMatrix();
+    SetupDistanceFunctors();
     UpdatePatches();
   }
 }
@@ -560,41 +556,10 @@ void InteractivePatchComparisonWidget::UpdatePatches()
   if(Image->GetLargestPossibleRegion().IsInside(targetRegion) &&
     Image->GetLargestPossibleRegion().IsInside(sourceRegion))
   {
-//     AverageValueDifference averageValueDifferenceFunctor;
-//     float averageAbsPixelDifference = averageValueDifferenceFunctor(this->Image.GetPointer(),
-//                                                                    sourceRegion, targetRegion);
-// 
-//     float averageSqPixelDifference = SSD<ImageType>::Distance(this->Image.GetPointer(),
-//                                                  sourceRegion, targetRegion);
-// 
-//     VectorType vectorizedSource = PatchProjection<MatrixType, VectorType>::
-//                                   VectorizePatch(this->Image.GetPointer(), sourceRegion);
-//     vectorizedSource -= this->MeanVector;
-// 
-//     VectorType vectorizedTarget = PatchProjection<MatrixType, VectorType>::
-//                                   VectorizePatch(this->Image.GetPointer(), targetRegion);
-//     vectorizedTarget -= this->MeanVector;
-// 
-//     VectorType projectedSource = this->ProjectionMatrix.transpose() * vectorizedSource;
-// 
-//     VectorType projectedTarget = this->ProjectionMatrix.transpose() * vectorizedTarget;
-// 
-//     // Compute distance between patches in PCA space
-//     float pcaScore = (projectedSource - projectedTarget).squaredNorm();
-
-//     CorrelationScore correlationScoreFunctor;
-//     float correlationScore = correlationScoreFunctor(this->Image.GetPointer(), sourceRegion, targetRegion);
-
-    float distance = this->PatchDistanceFunctor->Distance(sourceRegion, targetRegion);
-    this->lblSumSquaredPixelDifference->setNum(distance);
+    float distance = this->CurrentDistanceFunctor->Distance(sourceRegion, targetRegion);
+    this->lblScore->setNum(distance);
 
     Refresh();
-
-//     this->lblSumSquaredPixelDifference->setNum(averageSqPixelDifference);
-// 
-//     this->lblSumAbsolutePixelDifference->setNum(averageAbsPixelDifference);
-//     // this->lblCorrelation->setNum(correlationScore);
-//     this->lblPCAScore->setNum(pcaScore);
   }
 }
 
@@ -612,41 +577,8 @@ void InteractivePatchComparisonWidget::PatchesMovedEventHandler(vtkObject* calle
 
 void InteractivePatchComparisonWidget::on_action_SavePatches_activated()
 {
-  this->TargetPatchInfoWidget->Save("target");
-  this->SourcePatchInfoWidget->Save("source");
-/*
-  itk::ImageRegion<2> sourceRegion = SourcePatchInfoWidget->GetRegion();
-  itk::ImageRegion<2> targetRegion = TargetPatchInfoWidget->GetRegion();
-
-  if(!this->Image->GetLargestPossibleRegion().IsInside(sourceRegion))
-  {
-    std::cerr << "Source region not inside image!" << sourceRegion << std::endl;
-    return;
-  }
-
-  if(!this->Image->GetLargestPossibleRegion().IsInside(targetRegion))
-  {
-    std::cerr << "Target region not inside image!" << targetRegion << std::endl;
-    return;
-  }
-
-  AverageValueDifference averageValueDifferenceFunctor;
-  float averageValueDifference = averageValueDifferenceFunctor(this->Image.GetPointer(),
-                                                               sourceRegion, targetRegion);
-
-  //ITKHelpers::WriteVectorImageRegionAsRGB(this->Image.GetPointer(), sourceRegion, "SourcePatch.png");
-  //Helpers::WriteRGBRegion(this->Image.GetPointer(), targetRegion, "TargetPatch.png");
-  ImageType::PixelType holeColor;
-  holeColor.SetSize(3);
-  holeColor.Fill(0);
-  MaskOperations::WriteMaskedRegionPNG(this->Image.GetPointer(), this->MaskImage.GetPointer(),
-                                       targetRegion, "TargetPatch.png", holeColor);
-
-  ITKHelpers::WriteRegion(this->MaskImage.GetPointer(), targetRegion, "MaskPatch.png");
-
-  std::ofstream fout("score.txt");
-  fout << averageValueDifference << std::endl;
-  fout.close();*/
+  this->TargetPatchInfoWidget->Save("target.png");
+  this->SourcePatchInfoWidget->Save("source.png");
 }
 
 void InteractivePatchComparisonWidget::on_actionScreenshot_activated()
@@ -670,22 +602,26 @@ void InteractivePatchComparisonWidget::on_action_View_TopPatches_activated()
   TopPatchesPanel->setVisible(!TopPatchesPanel->isVisible());
 }
 
-void InteractivePatchComparisonWidget::ComputeProjectionMatrix()
+void InteractivePatchComparisonWidget::SetupDistanceFunctors()
 {
   if(this->PatchSize[0]/2 == 0)
   {
-    throw std::runtime_error("Must set PatchSize before calling ComputeProjectionMatrix()!");
+    throw std::runtime_error("Must set PatchSize before calling SetupDistanceFunctors()!");
   }
 
   if(this->Image->GetLargestPossibleRegion().GetSize()[0] == 0)
   {
-    throw std::runtime_error("Cannot ComputeProjectionMatrix() before calling SetImage()!");
+    throw std::runtime_error("Cannot SetupDistanceFunctors() before calling SetImage()!");
   }
   std::vector<typename VectorType::Scalar> sortedEigenvalues; // unused
 
+  MatrixType projectionMatrix;
+
+  VectorType meanVector;
+
   // This function is used for debugging only
-  this->ProjectionMatrix = PatchProjection<MatrixType, VectorType>::
-                           GetDummyProjectionMatrix(this->Image.GetPointer(), this->PatchSize[0]/2, this->MeanVector);
+  projectionMatrix = PatchProjection<MatrixType, VectorType>::
+                           GetDummyProjectionMatrix(this->Image.GetPointer(), this->PatchSize[0]/2, meanVector);
 
   // This function is preferred
 //   this->ProjectionMatrix = PatchProjection<MatrixType, VectorType>::
@@ -701,22 +637,31 @@ void InteractivePatchComparisonWidget::ComputeProjectionMatrix()
 //                                                                       this->MeanVector,
 //                                                                       sortedEigenvalues);
 
-  unsigned int numberOfDimensionsToProjectTo = 150;
-  this->ProjectionMatrix =
-         EigenHelpers::TruncateColumns(this->ProjectionMatrix, numberOfDimensionsToProjectTo);
+  // SSD
+  SSD<ImageType>* ssdDistanceFunctor = new SSD<ImageType>;
+  ssdDistanceFunctor->SetImage(this->Image);
 
-  ProjectedDistance<ImageType>* patchDistanceFunctor = new ProjectedDistance<ImageType>;
-  patchDistanceFunctor->SetImage(this->Image);
-  patchDistanceFunctor->SetProjectionMatrix(this->ProjectionMatrix);
-  patchDistanceFunctor->SetMeanVector(this->MeanVector);
+  this->PatchDistanceFunctors.push_back(ssdDistanceFunctor);
+  this->CurrentDistanceFunctor = ssdDistanceFunctor;
+  this->TopPatchesPanel->SetPatchDistanceFunctor(this->CurrentDistanceFunctor);
+
+  // PCA
+  unsigned int numberOfDimensionsToProjectTo = 150;
+  projectionMatrix =
+         EigenHelpers::TruncateColumns(projectionMatrix, numberOfDimensionsToProjectTo);
+
+  ProjectedDistance<ImageType>* pcaDistanceFunctor = new ProjectedDistance<ImageType>;
+  pcaDistanceFunctor->SetImage(this->Image);
+  pcaDistanceFunctor->SetProjectionMatrix(projectionMatrix);
+  pcaDistanceFunctor->SetMeanVector(meanVector);
+
+  this->PatchDistanceFunctors.push_back(pcaDistanceFunctor);
 
   // Local PCA
-//   LocalPCADistance<ImageType>* patchDistanceFunctor = new LocalPCADistance<ImageType>;
-//   patchDistanceFunctor->SetImage(this->Image);
+  LocalPCADistance<ImageType>* localPCADistanceFunctor = new LocalPCADistance<ImageType>;
+  localPCADistanceFunctor->SetImage(this->Image);
 
-  this->PatchDistanceFunctor = patchDistanceFunctor;
-  
-  this->TopPatchesPanel->SetPatchDistanceFunctor(patchDistanceFunctor);
+  this->PatchDistanceFunctors.push_back(localPCADistanceFunctor);
 }
 
 bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *event)
@@ -736,7 +681,7 @@ bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *even
     {
       GetPatchSizeFromGUI();
       SetupPatches();
-      ComputeProjectionMatrix();
+      SetupDistanceFunctors();
       UpdatePatches();
     }
     QPalette p = spinPatchRadius->findChild<QLineEdit*>()->palette();
@@ -745,4 +690,22 @@ bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *even
   }
 
   return false; // Pass the event along (don't consume it)
+}
+
+void InteractivePatchComparisonWidget::on_radDistanceSSD_clicked()
+{
+  this->CurrentDistanceFunctor = this->PatchDistanceFunctors[0];
+  this->TopPatchesPanel->SetPatchDistanceFunctor(this->PatchDistanceFunctors[0]);
+}
+
+void InteractivePatchComparisonWidget::on_radDistancePCA_clicked()
+{
+  this->CurrentDistanceFunctor = this->PatchDistanceFunctors[1];
+  this->TopPatchesPanel->SetPatchDistanceFunctor(this->PatchDistanceFunctors[1]);
+}
+
+void InteractivePatchComparisonWidget::on_radDistanceLocalPCA_clicked()
+{
+  this->CurrentDistanceFunctor = this->PatchDistanceFunctors[2];
+  this->TopPatchesPanel->SetPatchDistanceFunctor(this->PatchDistanceFunctors[2]);
 }

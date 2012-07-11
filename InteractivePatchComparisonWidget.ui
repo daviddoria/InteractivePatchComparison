@@ -32,6 +32,12 @@
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <widget class="QLabel" name="label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="toolTip">
              <string>Patch half width (radius)</string>
             </property>
@@ -63,6 +69,12 @@
         </item>
         <item>
          <widget class="QLabel" name="lblSourcePatch">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="palette">
            <palette>
             <active>
@@ -110,6 +122,12 @@
         </item>
         <item>
          <widget class="QLabel" name="lblTargetPatch">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>&lt;font color=&quot;red&quot;&gt;Target Patch&lt;/font&gt;</string>
           </property>
@@ -119,52 +137,28 @@
          <widget class="PatchInfoWidget" name="TargetPatchInfoWidget" native="true"/>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <item>
-           <widget class="QLabel" name="label_8">
-            <property name="text">
-             <string>SAD</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="lblSumAbsolutePixelDifference">
-            <property name="text">
-             <string>0</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
            <widget class="QLabel" name="label_4">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
-             <string>SSD</string>
+             <string>Score</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="lblSumSquaredPixelDifference">
-            <property name="text">
-             <string>0</string>
+           <widget class="QLabel" name="lblScore">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_7">
-          <item>
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>PCA</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="lblPCAScore">
             <property name="text">
              <string>0</string>
             </property>
@@ -181,7 +175,31 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Save Patches</string>
+           <string>Save Patch Pair</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radDistanceSSD">
+          <property name="text">
+           <string>SSD</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radDistancePCA">
+          <property name="text">
+           <string>PCA</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radDistanceLocalPCA">
+          <property name="text">
+           <string>Local PCA</string>
           </property>
          </widget>
         </item>
