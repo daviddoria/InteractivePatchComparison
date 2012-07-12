@@ -31,7 +31,7 @@
 #include <vector>
 
 // Custom
-#include "SelfPatchCompare.h"
+#include "PatchComparison/SelfPatchCompare.h"
 
 class TableModelTopPatches : public QAbstractTableModel
 {
@@ -39,7 +39,8 @@ public:
   typedef itk::VectorImage<float, 2> ImageType;
   
   //TableModelTopPatches(QObject * parent);
-  TableModelTopPatches(const std::vector<SelfPatchCompare::PatchDataType>& patchData, QObject * parent);
+  TableModelTopPatches(const std::vector<SelfPatchCompare<ImageType>::PatchDataType>& patchData,
+                       QObject * parent);
 
   int rowCount(const QModelIndex& parent) const;
   int columnCount(const QModelIndex& parent) const;
@@ -58,23 +59,24 @@ public:
 
   void SetImage(ImageType* const image);
 
-  void SetTopPatchData(const std::vector<SelfPatchCompare::PatchDataType>& topPatchData);
+  void SetTopPatchData(const std::vector<SelfPatchCompare<ImageType>::PatchDataType>& topPatchData);
 
   void SetClusterIDs(const std::vector<unsigned int>& clusterIDs);
-  
-  std::vector<SelfPatchCompare::PatchDataType> GetTopPatchData();
-  
+
+  std::vector<SelfPatchCompare<ImageType>::PatchDataType> GetTopPatchData();
+
 private:
 
   /** This is how big to draw the patches in the table. */
-  unsigned int PatchDisplaySize; // TODO: This should be set by the size of the target patch, or a multiplier, or something
+  // TODO: This should be set by the size of the target patch, or a multiplier, or something
+  unsigned int PatchDisplaySize;
 
   unsigned int MaxTopPatchesToDisplay;
 
-  std::vector<SelfPatchCompare::PatchDataType> TopPatchData;
+  std::vector<SelfPatchCompare<ImageType>::PatchDataType> TopPatchData;
 
   std::vector<unsigned int> ClusterIDs;
-  
+
   ImageType* Image;
 };
 

@@ -34,11 +34,11 @@ class QSortFilterProxyModel;
 // Submodules
 #include "Mask/Mask.h"
 #include "PatchComparison/PatchDistance.h"
+#include "PatchComparison/SelfPatchCompare.h"
+#include "PatchComparison/SelfPatchCompareLocalOptimization.h"
 
 // Custom
 #include "TableModelTopPatches.h"
-#include "SelfPatchCompare.h"
-#include "SelfPatchCompareLocalOptimization.h"
 
 /** This class is necessary because a class template cannot have the Q_OBJECT macro directly. */
 class TopPatchesWidget : public QWidget, public Ui::TopPatchesWidget
@@ -48,9 +48,9 @@ Q_OBJECT
 public:
   typedef Eigen::MatrixXf MatrixType;
   typedef Eigen::VectorXf VectorType;
-  
+
   typedef itk::VectorImage<float, 2> ImageType;
-  
+
   TopPatchesWidget(QWidget* parent = NULL);
 
   void SetTargetRegion(const itk::ImageRegion<2>& targetRegion);
@@ -76,8 +76,7 @@ public slots:
 //   void on_txtNumberOfPatches_returnPressed();
 //   void on_txtNumberOfPatches_textEdited();
   void on_spinNumberOfBestPatches_valueChanged(int);
-  
-  
+
 signals:
 
   void signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >& region);
@@ -93,12 +92,12 @@ private:
   QGraphicsPixmapItem* TargetPatchItem;
   TableModelTopPatches* TopPatchesModel;
   QSortFilterProxyModel* ProxyModel;
-  
+
   itk::ImageRegion<2> TargetRegion;
 
   void Cluster();
 
-  std::vector<SelfPatchCompare::PatchDataType> TopPatchData;
+  std::vector<SelfPatchCompare<ImageType>::PatchDataType> TopPatchData;
 
   /** To monitor the progress. */
   QFutureWatcher<void> FutureWatcher;

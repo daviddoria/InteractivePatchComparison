@@ -52,7 +52,8 @@ FIND_PACKAGE(VTK REQUIRED)
 INCLUDE(${VTK_USE_FILE})
 
 if(${VTK_MAJOR_VERSION} LESS 6)
-  message(FATAL_ERROR "Your VTK version (${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}) is too old! At least 6.0 is required.")
+  message(FATAL_ERROR "Your VTK version (${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION})
+          is too old! At least 6.0 is required.")
 endif()
 
 FIND_PACKAGE(ITK 4 REQUIRED)
@@ -77,7 +78,6 @@ CustomTrackballStyle.cxx
 PatchInfoWidget.cpp
 OddValidator.cpp
 TopPatchesWidget.cpp
-SelfPatchCompare.cpp
 PixmapDelegate.cpp
 TableModelTopPatches.cpp
 Layer.cpp

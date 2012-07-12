@@ -27,8 +27,10 @@
 #include "QtHelpers/QtHelpers.h"
 #include "ITKQtHelpers/ITKQtHelpers.h"
 
-TableModelTopPatches::TableModelTopPatches(const std::vector<SelfPatchCompare::PatchDataType>& patchData, QObject * parent) :
-    QAbstractTableModel(parent), PatchDisplaySize(20), MaxTopPatchesToDisplay(0), TopPatchData(patchData), Image(NULL)
+TableModelTopPatches::TableModelTopPatches(
+    const std::vector<typename SelfPatchCompare<ImageType>::PatchDataType>& patchData, QObject * parent) :
+    QAbstractTableModel(parent), PatchDisplaySize(20), MaxTopPatchesToDisplay(0),
+    TopPatchData(patchData), Image(NULL)
 {
 }
 
@@ -148,14 +150,16 @@ void TableModelTopPatches::SetImage(ImageType* const image)
   this->Image = image;
 }
 
-void TableModelTopPatches::SetTopPatchData(const std::vector<SelfPatchCompare::PatchDataType>& topPatchData)
+void TableModelTopPatches::SetTopPatchData(
+  const std::vector<typename SelfPatchCompare<ImageType>::PatchDataType>& topPatchData)
 {
   this->TopPatchData = topPatchData;
   this->ClusterIDs.resize(this->TopPatchData.size(), 0);
   Refresh();
 }
 
-std::vector<SelfPatchCompare::PatchDataType> TableModelTopPatches::GetTopPatchData()
+std::vector<typename SelfPatchCompare<TableModelTopPatches::ImageType>::PatchDataType>
+TableModelTopPatches::GetTopPatchData()
 {
   return this->TopPatchData;
 }

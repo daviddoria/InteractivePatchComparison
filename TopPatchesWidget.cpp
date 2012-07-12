@@ -161,7 +161,7 @@ void TopPatchesWidget::Compute()
   //std::sort(topPatchData.begin(), topPatchData.end(), Helpers::SortBySecondAccending<PatchDataType>);
   unsigned int numberOfPatches = this->spinNumberOfBestPatches->value();
   std::partial_sort(this->TopPatchData.begin(), this->TopPatchData.begin() + numberOfPatches,
-                    this->TopPatchData.end(), Helpers::SortBySecondAccending<SelfPatchCompare::PatchDataType>);
+                    this->TopPatchData.end(), Helpers::SortBySecondAccending<SelfPatchCompare<ImageType>::PatchDataType>);
 
   this->TopPatchData.resize(numberOfPatches);
   std::cout << "There are " << this->TopPatchData.size() << " top patches." << std::endl;
