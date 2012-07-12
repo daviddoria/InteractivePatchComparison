@@ -38,6 +38,7 @@ class QSortFilterProxyModel;
 // Custom
 #include "TableModelTopPatches.h"
 #include "SelfPatchCompare.h"
+#include "SelfPatchCompareLocalOptimization.h"
 
 /** This class is necessary because a class template cannot have the Q_OBJECT macro directly. */
 class TopPatchesWidget : public QWidget, public Ui::TopPatchesWidget
@@ -103,7 +104,8 @@ private:
   QFutureWatcher<void> FutureWatcher;
   QProgressDialog* ProgressDialog;
 
-  SelfPatchCompare SelfPatchCompareFunctor;
+  //SelfPatchCompare SelfPatchCompareFunctor;
+  SelfPatchCompareLocalOptimization<ImageType> SelfPatchCompareFunctor;
 };
 
 #endif // TopPatchesWidget_H

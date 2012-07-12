@@ -27,7 +27,6 @@
 #include <Eigen/Dense>
 
 // Submodules
-#include "ITKVTKHelpers/ITKHelpers/Helpers/Helpers.h"
 #include "PatchComparison/PatchDistance.h"
 
 // ITK
@@ -70,16 +69,13 @@ public:
   /** Get the patch data (the regions and their corresponding distances). */
   std::vector<PatchDataType> GetPatchData();
 
-  /** Set the projection matrix to use in a projected distance comparison. */
-  void SetProjectionMatrix(const MatrixType& projectionMatrix);
-
   /** Set the function to use to compare patches. */
   void SetPatchDistanceFunctor(PatchDistance* const patchDistanceFunctor);
 
   /** If we do not want to use a mask, call this function. */
   void CreateFullyValidMask();
 
-private:
+protected:
 
   /** This is the target region we wish to compare. It may be partially invalid. */
   itk::ImageRegion<2> TargetRegion;
