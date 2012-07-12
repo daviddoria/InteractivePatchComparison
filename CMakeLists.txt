@@ -21,10 +21,6 @@ if(NOT TARGET ITKVTKHelpers)
   add_subdirectory(ITKVTKHelpers)
 endif()
 
-if(NOT TARGET Mask)
-  add_subdirectory(Mask)
-endif()
-
 if(NOT TARGET QtHelpers)
   add_subdirectory(QtHelpers)
 endif()

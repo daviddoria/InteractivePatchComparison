@@ -32,7 +32,7 @@ class QSortFilterProxyModel;
 #include "itkVectorImage.h"
 
 // Submodules
-#include "Mask/Mask.h"
+#include "PatchComparison/Mask/Mask.h"
 #include "PatchComparison/PatchDistance.h"
 #include "PatchComparison/SelfPatchCompare.h"
 #include "PatchComparison/SelfPatchCompareLocalOptimization.h"

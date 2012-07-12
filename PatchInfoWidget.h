@@ -25,7 +25,7 @@
 #include <QWidget>
 
 // Custom
-#include "Mask/Mask.h"
+#include "PatchComparison/Mask/Mask.h"
 #include "Types.h"
 
 class SwitchBetweenStyle;

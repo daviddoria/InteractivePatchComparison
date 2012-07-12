@@ -50,9 +50,9 @@
 
 // Submodules
 #include "ITKVTKHelpers/ITKVTKHelpers.h"
-#include "Mask/ITKHelpers/Helpers/Helpers.h"
-#include "Mask/Mask.h"
-#include "Mask/MaskOperations.h"
+#include "PatchComparison/Mask/ITKHelpers/Helpers/Helpers.h"
+#include "PatchComparison/Mask/Mask.h"
+#include "PatchComparison/Mask/MaskOperations.h"
 #include "VTKHelpers/VTKHelpers.h"
 #include "PatchComparison/EigenHelpers/EigenHelpers.h"
 #include "PatchComparison/PatchProjection/PatchProjection.h"

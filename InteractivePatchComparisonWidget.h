@@ -38,7 +38,7 @@ class vtkImageSliceMapper;
 #include <QMainWindow>
 
 // Submodules
-#include "Mask/Mask.h"
+#include "PatchComparison/Mask/Mask.h"
 #include "ITKVTKCamera/ITKVTKCamera.h"
 #include "PatchComparison/PatchDistance.h"
 

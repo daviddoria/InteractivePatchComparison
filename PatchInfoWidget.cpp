@@ -26,8 +26,8 @@
 #include <QDir>
 
 // Submodules
-#include "Mask/ITKHelpers/Helpers/Helpers.h"
-#include "Mask/MaskOperations.h"
+#include "PatchComparison/Mask/ITKHelpers/Helpers/Helpers.h"
+#include "PatchComparison/Mask/MaskOperations.h"
 #include "QtHelpers/QtHelpers.h"
 #include "ITKQtHelpers/ITKQtHelpers.h"
 

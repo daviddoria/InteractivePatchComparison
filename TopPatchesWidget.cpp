@@ -20,7 +20,7 @@
 #include "ITKVTKHelpers/ITKVTKHelpers.h"
 #include "QtHelpers/QtHelpers.h"
 #include "ITKQtHelpers/ITKQtHelpers.h"
-#include "Mask/Mask.h"
+#include "PatchComparison/Mask/Mask.h"
 #include "PatchClustering/PatchClustering.h"
 #include "PatchClustering/KMeansClustering/KMeansClustering.h"
 
