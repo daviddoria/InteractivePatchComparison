@@ -78,28 +78,55 @@
           <property name="palette">
            <palette>
             <active>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>255</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
              <colorrole role="Text">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
                 <red>0</red>
-                <green>192</green>
+                <green>0</green>
                 <blue>0</blue>
                </color>
               </brush>
              </colorrole>
             </active>
             <inactive>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>255</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
              <colorrole role="Text">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
                 <red>0</red>
-                <green>192</green>
+                <green>0</green>
                 <blue>0</blue>
                </color>
               </brush>
              </colorrole>
             </inactive>
             <disabled>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>144</red>
+                <green>141</green>
+                <blue>139</blue>
+               </color>
+              </brush>
+             </colorrole>
              <colorrole role="Text">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
@@ -128,8 +155,45 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="palette">
+           <palette>
+            <active>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </active>
+            <inactive>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </inactive>
+            <disabled>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>144</red>
+                <green>141</green>
+                <blue>139</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </disabled>
+           </palette>
+          </property>
           <property name="text">
-           <string>&lt;font color=&quot;red&quot;&gt;Target Patch&lt;/font&gt;</string>
+           <string>Target Patch</string>
           </property>
          </widget>
         </item>
@@ -231,7 +295,7 @@
      <x>0</x>
      <y>0</y>
      <width>1083</width>
-     <height>29</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuLeft_Pane">

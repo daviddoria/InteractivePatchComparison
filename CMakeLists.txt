@@ -52,7 +52,9 @@ if(${VTK_MAJOR_VERSION} LESS 6)
           is too old! At least 6.0 is required.")
 endif()
 
-FIND_PACKAGE(ITK 4 REQUIRED)
+FIND_PACKAGE(ITK 4 REQUIRED ITKCommon ITKIOImageBase
+ITKImageIntensity ITKImageFeature ITKMathematicalMorphology ITKBinaryMathematicalMorphology
+ITKDeprecated)
 INCLUDE(${ITK_USE_FILE})
 
 QT4_WRAP_UI(InteractivePatchComparisonWidgetUISrcs
