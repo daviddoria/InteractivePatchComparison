@@ -33,17 +33,25 @@ int main( int argc, char** argv )
   {
     viewAllMatchesWidget = new ViewAllMatchesWidget;
   }
-  else if(argc == 3)
+  else if(argc == 4)
   {
-    std::string imageFileName = argv[1];
+    std::stringstream ss;
+    for(int i = 1; i < argc; ++i)
+    {
+      ss << argv[i] << " ";
+    }
+
+    std::string imageFileName;
+    std::string matchFileName;
+    unsigned int patchRadius;
+
+    ss >> imageFileName >> matchFileName >> patchRadius;
 
     std::cout << "imageFileName: " << imageFileName << std::endl;
-
-    std::string matchFileName = argv[2];
-
     std::cout << "matchFileName: " << matchFileName << std::endl;
+    std::cout << "patchRadius: " << patchRadius << std::endl;
 
-    viewAllMatchesWidget = new ViewAllMatchesWidget(imageFileName, matchFileName);
+    viewAllMatchesWidget = new ViewAllMatchesWidget(imageFileName, matchFileName, patchRadius);
   }
   else
   {

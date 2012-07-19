@@ -39,8 +39,12 @@
 // Custom
 #include "PixmapDelegate.h"
 
+// Boost
+#include <boost/regex.hpp>
+
 ViewAllMatchesWidget::ViewAllMatchesWidget(const std::string& imageFileName,
-                                           const std::string& matchFileName, QWidget* parent) : QWidget(parent)
+                                           const std::string& matchFileName,
+                                           const unsigned int patchRadius, QWidget* parent) : QWidget(parent)
 {
   typedef itk::ImageFileReader<ImageType> ImageReaderType;
   ImageReaderType::Pointer imageReader = ImageReaderType::New();
@@ -62,19 +66,60 @@ ViewAllMatchesWidget::ViewAllMatchesWidget(const std::string& imageFileName,
 
   std::string line;
 
+  itk::Size<2> patchSize = {{patchRadius*2 + 1, patchRadius*2 + 1}};
   while(getline(fin, line))
   {
-    std::stringstream ss;
-    ss << line;
-    while(ss.rdbuf()->in_avail()) // while there are more characters to read
-    {
-      std::string test;
-      ss >> test;
-      std::cout << test << std::endl;
-    }
-//     PairType p(targetRegion, sourceRegion);
-//     this->Pairs.push_back(p);
-  }
+    // Setup the expression for a [x,y]
+    // The real regex is \[\s*[0-9]*\s*,\s*[0-9]*\s*\] which means match a [,
+    // then any number of whitespace, then any number of digits, then any number of white space,
+    // then a comma, then any number of whitespace, then any number of digits, then a ]
+    // The following has extra escape characters (\) for c++
+    // Additionally, the things we want to extract (the digits) are in subexpressions (parenthesis)
+    std::string myRegExString = "\\[\\s*([0-9]*)\\s*,\\s*([0-9]*)\\s*\\]";
+
+    const boost::regex myRegEx(myRegExString);
+
+    boost::match_results<std::string::const_iterator> matches;
+
+    std::string::const_iterator beginSearch = line.begin();
+    // Cannot just put this in the regex_search() call, aparently .end() does not return
+    // a const_iterator unless it is explicitly assigned to one?
+    std::string::const_iterator endSearch = line.end();
+
+    // Find the first match (target)
+    boost::regex_search(beginSearch, endSearch, matches, myRegEx);
+
+    std::string matchStringTargetX(matches[1].first, matches[1].second);
+    std::string matchStringTargetY(matches[2].first, matches[2].second);
+
+    std::stringstream matchSSTargetX(matchStringTargetX);
+    std::stringstream matchSSTargetY(matchStringTargetY);
+
+    itk::Index<2> targetIndex;
+    matchSSTargetX >> targetIndex[0];
+    matchSSTargetY >> targetIndex[1];
+
+    itk::ImageRegion<2> targetRegion(targetIndex, patchSize);
+
+    // Find the second match (source)
+    beginSearch = matches[0].second;
+    boost::regex_search(beginSearch, endSearch, matches, myRegEx);
+
+    std::string matchStringSourceX(matches[1].first, matches[1].second);
+    std::string matchStringSourceY(matches[2].first, matches[2].second);
+
+    std::stringstream matchSSSourceX(matchStringSourceX);
+    std::stringstream matchSSSourceY(matchStringSourceY);
+
+    itk::Index<2> sourceIndex;
+    matchSSSourceX >> sourceIndex[0];
+    matchSSSourceY >> sourceIndex[1];
+
+    itk::ImageRegion<2> sourceRegion(sourceIndex, patchSize);
+
+    PairType p(targetRegion, sourceRegion);
+    this->Pairs.push_back(p);
+  } // end while
 
   SharedConstructor();
 }

@@ -116,5 +116,5 @@ TARGET_LINK_LIBRARIES(ViewAllMatches
 EigenHelpers QtHelpers Helpers VTKHelpers ITKHelpers ITKVTKHelpers
 PatchComparison
 PatchClustering
-${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
+${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES} boost_regex)
 INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )

@@ -44,7 +44,8 @@ public:
   typedef itk::VectorImage<unsigned char, 2> ImageType;
 
   ViewAllMatchesWidget(QWidget* parent = NULL);
-  ViewAllMatchesWidget(const std::string& imageFileName, const std::string& matchFileName, QWidget* parent = NULL);
+  ViewAllMatchesWidget(const std::string& imageFileName, const std::string& matchFileName,
+                       const unsigned int patchRadius, QWidget* parent = NULL);
   void SharedConstructor();
 
 public slots:
