@@ -58,6 +58,7 @@ private:
   // TODO: this should be added to helpers
   std::istream& MyIgnore(std::istream& ss);
 
+  TableModelViewAllMatches* TableModel;
 };
 
 #endif // ViewAllMatchesWidget_H

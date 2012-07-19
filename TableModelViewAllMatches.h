@@ -16,8 +16,8 @@
  *
  *=========================================================================*/
 
-#ifndef TableModelTopPatches_H
-#define TableModelTopPatches_H
+#ifndef TableModelViewAllMatches_H
+#define TableModelViewAllMatches_H
 
 // Qt
 #include <QAbstractTableModel>
@@ -30,17 +30,15 @@
 // STL
 #include <vector>
 
-// Custom
-#include "PatchComparison/SelfPatchCompare.h"
-
-class TableModelTopPatches : public QAbstractTableModel
+class TableModelViewAllMatches : public QAbstractTableModel
 {
 public:
-  typedef itk::VectorImage<float, 2> ImageType;
+  typedef itk::VectorImage<unsigned char, 2> ImageType;
+
+  typedef std::pair<itk::ImageRegion<2>, itk::ImageRegion<2> > PairType;
   
-  //TableModelTopPatches(QObject * parent);
-  TableModelTopPatches(const std::vector<SelfPatchCompare<ImageType>::PatchDataType>& patchData,
-                       QObject * parent);
+  TableModelViewAllMatches(ImageType* const image, const std::vector<PairType>& allPairs,
+                           QObject * parent);
 
   int rowCount(const QModelIndex& parent) const;
   int columnCount(const QModelIndex& parent) const;
@@ -49,9 +47,7 @@ public:
 
   Qt::ItemFlags flags(const QModelIndex& index) const;
 
-  void SetMaxTopPatchesToDisplay(const unsigned int maxTopPatchesToDisplay);
-
-  void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
+  void SetMaxPairsToDisplay(const unsigned int maxPairsToDisplay);
 
   void Refresh();
 
@@ -59,11 +55,7 @@ public:
 
   void SetImage(ImageType* const image);
 
-  void SetTopPatchData(const std::vector<SelfPatchCompare<ImageType>::PatchDataType>& topPatchData);
-
-  void SetClusterIDs(const std::vector<unsigned int>& clusterIDs);
-
-  std::vector<SelfPatchCompare<ImageType>::PatchDataType> GetTopPatchData();
+  void SetTopPatchData(const std::vector<PairType>& allPairs);
 
 private:
 
@@ -71,11 +63,9 @@ private:
   // TODO: This should be set by the size of the target patch, or a multiplier, or something
   unsigned int PatchDisplaySize;
 
-  unsigned int MaxTopPatchesToDisplay;
+  unsigned int MaxPairsToDisplay;
 
-  std::vector<SelfPatchCompare<ImageType>::PatchDataType> TopPatchData;
-
-  std::vector<unsigned int> ClusterIDs;
+  std::vector<PairType> AllPairs;
 
   ImageType* Image;
 };

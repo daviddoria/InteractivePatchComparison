@@ -59,7 +59,7 @@ if(${VTK_MAJOR_VERSION} LESS 6)
           is too old! At least 6.0 is required.")
 endif()
 
-FIND_PACKAGE(ITK 4 REQUIRED ITKCommon ITKIOImageBase ITKIOPNG ITKDistanceMap
+FIND_PACKAGE(ITK 4 REQUIRED ITKCommon ITKIOImageBase ITKIOPNG ITKDistanceMap ITKTestKernel
              ITKImageIntensity ITKImageFeature ITKMathematicalMorphology ITKBinaryMathematicalMorphology)
 INCLUDE(${ITK_USE_FILE})
 
@@ -108,7 +108,7 @@ PixmapDelegate.h)
 ADD_EXECUTABLE(ViewAllMatches
 ViewAllMatches.cpp
 PixmapDelegate.cpp
-TableModelTopPatches.cpp
+TableModelViewAllMatches.cpp
 ViewAllMatchesWidget.cpp
 ${ViewAllMatchesWidgetUISrcs} ${ViewAllMatchesMOCSrcs})
 

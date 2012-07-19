@@ -66,7 +66,7 @@ ViewAllMatchesWidget::ViewAllMatchesWidget(const std::string& imageFileName,
   {
     std::stringstream ss;
     ss << line;
-    while(!ss.rdbuf()->in_avail()) // while there are more characters to read
+    while(ss.rdbuf()->in_avail()) // while there are more characters to read
     {
       std::string test;
       ss >> test;
@@ -76,7 +76,6 @@ ViewAllMatchesWidget::ViewAllMatchesWidget(const std::string& imageFileName,
 //     this->Pairs.push_back(p);
   }
 
-  
   SharedConstructor();
 }
 
@@ -89,26 +88,18 @@ void ViewAllMatchesWidget::SharedConstructor()
 {
   this->setupUi(this);
   // Make the cells fit the images (based on the sizeHint from the PixmapDelegate)
-//   this->tblviewTopPatches->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
-//   this->tblviewTopPatches->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
-// 
-//   this->TargetPatchItem = new QGraphicsPixmapItem;
-//   this->TargetPatchScene = new QGraphicsScene();
-//   this->gfxTargetPatch->setScene(this->TargetPatchScene);
-// 
-//   this->ProxyModel = new QSortFilterProxyModel;
-//   this->TopPatchesModel = new TableModelTopPatches(this->TopPatchData, this);
-//   this->ProxyModel->setSourceModel(this->TopPatchesModel);
-//   this->tblviewTopPatches->setModel(ProxyModel);
-//   this->TopPatchesModel->SetMaxTopPatchesToDisplay(this->spinNumberOfBestPatches->value());
-// 
-//   std::cout << "Set patch display size to: " << this->gfxTargetPatch->size().height() << std::endl;
-//   this->TopPatchesModel->SetPatchDisplaySize(this->gfxTargetPatch->size().height());
-// 
-//   PixmapDelegate* pixmapDelegate = new PixmapDelegate;
-// 
-//   this->tblviewTopPatches->setItemDelegate(pixmapDelegate);
+  this->tblviewAllMatches->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+  this->tblviewAllMatches->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
 
+  //this->TableModel = new TableModelViewAllMatches(this->TopPatchData, this);
+  this->tblviewAllMatches->setModel(this->TableModel);
+  this->TableModel->SetMaxPairsToDisplay(500000);
+
+//   std::cout << "Set patch display size to: " << this->gfxTargetPatch->size().height() << std::endl;
+//   this->TableModel->SetPatchDisplaySize(this->gfxTargetPatch->size().height());
+
+  PixmapDelegate* pixmapDelegate = new PixmapDelegate;
+  this->tblviewAllMatches->setItemDelegate(pixmapDelegate);
 }
 
 std::istream& ViewAllMatchesWidget::MyIgnore(std::istream& ss)
