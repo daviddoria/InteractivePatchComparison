@@ -34,12 +34,12 @@ int main(int argc, char *argv[])
 
   typedef itk::ImageFileReader<VectorImageType> VectorImageReaderType;
   VectorImageReaderType::Pointer imageReader = VectorImageReaderType::New();
-  imageReader->SetFileName(imageFilename.c_str());
+  imageReader->SetFileName(imageFilename);
   imageReader->Update();
 
   typedef itk::ImageFileReader<Mask> MaskReaderType;
   MaskReaderType::Pointer maskReader = MaskReaderType::New();
-  maskReader->SetFileName(maskFilename.c_str());
+  maskReader->SetFileName(maskFilename);
   maskReader->Update();
 
   itk::Size<2> size;

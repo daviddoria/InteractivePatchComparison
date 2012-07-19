@@ -15,30 +15,37 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 # Submodules
 if(NOT TARGET VTKHelpers)
   add_subdirectory(VTKHelpers)
+  include_directories(${VTKHelpers_includes})
 endif()
 
 if(NOT TARGET ITKVTKHelpers)
   add_subdirectory(ITKVTKHelpers)
+  include_directories(${ITKVTKHelpers_includes})
 endif()
 
 if(NOT TARGET QtHelpers)
   add_subdirectory(QtHelpers)
+  include_directories(${QtHelpers_includes})
 endif()
 
 if(NOT TARGET ITKQtHelpers)
   add_subdirectory(ITKQtHelpers)
+  include_directories(${ITKQtHelpers_includes})
 endif()
 
 if(NOT TARGET PatchComparison)
   add_subdirectory(PatchComparison)
+  include_directories(${PatchComparison_includes})
 endif()
 
 if(NOT TARGET ITKVTKCamera)
   add_subdirectory(ITKVTKCamera)
+  include_directories(${ITKVTKCamera_includes})
 endif()
 
 if(NOT TARGET PatchClustering)
   add_subdirectory(PatchClustering)
+  include_directories(${PatchClustering_includes})
 endif()
 
 FIND_PACKAGE(Qt4 REQUIRED)
@@ -52,9 +59,8 @@ if(${VTK_MAJOR_VERSION} LESS 6)
           is too old! At least 6.0 is required.")
 endif()
 
-FIND_PACKAGE(ITK 4 REQUIRED ITKCommon ITKIOImageBase
-ITKImageIntensity ITKImageFeature ITKMathematicalMorphology ITKBinaryMathematicalMorphology
-ITKDeprecated)
+FIND_PACKAGE(ITK 4 REQUIRED ITKCommon ITKIOImageBase ITKIOPNG ITKDistanceMap
+             ITKImageIntensity ITKImageFeature ITKMathematicalMorphology ITKBinaryMathematicalMorphology)
 INCLUDE(${ITK_USE_FILE})
 
 QT4_WRAP_UI(InteractivePatchComparisonWidgetUISrcs
@@ -90,3 +96,25 @@ INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )
 
 get_directory_property(output INCLUDE_DIRECTORIES)
 message(${output})
+
+#####################
+
+QT4_WRAP_UI(ViewAllMatchesWidgetUISrcs
+ViewAllMatchesWidget.ui)
+QT4_WRAP_CPP(ViewAllMatchesMOCSrcs
+ViewAllMatchesWidget.h
+PixmapDelegate.h)
+
+ADD_EXECUTABLE(ViewAllMatches
+ViewAllMatches.cpp
+PixmapDelegate.cpp
+TableModelTopPatches.cpp
+ViewAllMatchesWidget.cpp
+${ViewAllMatchesWidgetUISrcs} ${ViewAllMatchesMOCSrcs})
+
+TARGET_LINK_LIBRARIES(ViewAllMatches
+EigenHelpers QtHelpers Helpers VTKHelpers ITKHelpers ITKVTKHelpers
+PatchComparison
+PatchClustering
+${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
+INSTALL( TARGETS InteractivePatchComparison RUNTIME DESTINATION ${INSTALL_DIR} )

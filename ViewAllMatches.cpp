@@ -19,7 +19,7 @@
 #include <QApplication>
 #include <QCleanlooksStyle>
 
-#include "InteractivePatchComparisonWidget.h"
+#include "ViewAllMatchesWidget.h"
 
 int main( int argc, char** argv )
 {
@@ -27,29 +27,23 @@ int main( int argc, char** argv )
 
   QApplication::setStyle(new QCleanlooksStyle);
 
-  InteractivePatchComparisonWidget* interactivePatchComparisonWidget = NULL;
+  ViewAllMatchesWidget* viewAllMatchesWidget = NULL;
 
   if(argc == 1)
   {
-    interactivePatchComparisonWidget = new InteractivePatchComparisonWidget;
-  }
-  else if(argc == 2)
-  {
-    std::string imageFileName = argv[1];
-
-    std::cout << "imageFileName: " << imageFileName << std::endl;
-
-    interactivePatchComparisonWidget = new InteractivePatchComparisonWidget(imageFileName);
+    viewAllMatchesWidget = new ViewAllMatchesWidget;
   }
   else if(argc == 3)
   {
     std::string imageFileName = argv[1];
-    std::string maskFileName = argv[2];
 
     std::cout << "imageFileName: " << imageFileName << std::endl;
-    std::cout << "maskFileName: " << maskFileName << std::endl;
 
-    interactivePatchComparisonWidget = new InteractivePatchComparisonWidget(imageFileName, maskFileName);
+    std::string matchFileName = argv[2];
+
+    std::cout << "matchFileName: " << matchFileName << std::endl;
+
+    viewAllMatchesWidget = new ViewAllMatchesWidget(imageFileName, matchFileName);
   }
   else
   {
@@ -57,7 +51,7 @@ int main( int argc, char** argv )
     return EXIT_FAILURE;
   }
   
-  interactivePatchComparisonWidget->show();
+  viewAllMatchesWidget->show();
 
   return app.exec();
 }
