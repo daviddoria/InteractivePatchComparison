@@ -27,11 +27,17 @@
 #include "QtHelpers/QtHelpers.h"
 #include "ITKQtHelpers/ITKQtHelpers.h"
 
+TableModelViewAllMatches::TableModelViewAllMatches(QObject * parent) :
+QAbstractTableModel(parent), PatchDisplaySize(20), MaxPairsToDisplay(0), Image(NULL)
+{
+}
+
 TableModelViewAllMatches::TableModelViewAllMatches(ImageType* const image,
     const std::vector<PairType>& allPairs, QObject * parent) :
     QAbstractTableModel(parent), PatchDisplaySize(20), MaxPairsToDisplay(0),
-    AllPairs(allPairs), Image(NULL)
+    AllPairs(allPairs), Image(image)
 {
+  std::cout << "There are " << this->AllPairs.size() << " pairs." << std::endl;
 }
 
 void TableModelViewAllMatches::SetPatchDisplaySize(const unsigned int value)
@@ -50,6 +56,7 @@ int TableModelViewAllMatches::rowCount(const QModelIndex& parent) const
 {
   unsigned int numberOfRowsToDisplay = std::min(this->AllPairs.size(), this->MaxPairsToDisplay);
 
+  //std::cout << "There are " << numberOfRowsToDisplay << " rows to display." << std::endl;
   return numberOfRowsToDisplay;
 }
 
@@ -61,14 +68,18 @@ int TableModelViewAllMatches::columnCount(const QModelIndex& parent) const
 void TableModelViewAllMatches::SetMaxPairsToDisplay(const unsigned int maxPairsToDisplay)
 {
   this->MaxPairsToDisplay = maxPairsToDisplay;
+  Refresh();
 }
 
 QVariant TableModelViewAllMatches::data(const QModelIndex& index, int role) const
 {
+  //std::cout << "data()" << std::endl;
   QVariant returnValue;
-  if(role == Qt::DisplayRole && index.row() >= 0)
-    {
 
+  if(role == Qt::DisplayRole && index.row() >= 0 &&
+     index.row() < static_cast<int>(this->AllPairs.size()) &&
+     index.row() < static_cast<int>(this->MaxPairsToDisplay))
+    {
     switch(index.column())
       {
       case 0:
@@ -79,6 +90,7 @@ QVariant TableModelViewAllMatches::data(const QModelIndex& index, int role) cons
       case 1:
         {
         itk::ImageRegion<2> targetRegion = this->AllPairs[index.row()].first;
+        //std::cout << "Target region: " << targetRegion << std::endl;
         QImage patchImage = ITKQtHelpers::GetQImageColor(this->Image, targetRegion);
         patchImage = patchImage.scaledToHeight(this->PatchDisplaySize);
         returnValue = QPixmap::fromImage(patchImage);
@@ -87,6 +99,7 @@ QVariant TableModelViewAllMatches::data(const QModelIndex& index, int role) cons
       case 2:
         {
         itk::ImageRegion<2> sourceRegion = this->AllPairs[index.row()].second;
+        //std::cout << "Source region: " << sourceRegion << std::endl;
         QImage patchImage = ITKQtHelpers::GetQImageColor(this->Image, sourceRegion);
         patchImage = patchImage.scaledToHeight(this->PatchDisplaySize);
         returnValue = QPixmap::fromImage(patchImage);
@@ -133,10 +146,10 @@ void TableModelViewAllMatches::Refresh()
 void TableModelViewAllMatches::SetImage(ImageType* const image)
 {
   this->Image = image;
+  Refresh();
 }
 
-void TableModelViewAllMatches::SetTopPatchData(
-  const std::vector<PairType>& topPatchData)
+void TableModelViewAllMatches::SetTopPatchData(const std::vector<PairType>& topPatchData)
 {
   this->AllPairs = topPatchData;
 

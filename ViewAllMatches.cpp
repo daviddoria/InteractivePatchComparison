@@ -31,10 +31,12 @@ int main( int argc, char** argv )
 
   if(argc == 1)
   {
+    std::cout << "Default" << std::endl;
     viewAllMatchesWidget = new ViewAllMatchesWidget;
   }
   else if(argc == 4)
   {
+    std::cout << "Full" << std::endl;
     std::stringstream ss;
     for(int i = 1; i < argc; ++i)
     {
@@ -55,10 +57,16 @@ int main( int argc, char** argv )
   }
   else
   {
-    std::cerr << "Input arguments invalid!" << std::endl;
+    std::cout << "argc is " << argc << std::endl;
+    std::cerr << "Invalid input arguments!" << std::endl;
+    for(int i = 1; i < argc; ++i)
+    {
+      //std::cerr << argv[i] << " ";
+      std::cout << argv[i] << " ";
+    }
     return EXIT_FAILURE;
   }
-  
+
   viewAllMatchesWidget->show();
 
   return app.exec();

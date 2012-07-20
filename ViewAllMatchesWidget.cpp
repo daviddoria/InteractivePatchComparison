@@ -53,6 +53,7 @@ ViewAllMatchesWidget::ViewAllMatchesWidget(const std::string& imageFileName,
 
   this->Image = ImageType::New();
   ITKHelpers::DeepCopy(imageReader->GetOutput(), this->Image.GetPointer());
+  std::cout << "Image size: " << this->Image->GetLargestPossibleRegion().GetSize() << std::endl;
 
   // Parse matches list
   std::ifstream fin(matchFileName.c_str());
@@ -69,6 +70,8 @@ ViewAllMatchesWidget::ViewAllMatchesWidget(const std::string& imageFileName,
   itk::Size<2> patchSize = {{patchRadius*2 + 1, patchRadius*2 + 1}};
   while(getline(fin, line))
   {
+    //std::cout << "Current line: " << line << std::endl;
+
     // Setup the expression for a [x,y]
     // The real regex is \[\s*[0-9]*\s*,\s*[0-9]*\s*\] which means match a [,
     // then any number of whitespace, then any number of digits, then any number of white space,
@@ -121,11 +124,15 @@ ViewAllMatchesWidget::ViewAllMatchesWidget(const std::string& imageFileName,
     this->Pairs.push_back(p);
   } // end while
 
+  std::cout << "There are " << this->Pairs.size() << " pairs." << std::endl;
+  this->TableModel = new TableModelViewAllMatches(this->Image, this->Pairs, this);
+
   SharedConstructor();
 }
 
 ViewAllMatchesWidget::ViewAllMatchesWidget(QWidget* parent) : QWidget(parent), Image(NULL)
 {
+  this->TableModel = new TableModelViewAllMatches(this);
   SharedConstructor();
 }
 
@@ -136,7 +143,6 @@ void ViewAllMatchesWidget::SharedConstructor()
   this->tblviewAllMatches->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
   this->tblviewAllMatches->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
 
-  //this->TableModel = new TableModelViewAllMatches(this->TopPatchData, this);
   this->tblviewAllMatches->setModel(this->TableModel);
   this->TableModel->SetMaxPairsToDisplay(500000);
 
@@ -145,10 +151,19 @@ void ViewAllMatchesWidget::SharedConstructor()
 
   PixmapDelegate* pixmapDelegate = new PixmapDelegate;
   this->tblviewAllMatches->setItemDelegate(pixmapDelegate);
+
+  connect(this->tblviewAllMatches->selectionModel(),
+          SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+          this, SLOT(slot_SelectionChanged(const QItemSelection &, const QItemSelection &)));
 }
 
 std::istream& ViewAllMatchesWidget::MyIgnore(std::istream& ss)
 {
   ss.ignore(std::numeric_limits<std::streamsize>::max(),':');
   return ss;
+}
+
+void ViewAllMatchesWidget::slot_SelectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
+{
+  std::cout << selected.indexes()[0].row() << std::endl;
 }

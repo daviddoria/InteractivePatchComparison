@@ -64,6 +64,7 @@ public slots:
   /** When a patch (or patches) is clicked or the arrow keys are used, emit a signal. */
   void slot_SelectionChanged(const QItemSelection &, const QItemSelection &);
 
+  /** Called when the compute button is clicked. */
   void on_btnCompute_clicked();
 
   /** Called when the progress bar is complete. */
@@ -71,39 +72,58 @@ public slots:
 
 //   void on_txtClusters_returnPressed();
 //   void on_txtClusters_textEdited();
+  /** Called when the number of clusters is changed. */
   void on_spinClusters_valueChanged(int);
 
 //   void on_txtNumberOfPatches_returnPressed();
 //   void on_txtNumberOfPatches_textEdited();
+  /** Called when the number of patches to display is changed. */
   void on_spinNumberOfBestPatches_valueChanged(int);
 
 signals:
 
+  /** Emit a signal when a patch is selected. */
   void signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >& region);
 
 private:
+  /** The image that the patches reference. */
   ImageType* Image;
 
+  /** Handle events (not signals) of other widgets. */
   bool eventFilter(QObject *object, QEvent *event);
 
+  /** The main computation. */
   void Compute();
 
+  /** The scene for the target patch. */
   QGraphicsScene* TargetPatchScene;
+
+  /** The item for the target patch. */
   QGraphicsPixmapItem* TargetPatchItem;
+
+  /** The table model used to display the patches. */
   TableModelTopPatches* TopPatchesModel;
+
+  /** The proxy model to allow the table model to be sorted. */
   QSortFilterProxyModel* ProxyModel;
 
+  /** The query/target region that we are trying to match a patch to. */
   itk::ImageRegion<2> TargetRegion;
 
+  /** Perform a clustering of the top patches. */
   void Cluster();
 
+  /** Store the top patch data. */
   std::vector<SelfPatchCompare<ImageType>::PatchDataType> TopPatchData;
 
-  /** To monitor the progress. */
+  /** A watcher to check in on the progress of a long computation. */
   QFutureWatcher<void> FutureWatcher;
+
+  /** The progress bar. */
   QProgressDialog* ProgressDialog;
 
   //SelfPatchCompare SelfPatchCompareFunctor;
+  /** The functor to use to find the best patch. */
   SelfPatchCompareLocalOptimization<ImageType> SelfPatchCompareFunctor;
 };
 

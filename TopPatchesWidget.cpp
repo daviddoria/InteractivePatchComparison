@@ -91,7 +91,7 @@ void TopPatchesWidget::SetTargetRegion(const itk::ImageRegion<2>& targetRegion)
   this->TargetPatchScene->addPixmap(pixmap);
 }
 
-void TopPatchesWidget::slot_SelectionChanged(const QItemSelection &, const QItemSelection &)
+void TopPatchesWidget::slot_SelectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
 {
   QModelIndexList indexes = this->tblviewTopPatches->selectionModel()->selection().indexes();
 

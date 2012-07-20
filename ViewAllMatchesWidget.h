@@ -50,6 +50,9 @@ public:
 
 public slots:
 
+  /** When a patch (or patches) is clicked or the arrow keys are used, emit a signal. */
+  void slot_SelectionChanged(const QItemSelection &, const QItemSelection &);
+
 private:
   ImageType::Pointer Image;
 
