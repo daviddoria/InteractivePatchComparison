@@ -54,14 +54,20 @@ public slots:
   void slot_SelectionChanged(const QItemSelection &, const QItemSelection &);
 
 private:
+  /** The image that the regions/patches reference. */
   ImageType::Pointer Image;
 
+  /** The type of patch pairs. */
   typedef std::pair<itk::ImageRegion<2>, itk::ImageRegion<2> > PairType;
+
+  /** All of the patch pairs. */
   std::vector<PairType> Pairs;
 
   // TODO: this should be added to helpers
+  /** A function to ignore input from a stream. */
   std::istream& MyIgnore(std::istream& ss);
 
+  /** The table model used to display the patches. */
   TableModelViewAllMatches* TableModel;
 };
 
