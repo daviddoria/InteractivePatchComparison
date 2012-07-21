@@ -48,11 +48,6 @@ if(NOT TARGET PatchClustering)
   include_directories(${PatchClustering_includes})
 endif()
 
-# FIND_PACKAGE(Boost)
-# IF (Boost_FOUND)
-#     INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-# ENDIF()
-
 FIND_PACKAGE(Boost COMPONENTS regex) # need the libboost-regex1.48.0 and libboost-regex1.48.0-dev packages installed (Ubuntu). Without the -dev package, CMake says "Could NOT find Boost."
 IF (Boost_FOUND)
     INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
