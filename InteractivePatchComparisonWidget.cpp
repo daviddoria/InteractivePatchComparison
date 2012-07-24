@@ -113,12 +113,12 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->setupUi(this);
 
   this->CurrentDistanceFunctor = NULL;
-  
+
   OddValidator* oddValidator = new OddValidator;
   this->spinPatchRadius->findChild<QLineEdit*>()->setValidator(oddValidator);
 
-//   // Use event filters to handle focus change events
-   this->spinPatchRadius->findChild<QLineEdit*>()->installEventFilter(this);
+  // Use event filters to handle focus change events
+  this->spinPatchRadius->findChild<QLineEdit*>()->installEventFilter(this);
 
   // Setup icons
   QIcon openIcon = QIcon::fromTheme("document-open");
@@ -163,6 +163,9 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->InteractorStyle->SetCurrentRenderer(this->Renderer);
   this->qvtkWidget->GetRenderWindow()->GetInteractor()->SetInteractorStyle(this->InteractorStyle);
   this->InteractorStyle->Init();
+
+  itkvtkCamera.Initialize(this->InteractorStyle->ImageStyle, this->Renderer,
+                          this->qvtkWidget->GetRenderWindow());
 
   // I can never decide if it is better to create these here and then check for their
   // existance with if(this->MaskImage->GetLargestPossibleRegion().GetSize()[0] > 0)
@@ -256,8 +259,8 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
   this->statusBar()->showMessage("Opened image.");
   actionOpenMask->setEnabled(true);
 
-  TargetPatchInfoWidget->SetImage(this->Image.GetPointer());
-  SourcePatchInfoWidget->SetImage(this->Image.GetPointer());
+  this->TargetPatchInfoWidget->SetImage(this->Image.GetPointer());
+  this->SourcePatchInfoWidget->SetImage(this->Image.GetPointer());
 
   this->TopPatchesPanel->SetImage(this->Image.GetPointer());
 
@@ -280,6 +283,15 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
   }
 
   UpdatePatches();
+
+  if(fileInfo.suffix() == "png")
+  {
+    itkvtkCamera.SetCameraPositionPNG();
+  }
+  else if(fileInfo.suffix() == "mha")
+  {
+    itkvtkCamera.SetCameraPositionMHA();
+  }
 }
 
 void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
@@ -430,9 +442,9 @@ void InteractivePatchComparisonWidget::Refresh()
   this->qvtkWidget->GetRenderWindow()->Render();
 }
 
-void InteractivePatchComparisonWidget::on_actionFlipImage_activated()
+void InteractivePatchComparisonWidget::on_actionFlipVertically_activated()
 {
-// camera->Flip
+  itkvtkCamera.FlipVertically();
 }
 
 void InteractivePatchComparisonWidget::slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& patches)

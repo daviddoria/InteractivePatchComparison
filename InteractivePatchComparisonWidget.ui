@@ -305,7 +305,6 @@
     <addaction name="actionOpenImage"/>
     <addaction name="actionOpenMask"/>
     <addaction name="actionOpenMaskInverted"/>
-    <addaction name="actionFlipImage"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -326,11 +325,12 @@
      <string>View</string>
     </property>
     <addaction name="action_View_TopPatches"/>
+    <addaction name="actionFlipVertically"/>
    </widget>
    <addaction name="menuLeft_Pane"/>
-   <addaction name="menuHelp"/>
    <addaction name="menuExport"/>
    <addaction name="menuView"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -394,9 +394,9 @@
     <string>Open PointCloud</string>
    </property>
   </action>
-  <action name="actionFlipImage">
+  <action name="actionFlipVertically">
    <property name="text">
-    <string>Flip Image</string>
+    <string>Flip Vertically</string>
    </property>
   </action>
   <action name="actionFlipRightImage">

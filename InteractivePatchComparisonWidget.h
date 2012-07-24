@@ -84,7 +84,7 @@ public slots:
   void on_actionHelp_activated();
   void on_actionQuit_activated();
 
-  void on_actionFlipImage_activated();
+  void on_actionFlipVertically_activated();
   void on_actionScreenshot_activated();
 
   void on_spinPatchRadius_valueChanged(int value);
