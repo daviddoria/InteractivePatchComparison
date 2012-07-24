@@ -27,7 +27,7 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,6,1,6,1,1,1,1,1">
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,6,1,6,1,1">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
@@ -240,30 +240,6 @@
           </property>
           <property name="text">
            <string>Save Patch Pair</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="radDistanceSSD">
-          <property name="text">
-           <string>SSD</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="radDistancePCA">
-          <property name="text">
-           <string>PCA</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="radDistanceLocalPCA">
-          <property name="text">
-           <string>Local PCA</string>
           </property>
          </widget>
         </item>

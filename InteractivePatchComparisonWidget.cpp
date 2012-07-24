@@ -196,9 +196,6 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   connect(this, SIGNAL(signal_SourcePatchMoved(const itk::ImageRegion<2>&)),
           SourcePatchInfoWidget, SLOT(slot_Update(const itk::ImageRegion<2>& )));
 
-  /** This is used when the user clicks on a top patch in the view of the top patches. */
-//   connect(this->TopPatchesPanel, SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
-//           this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
 }
 
 void InteractivePatchComparisonWidget::on_actionQuit_activated()
@@ -632,15 +629,19 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
   SSD<ImageType>* ssdDistanceFunctor = new SSD<ImageType>;
   ssdDistanceFunctor->SetImage(this->Image);
 
-  this->PatchDistanceFunctors.push_back(ssdDistanceFunctor);
   this->CurrentDistanceFunctor = ssdDistanceFunctor;
-  
+
   TopPatchesWidget* topPatchesWidget = new TopPatchesWidget;
   topPatchesWidget->SetPatchDistanceFunctor(ssdDistanceFunctor);
   topPatchesWidget->SetImage(this->Image);
   topPatchesWidget->setWindowTitle("SSD");
   this->TopPatchesWidgets.push_back(topPatchesWidget);
   topPatchesWidget->show();
+
+  // This is used when the user clicks on a top patch in the view of the top patches.
+  connect(topPatchesWidget,
+          SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
+          this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
 
   // Setup the blurred top patches widget
   this->BlurredImage = ImageType::New();
@@ -650,14 +651,17 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
   SSD<ImageType>* blurredSSDDistanceFunctor = new SSD<ImageType>;
   blurredSSDDistanceFunctor->SetImage(this->BlurredImage);
 
-  this->PatchDistanceFunctors.push_back(blurredSSDDistanceFunctor);
-
   TopPatchesWidget* blurredTopPatchesWidget = new TopPatchesWidget;
   blurredTopPatchesWidget->setWindowTitle("Blurred SSD");
   blurredTopPatchesWidget->SetImage(this->Image);
   blurredTopPatchesWidget->SetPatchDistanceFunctor(blurredSSDDistanceFunctor);
   this->TopPatchesWidgets.push_back(blurredTopPatchesWidget);
   blurredTopPatchesWidget->show();
+
+  // This is used when the user clicks on a top patch in the view of the top patches.
+  connect(blurredTopPatchesWidget,
+          SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
+          this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
 }
 
 bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *event)
@@ -686,22 +690,4 @@ bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *even
   }
 
   return false; // Pass the event along (don't consume it)
-}
-
-void InteractivePatchComparisonWidget::on_radDistanceSSD_clicked()
-{
-  this->CurrentDistanceFunctor = this->PatchDistanceFunctors[0];
-  //this->TopPatchesPanel->SetPatchDistanceFunctor(this->PatchDistanceFunctors[0]);
-}
-
-void InteractivePatchComparisonWidget::on_radDistancePCA_clicked()
-{
-  this->CurrentDistanceFunctor = this->PatchDistanceFunctors[1];
-  //this->TopPatchesPanel->SetPatchDistanceFunctor(this->PatchDistanceFunctors[1]);
-}
-
-void InteractivePatchComparisonWidget::on_radDistanceLocalPCA_clicked()
-{
-  this->CurrentDistanceFunctor = this->PatchDistanceFunctors[2];
-  //this->TopPatchesPanel->SetPatchDistanceFunctor(this->PatchDistanceFunctors[2]);
 }

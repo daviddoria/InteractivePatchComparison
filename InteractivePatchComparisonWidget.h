@@ -103,15 +103,6 @@ public slots:
   /** The slot to handle when the selected top patch is changed. */
   void slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& );
 
-  /** The slot to handle when the user has selected the SSD distance functor. */
-  void on_radDistanceSSD_clicked();
-
-  /** The slot to handle when the user has selected the PCA distance functor. */
-  void on_radDistancePCA_clicked();
-
-  /** The slot to handle when the user has selected the LocalPCA distance functor. */
-  void on_radDistanceLocalPCA_clicked();
-
 private:
 
   /** Compute the difference between selected patches. */
@@ -185,9 +176,6 @@ private:
 
   /** The filename of the mask. */
   std::string MaskFileName;
-
-  /** A list of all functor to potentially use. */
-  std::vector<PatchDistance*> PatchDistanceFunctors;
 
   /** The functor to use in the PatchInformation widgets */
   PatchDistance* CurrentDistanceFunctor;
