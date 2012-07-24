@@ -55,7 +55,7 @@ int TableModelTopPatches::rowCount(const QModelIndex& parent) const
 
 int TableModelTopPatches::columnCount(const QModelIndex& parent) const
 {
-  return 3;
+  return 2;
 }
 
 void TableModelTopPatches::SetMaxTopPatchesToDisplay(const unsigned int maxTopPatchesToDisplay)
@@ -78,8 +78,6 @@ QVariant TableModelTopPatches::data(const QModelIndex& index, int role) const
 
         patchImage = patchImage.scaledToHeight(this->PatchDisplaySize);
 
-        //std::cout << "patchImage.size: w=" << patchImage.size().width() << "h=" << patchImage.size().height() << std::endl;
-
         returnValue = QPixmap::fromImage(patchImage);
         break;
         }
@@ -87,16 +85,6 @@ QVariant TableModelTopPatches::data(const QModelIndex& index, int role) const
         {
         // returnValue = index.row(); // This is the id
         returnValue = this->TopPatchData[index.row()].second;
-        break;
-        }
-//       case 2:
-//         {
-//         returnValue = ITKHelpers::GetIndexString(sourceRegion.GetIndex()).c_str();
-//         break;
-//         }
-      case 2:
-        {
-        returnValue = ClusterIDs[index.row()];
         break;
         }
       } // end switch
@@ -121,12 +109,6 @@ QVariant TableModelTopPatches::headerData(int section, Qt::Orientation orientati
         case 1:
           returnValue = "Score";
           break;
-//         case 2:
-//           returnValue = "Location";
-//           break;
-        case 2:
-          returnValue = "Cluster";
-          break;
         } // end switch
       }// end Horizontal orientation
     } // end DisplayRole
@@ -140,7 +122,8 @@ void TableModelTopPatches::Refresh()
   endResetModel();
 }
 
-void TableModelTopPatches::selectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
+void TableModelTopPatches::selectionChanged(const QItemSelection& selected,
+                                            const QItemSelection& deselected)
 {
   //std::cout << "TopPatchesTableModel::selectionChanged()" << std::endl;
 }

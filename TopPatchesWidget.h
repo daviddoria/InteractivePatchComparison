@@ -46,18 +46,23 @@ class TopPatchesWidget : public QWidget, public Ui::TopPatchesWidget
 Q_OBJECT
 
 public:
-  typedef Eigen::MatrixXf MatrixType;
-  typedef Eigen::VectorXf VectorType;
-
+  /** The image type. */
   typedef itk::VectorImage<float, 2> ImageType;
 
+  /** Constructor. */
   TopPatchesWidget(QWidget* parent = NULL);
 
+  /** Set the target/query region. */
   void SetTargetRegion(const itk::ImageRegion<2>& targetRegion);
 
+  /** Set the image to use. */
   void SetImage(ImageType* const image);
 
+  /** Set the DistanceFunctor to use in the SelfPatchCompareFunctor. */
   void SetPatchDistanceFunctor(PatchDistance* const patchDistanceFunctor);
+
+  /** Set the SelfPatchCompareFunctor to use. */
+  void SetSelfPatchCompareFunctor(const SelfPatchCompare<ImageType>& selfPatchCompareFunctor);
 
 public slots:
 
@@ -70,13 +75,6 @@ public slots:
   /** Called when the progress bar is complete. */
   void slot_Finished();
 
-//   void on_txtClusters_returnPressed();
-//   void on_txtClusters_textEdited();
-  /** Called when the number of clusters is changed. */
-  void on_spinClusters_valueChanged(int);
-
-//   void on_txtNumberOfPatches_returnPressed();
-//   void on_txtNumberOfPatches_textEdited();
   /** Called when the number of patches to display is changed. */
   void on_spinNumberOfBestPatches_valueChanged(int);
 
@@ -110,9 +108,6 @@ private:
   /** The query/target region that we are trying to match a patch to. */
   itk::ImageRegion<2> TargetRegion;
 
-  /** Perform a clustering of the top patches. */
-  void Cluster();
-
   /** Store the top patch data. */
   std::vector<SelfPatchCompare<ImageType>::PatchDataType> TopPatchData;
 
@@ -122,9 +117,9 @@ private:
   /** The progress bar. */
   QProgressDialog* ProgressDialog;
 
-  //SelfPatchCompare SelfPatchCompareFunctor;
   /** The functor to use to find the best patch. */
-  SelfPatchCompareLocalOptimization<ImageType> SelfPatchCompareFunctor;
+  SelfPatchCompare<ImageType> SelfPatchCompareFunctor;
+  //SelfPatchCompareLocalOptimization<ImageType> SelfPatchCompareFunctor;
 };
 
 #endif // TopPatchesWidget_H

@@ -21,8 +21,6 @@
 #include "QtHelpers/QtHelpers.h"
 #include "ITKQtHelpers/ITKQtHelpers.h"
 #include "PatchComparison/Mask/Mask.h"
-#include "PatchClustering/PatchClustering.h"
-#include "PatchClustering/KMeansClustering/KMeansClustering.h"
 
 // Custom
 #include "PixmapDelegate.h"
@@ -30,9 +28,6 @@
 TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
 {
   this->setupUi(this);
-
-//   this->txtNumberOfPatches->installEventFilter(this);
-//   this->txtClusters->installEventFilter(this);
 
   // Make the cells fit the images (based on the sizeHint from the PixmapDelegate)
   this->tblviewTopPatches->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
@@ -132,10 +127,6 @@ void TopPatchesWidget::on_btnCompute_clicked()
   bestPatchesPalette.setColor( QPalette::Normal, QPalette::Base, normalColor);
   this->spinNumberOfBestPatches->findChild<QLineEdit*>()->setPalette(bestPatchesPalette);
 
-  QPalette clustersPalette = this->spinClusters->findChild<QLineEdit*>()->palette();
-  clustersPalette.setColor( QPalette::Normal, QPalette::Base, normalColor);
-  this->spinClusters->findChild<QLineEdit*>()->setPalette(clustersPalette);
-
   // Start the computation.
   QFuture<void> future = QtConcurrent::run(this, &TopPatchesWidget::Compute);
   this->FutureWatcher.setFuture(future);
@@ -160,8 +151,12 @@ void TopPatchesWidget::Compute()
 
   //std::sort(topPatchData.begin(), topPatchData.end(), Helpers::SortBySecondAccending<PatchDataType>);
   unsigned int numberOfPatches = this->spinNumberOfBestPatches->value();
-  std::partial_sort(this->TopPatchData.begin(), this->TopPatchData.begin() + numberOfPatches,
-                    this->TopPatchData.end(),
+//   std::partial_sort(this->TopPatchData.begin(), this->TopPatchData.begin() + numberOfPatches,
+//                     this->TopPatchData.end(),
+//                     Helpers::SortBySecondAccending<SelfPatchCompare<ImageType>::PatchDataType>);
+
+  // Perform a full sort
+  std::sort(this->TopPatchData.begin(), this->TopPatchData.end(),
                     Helpers::SortBySecondAccending<SelfPatchCompare<ImageType>::PatchDataType>);
 
   this->TopPatchData.resize(numberOfPatches);
@@ -171,30 +166,8 @@ void TopPatchesWidget::Compute()
   this->TopPatchesModel->SetTopPatchData(this->TopPatchData);
   this->TopPatchesModel->Refresh();
 
-  Cluster();
 }
 
-void TopPatchesWidget::Cluster()
-{
-  EigenHelpers::VectorOfFloatVectors vectors(this->TopPatchData.size());
-  for(unsigned int i = 0; i < this->TopPatchData.size(); ++i)
-    {
-    VectorType v = PatchClustering::VectorizePatch(this->Image, this->TopPatchData[i].first);
-    vectors[i] = v;
-    }
-
-  unsigned int numberOfClusters = this->spinClusters->value();
-  KMeansClustering kmeans;
-  kmeans.SetK(numberOfClusters);
-  kmeans.SetPoints(vectors);
-  kmeans.SetInitMethod(KMeansClustering::KMEANSPP);
-  kmeans.SetRandom(true);
-  kmeans.Cluster();
-
-  std::vector<unsigned int> labels = kmeans.GetLabels();
-
-  this->TopPatchesModel->SetClusterIDs(labels);
-}
 
 void TopPatchesWidget::SetPatchDistanceFunctor(PatchDistance* const patchDistanceFunctor)
 {
@@ -205,19 +178,9 @@ bool TopPatchesWidget::eventFilter(QObject *object, QEvent *event)
 {
   // When the focus leaves one of the text boxes, update the patches
   QColor normalColor = QColor(255, 255, 255);
-  if(dynamic_cast<QLineEdit*>(object) == spinClusters->findChild<QLineEdit*>() && event->type() == QEvent::FocusOut)
-  {
-    if(!this->spinClusters->findChild<QLineEdit*>()->hasAcceptableInput())
-    {
-      std::cerr << "Invalid number of clusters!" << std::endl;
-      return false; // Pass the event along (don't consume it)
-    }
-    QPalette p = spinClusters->findChild<QLineEdit*>()->palette();
-    p.setColor( QPalette::Normal, QPalette::Base, normalColor);
-    spinClusters->findChild<QLineEdit*>()->setPalette(p);
-  }
 
-  if(dynamic_cast<QLineEdit*>(object) == spinNumberOfBestPatches->findChild<QLineEdit*>() && event->type() == QEvent::FocusOut)
+  if(dynamic_cast<QLineEdit*>(object) == spinNumberOfBestPatches->findChild<QLineEdit*>() &&
+    event->type() == QEvent::FocusOut)
   {
     if(!this->spinNumberOfBestPatches->findChild<QLineEdit*>()->hasAcceptableInput())
     {
@@ -232,18 +195,16 @@ bool TopPatchesWidget::eventFilter(QObject *object, QEvent *event)
   return false; // Pass the event along (don't consume it)
 }
 
-void TopPatchesWidget::on_spinClusters_valueChanged(int value)
-{
-  QColor normalColor = QColor(255, 0, 0);
-  QPalette p = this->spinClusters->findChild<QLineEdit*>()->palette();
-  p.setColor( QPalette::Normal, QPalette::Base, normalColor);
-  this->spinClusters->findChild<QLineEdit*>()->setPalette(p);
-}
-
 void TopPatchesWidget::on_spinNumberOfBestPatches_valueChanged(int value)
 {
   QColor activeColor = QColor(255, 0, 0);
   QPalette p = this->spinNumberOfBestPatches->findChild<QLineEdit*>()->palette();
   p.setColor( QPalette::Normal, QPalette::Base, activeColor);
   this->spinNumberOfBestPatches->findChild<QLineEdit*>()->setPalette(p);
+}
+
+void TopPatchesWidget::SetSelfPatchCompareFunctor(
+     const SelfPatchCompare<ImageType>& selfPatchCompareFunctor)
+{
+  this->SelfPatchCompareFunctor = selfPatchCompareFunctor;
 }

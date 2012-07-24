@@ -444,7 +444,8 @@ void InteractivePatchComparisonWidget::on_actionFlipVertically_activated()
   itkvtkCamera.FlipVertically();
 }
 
-void InteractivePatchComparisonWidget::slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& patches)
+void InteractivePatchComparisonWidget::slot_SelectedPatchesChanged(
+     const std::vector<itk::ImageRegion<2> >& patches)
 {
   if(patches.size() == 0)
   {
@@ -457,10 +458,12 @@ void InteractivePatchComparisonWidget::slot_SelectedPatchesChanged(const std::ve
   VTKHelpers::ZeroImage(this->SelectedSourcePatchesLayer.ImageData, 4);
   VTKHelpers::MakeImageTransparent(this->SelectedSourcePatchesLayer.ImageData);
 
-  const unsigned char red[3] = {255,0,0};
+  //const unsigned char outlineColor[3] = {255,0,0}; // red
+  const unsigned char outlineColor[3] = {0,0,255}; // blue
+  
   for(unsigned int i = 0; i < patches.size(); ++i)
   {
-    ITKVTKHelpers::OutlineRegion(this->SelectedSourcePatchesLayer.ImageData, patches[i], red);
+    ITKVTKHelpers::OutlineRegion(this->SelectedSourcePatchesLayer.ImageData, patches[i], outlineColor);
   }
 
   this->SelectedSourcePatchesLayer.ImageSlice->VisibilityOn();
@@ -653,7 +656,8 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
 
   TopPatchesWidget* blurredTopPatchesWidget = new TopPatchesWidget;
   blurredTopPatchesWidget->setWindowTitle("Blurred SSD");
-  blurredTopPatchesWidget->SetImage(this->Image);
+  //blurredTopPatchesWidget->SetImage(this->Image);
+  blurredTopPatchesWidget->SetImage(this->BlurredImage);
   blurredTopPatchesWidget->SetPatchDistanceFunctor(blurredSSDDistanceFunctor);
   this->TopPatchesWidgets.push_back(blurredTopPatchesWidget);
   blurredTopPatchesWidget->show();
