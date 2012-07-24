@@ -197,8 +197,8 @@ void InteractivePatchComparisonWidget::SharedConstructor()
           SourcePatchInfoWidget, SLOT(slot_Update(const itk::ImageRegion<2>& )));
 
   /** This is used when the user clicks on a top patch in the view of the top patches. */
-  connect(this->TopPatchesPanel, SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
-          this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
+//   connect(this->TopPatchesPanel, SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
+//           this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
 }
 
 void InteractivePatchComparisonWidget::on_actionQuit_activated()
@@ -262,7 +262,7 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
   this->TargetPatchInfoWidget->SetImage(this->Image.GetPointer());
   this->SourcePatchInfoWidget->SetImage(this->Image.GetPointer());
 
-  this->TopPatchesPanel->SetImage(this->Image.GetPointer());
+//   this->TopPatchesPanel->SetImage(this->Image.GetPointer());
 
   this->ImageLayer.ImageSlice->VisibilityOn();
   this->SourcePatchLayer.ImageSlice->VisibilityOn();
@@ -487,8 +487,11 @@ void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageReg
   targetPosition[1] = patchRegion.GetIndex()[1];
   this->TargetPatchLayer.ImageSlice->SetPosition(targetPosition);
 
-  // Update the TopPatches widget
-  this->TopPatchesPanel->SetTargetRegion(patchRegion);
+  // Update the TopPatches widgets
+  for(unsigned int i = 0; i < this->TopPatchesWidgets.size(); ++i)
+  {
+    this->TopPatchesWidgets[i]->SetTargetRegion(patchRegion);
+  }
 
   // Refresh
   Refresh();
@@ -549,8 +552,11 @@ void InteractivePatchComparisonWidget::UpdatePatches()
   }
   else
   {
-    // Set the TopPatchesWidget to use the new target patch
-    this->TopPatchesPanel->SetTargetRegion(targetRegion);
+    // Set the TopPatchesWidgets to use the new target patch
+    for(unsigned int i = 0; i < this->TopPatchesWidgets.size(); ++i)
+    {
+      this->TopPatchesWidgets[i]->SetTargetRegion(targetRegion);
+    }
 
     emit signal_TargetPatchMoved(targetRegion);
   }
@@ -565,8 +571,8 @@ void InteractivePatchComparisonWidget::UpdatePatches()
   }
 
   // If both patches are valid, we can compute the difference
-  if(Image->GetLargestPossibleRegion().IsInside(targetRegion) &&
-    Image->GetLargestPossibleRegion().IsInside(sourceRegion))
+  if(this->Image->GetLargestPossibleRegion().IsInside(targetRegion) &&
+     this->Image->GetLargestPossibleRegion().IsInside(sourceRegion))
   {
     float distance = this->CurrentDistanceFunctor->Distance(sourceRegion, targetRegion);
     this->lblScore->setNum(distance);
@@ -609,11 +615,6 @@ void InteractivePatchComparisonWidget::on_actionScreenshot_activated()
   writer->Write();
 }
 
-void InteractivePatchComparisonWidget::on_action_View_TopPatches_activated()
-{
-  TopPatchesPanel->setVisible(!TopPatchesPanel->isVisible());
-}
-
 void InteractivePatchComparisonWidget::SetupDistanceFunctors()
 {
   if(this->PatchSize[0]/2 == 0)
@@ -625,55 +626,38 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
   {
     throw std::runtime_error("Cannot SetupDistanceFunctors() before calling SetImage()!");
   }
-  std::vector<typename VectorType::Scalar> sortedEigenvalues; // unused
 
-  MatrixType projectionMatrix;
-
-  VectorType meanVector;
-
-  // This function is used for debugging only
-  projectionMatrix = PatchProjection<MatrixType, VectorType>::
-                           GetDummyProjectionMatrix(this->Image.GetPointer(), this->PatchSize[0]/2, meanVector);
-
-  // This function is preferred
-//   this->ProjectionMatrix = PatchProjection<MatrixType, VectorType>::
-//                               ComputeProjectionMatrixFromImagePartialMatrix(this->Image.GetPointer(),
-//                                                                this->PatchSize[0]/2,
-//                                                                this->MeanVector,
-//                                                                sortedEigenvalues);
-
-  // This function would be preferred, but typically the feature matrix does not fit into memory.
-//   this->ProjectionMatrix = PatchProjection<MatrixType, VectorType>::
-//                               ComputeProjectionMatrix_CovarianceEigen(this->Image.GetPointer(),
-//                                                                       this->PatchSize[0]/2,
-//                                                                       this->MeanVector,
-//                                                                       sortedEigenvalues);
-
+  // Setup the normal top patches widget
   // SSD
   SSD<ImageType>* ssdDistanceFunctor = new SSD<ImageType>;
   ssdDistanceFunctor->SetImage(this->Image);
 
   this->PatchDistanceFunctors.push_back(ssdDistanceFunctor);
   this->CurrentDistanceFunctor = ssdDistanceFunctor;
-  this->TopPatchesPanel->SetPatchDistanceFunctor(this->CurrentDistanceFunctor);
+  
+  TopPatchesWidget* topPatchesWidget = new TopPatchesWidget;
+  topPatchesWidget->SetPatchDistanceFunctor(ssdDistanceFunctor);
+  topPatchesWidget->SetImage(this->Image);
+  topPatchesWidget->setWindowTitle("SSD");
+  this->TopPatchesWidgets.push_back(topPatchesWidget);
+  topPatchesWidget->show();
 
-  // PCA
-  unsigned int numberOfDimensionsToProjectTo = 150;
-  projectionMatrix =
-         EigenHelpers::TruncateColumns(projectionMatrix, numberOfDimensionsToProjectTo);
+  // Setup the blurred top patches widget
+  this->BlurredImage = ImageType::New();
+  float sigma = 2.0f;
+  ITKHelpers::BlurAllChannels(this->Image.GetPointer(), this->BlurredImage.GetPointer(), sigma);
 
-  ProjectedDistance<ImageType>* pcaDistanceFunctor = new ProjectedDistance<ImageType>;
-  pcaDistanceFunctor->SetImage(this->Image);
-  pcaDistanceFunctor->SetProjectionMatrix(projectionMatrix);
-  pcaDistanceFunctor->SetMeanVector(meanVector);
+  SSD<ImageType>* blurredSSDDistanceFunctor = new SSD<ImageType>;
+  blurredSSDDistanceFunctor->SetImage(this->BlurredImage);
 
-  this->PatchDistanceFunctors.push_back(pcaDistanceFunctor);
+  this->PatchDistanceFunctors.push_back(blurredSSDDistanceFunctor);
 
-  // Local PCA
-  LocalPCADistance<ImageType>* localPCADistanceFunctor = new LocalPCADistance<ImageType>;
-  localPCADistanceFunctor->SetImage(this->Image);
-
-  this->PatchDistanceFunctors.push_back(localPCADistanceFunctor);
+  TopPatchesWidget* blurredTopPatchesWidget = new TopPatchesWidget;
+  blurredTopPatchesWidget->setWindowTitle("Blurred SSD");
+  blurredTopPatchesWidget->SetImage(this->Image);
+  blurredTopPatchesWidget->SetPatchDistanceFunctor(blurredSSDDistanceFunctor);
+  this->TopPatchesWidgets.push_back(blurredTopPatchesWidget);
+  blurredTopPatchesWidget->show();
 }
 
 bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *event)
@@ -707,17 +691,17 @@ bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *even
 void InteractivePatchComparisonWidget::on_radDistanceSSD_clicked()
 {
   this->CurrentDistanceFunctor = this->PatchDistanceFunctors[0];
-  this->TopPatchesPanel->SetPatchDistanceFunctor(this->PatchDistanceFunctors[0]);
+  //this->TopPatchesPanel->SetPatchDistanceFunctor(this->PatchDistanceFunctors[0]);
 }
 
 void InteractivePatchComparisonWidget::on_radDistancePCA_clicked()
 {
   this->CurrentDistanceFunctor = this->PatchDistanceFunctors[1];
-  this->TopPatchesPanel->SetPatchDistanceFunctor(this->PatchDistanceFunctors[1]);
+  //this->TopPatchesPanel->SetPatchDistanceFunctor(this->PatchDistanceFunctors[1]);
 }
 
 void InteractivePatchComparisonWidget::on_radDistanceLocalPCA_clicked()
 {
   this->CurrentDistanceFunctor = this->PatchDistanceFunctors[2];
-  this->TopPatchesPanel->SetPatchDistanceFunctor(this->PatchDistanceFunctors[2]);
+  //this->TopPatchesPanel->SetPatchDistanceFunctor(this->PatchDistanceFunctors[2]);
 }

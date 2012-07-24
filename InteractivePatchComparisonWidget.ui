@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1083</width>
+    <width>763</width>
     <height>841</height>
    </rect>
   </property>
@@ -27,7 +27,7 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout">
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,6,1,6,1,1,1,1,1">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
@@ -205,7 +205,7 @@
           <item>
            <widget class="QLabel" name="label_4">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -218,7 +218,7 @@
           <item>
            <widget class="QLabel" name="lblScore">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -277,14 +277,6 @@
         </sizepolicy>
        </property>
       </widget>
-      <widget class="TopPatchesWidget" name="TopPatchesPanel" native="true">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-         <horstretch>2</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
      </widget>
     </item>
    </layout>
@@ -294,7 +286,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1083</width>
+     <width>763</width>
      <height>21</height>
     </rect>
    </property>
@@ -440,12 +432,6 @@
    <class>QVTKWidget</class>
    <extends>QWidget</extends>
    <header>QVTKWidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>TopPatchesWidget</class>
-   <extends>QWidget</extends>
-   <header>TopPatchesWidget.h</header>
-   <container>1</container>
   </customwidget>
   <customwidget>
    <class>PatchInfoWidget</class>

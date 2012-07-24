@@ -72,32 +72,44 @@ signals:
 
 public slots:
 
-  // View menu
-  void on_action_View_TopPatches_activated();
-
+  // File menu
   void on_actionOpenImage_activated();
   void on_actionOpenMask_activated();
   void on_actionOpenMaskInverted_activated();
-
-  void on_action_SavePatches_activated();
-
-  void on_actionHelp_activated();
   void on_actionQuit_activated();
-
-  void on_actionFlipVertically_activated();
+  void on_action_SavePatches_activated();
   void on_actionScreenshot_activated();
 
+  // Help menu
+  /** The slot to handle displaying the help text. */
+  void on_actionHelp_activated();
+
+  // View menu
+  /** The slot to handle when the user wants to flip the image vertically. */
+  void on_actionFlipVertically_activated();
+
+  /** The slot to handle when patch radius is changed. */
   void on_spinPatchRadius_valueChanged(int value);
 
+  /** Refresh. */
   void RefreshSlot();
 
+  /** The slot to handle when the target patch is moved. */
   void slot_TargetPatchMoved(const itk::ImageRegion<2>&);
+
+  /** The slot to handle when the source patch is moved. */
   void slot_SourcePatchMoved(const itk::ImageRegion<2>&);
 
+  /** The slot to handle when the selected top patch is changed. */
   void slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& );
 
+  /** The slot to handle when the user has selected the SSD distance functor. */
   void on_radDistanceSSD_clicked();
+
+  /** The slot to handle when the user has selected the PCA distance functor. */
   void on_radDistancePCA_clicked();
+
+  /** The slot to handle when the user has selected the LocalPCA distance functor. */
   void on_radDistanceLocalPCA_clicked();
 
 private:
@@ -141,23 +153,26 @@ private:
   /** Mask image display */
   Layer MaskImageLayer;
 
-  /** Movable patches */
+  /** The movable source patch. */
   Layer SourcePatchLayer;
+
+  /** The movable target patch. */
   Layer TargetPatchLayer;
 
   /** A layer to display all of the selected source patches. */
   Layer SelectedSourcePatchesLayer;
 
-  /** The data that the user loads */
+  /** The image that the user loads. */
   ImageType::Pointer Image;
+
+  /** A blurred version of the image that the user loads. */
+  ImageType::Pointer BlurredImage;
+
+  /** The mask that the user loads. */
   Mask::Pointer MaskImage;
 
   /** The size of the patches to compare. */
   itk::Size<2> PatchSize;
-
-  /** The projection matrix to project patches to a lower dimensional space. */
-  typedef Eigen::MatrixXf MatrixType;
-  typedef Eigen::VectorXf VectorType;
 
   /** Setup the distance functors. */
   void SetupDistanceFunctors();
@@ -165,12 +180,21 @@ private:
   /** Handle events (not signals) so we don't have to subclass things like QLineEdit. */
   bool eventFilter(QObject *object, QEvent *event);
 
+  /** The filename of the image to operate on. */
   std::string ImageFileName;
+
+  /** The filename of the mask. */
   std::string MaskFileName;
 
+  /** A list of all functor to potentially use. */
   std::vector<PatchDistance*> PatchDistanceFunctors;
 
+  /** The functor to use in the PatchInformation widgets */
   PatchDistance* CurrentDistanceFunctor;
+
+  /** A list of all functor to potentially use. */
+  std::vector<TopPatchesWidget*> TopPatchesWidgets;
+
 };
 
 #endif // InteractivePatchComparisonWidget_H
