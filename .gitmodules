@@ -19,3 +19,6 @@
 [submodule "PatchClustering"]
 	path = PatchClustering
 	url = git@github.com:daviddoria/PatchClustering.git
+[submodule "Layer"]
+	path = Layer
+	url = https://github.com/daviddoria/Layer.git

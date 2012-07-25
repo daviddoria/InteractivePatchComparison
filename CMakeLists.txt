@@ -48,6 +48,11 @@ if(NOT TARGET PatchClustering)
   include_directories(${PatchClustering_includes})
 endif()
 
+if(NOT TARGET Layer)
+  add_subdirectory(Layer)
+  include_directories(${Layer_includes})
+endif()
+
 FIND_PACKAGE(Boost COMPONENTS regex) # need the libboost-regex1.48.0 and libboost-regex1.48.0-dev packages installed (Ubuntu). Without the -dev package, CMake says "Could NOT find Boost."
 IF (Boost_FOUND)
     INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
@@ -87,11 +92,11 @@ CustomTrackballStyle.cxx
 OddValidator.cpp
 PixmapDelegate.cpp
 TableModelTopPatches.cpp
-Layer.cpp
 ${InteractivePatchComparisonWidgetUISrcs} ${InteractivePatchComparisonWidgetMOCSrcs})
 TARGET_LINK_LIBRARIES(InteractivePatchComparison 
 EigenHelpers QtHelpers Helpers VTKHelpers ITKHelpers ITKVTKHelpers
 Mask ITKVTKCamera
+Layer
 PatchComparison
 PatchClustering
 ${VTK_LIBRARIES} ${ITK_LIBRARIES} ${QT_LIBRARIES})
