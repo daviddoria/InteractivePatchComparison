@@ -51,23 +51,13 @@ public slots:
 //   virtual void slot_Update(const itk::ImageRegion<2>& patchRegion) = 0;
 
 // Do not make these pure virtual, because then the QWidget promoted to a PatchInfoWidgetParent in QtDesigner cannot be instantiated
-  virtual void on_btnSavePatch_clicked(){};
+  virtual void on_btnSavePatch_clicked() = 0;
 
-  virtual void on_spinXCenter_valueChanged(int){};
-  virtual void on_spinYCenter_valueChanged(int){};
+  virtual void on_spinXCenter_valueChanged(int) = 0;
+  virtual void on_spinYCenter_valueChanged(int) = 0;
 
-  virtual void slot_Update(const itk::ImageRegion<2>& patchRegion){};
+  virtual void slot_Update(const itk::ImageRegion<2>& patchRegion) = 0;
 
-// Non slots - need these because Designer instantiates the PatchInfoWidget as PatchInfoWidgetParent, so PatchInfoWidgetParent->SetImage, etc needs to exist
-  virtual void SetImage(TImage* const image) {};
-
-  virtual void SetMask(Mask* const mask) {};
-
-  virtual void Save(const std::string& prefix) {};
-
-  virtual itk::ImageRegion<2> GetRegion() const {};
-
-  virtual void MakeInvalid() {};
 };
 
 template<typename TImage>
@@ -75,7 +65,7 @@ class PatchInfoWidget : public PatchInfoWidgetParent
 {
 public:
 
-  PatchInfoWidget(QWidget* parent);
+  PatchInfoWidget(QWidget* parent = NULL);
 
   void SetImage(TImage* const image);
   void SetMask(Mask* const mask);

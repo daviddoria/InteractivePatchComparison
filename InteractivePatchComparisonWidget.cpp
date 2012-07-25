@@ -112,8 +112,13 @@ void InteractivePatchComparisonWidget::SharedConstructor()
 {
   this->setupUi(this);
 
-  this->TargetPatchInfoWidget = new TopPatchesWidget<ImageType>;
-  this->SourcePatchInfoWidget = new TopPatchesWidget<ImageType>;
+  this->TargetPatchInfoWidget = new PatchInfoWidget<ImageType>;
+  this->TargetPatchInfoWidgetPlaceholder->addWidget(this->TargetPatchInfoWidget);
+  this->TargetPatchInfoWidgetPlaceholder->setCurrentWidget(this->TargetPatchInfoWidget);
+  
+  this->SourcePatchInfoWidget = new PatchInfoWidget<ImageType>;
+  this->SourcePatchInfoWidgetPlaceholder->addWidget(this->SourcePatchInfoWidget);
+  this->SourcePatchInfoWidgetPlaceholder->setCurrentWidget(this->SourcePatchInfoWidget);
   
   this->CurrentDistanceFunctor = NULL;
 

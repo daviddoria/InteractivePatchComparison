@@ -46,6 +46,7 @@ class vtkImageSliceMapper;
 #include "Types.h"
 #include "TopPatchesWidget.h"
 #include "Layer.h"
+#include "PatchInfoWidget.h"
 
 class SwitchBetweenStyle;
 
@@ -183,6 +184,9 @@ private:
   /** A list of all functor to potentially use. */
   std::vector<TopPatchesWidget<ImageType>*> TopPatchesWidgets;
 
+  /** A list of all functor to potentially use. */
+  PatchInfoWidget<ImageType>* SourcePatchInfoWidget;
+  PatchInfoWidget<ImageType>* TargetPatchInfoWidget;
 };
 
 #endif // InteractivePatchComparisonWidget_H

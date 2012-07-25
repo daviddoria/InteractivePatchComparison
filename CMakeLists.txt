@@ -84,7 +84,6 @@ Interactive.cpp
 SwitchBetweenStyle.cxx
 CustomImageStyle.cxx
 CustomTrackballStyle.cxx
-PatchInfoWidget.cpp
 OddValidator.cpp
 PixmapDelegate.cpp
 TableModelTopPatches.cpp

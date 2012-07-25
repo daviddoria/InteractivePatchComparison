@@ -16,8 +16,8 @@
  *
  *=========================================================================*/
 
-#ifndef PatchInfoWidget_H
-#define PatchInfoWidget_H
+#ifndef PatchInfoWidget_HPP
+#define PatchInfoWidget_HPP
 
 #include "PatchInfoWidget.h"
 
@@ -59,7 +59,7 @@ PatchInfoWidget<TImage>::PatchInfoWidget(QWidget* parent) : PatchInfoWidgetParen
 }
 
 template <typename TImage>
-void PatchInfoWidget<TImage>::SetImage(ImageType* const image)
+void PatchInfoWidget<TImage>::SetImage(TImage* const image)
 {
   this->Image = image;
 
@@ -71,9 +71,11 @@ void PatchInfoWidget<TImage>::SetImage(ImageType* const image)
 //   this->spinYCenter->findChild<QLineEdit*>()->setValidator(yValidator);
 
   this->spinXCenter->setMinimum(radius);
+  // The "- 1 - radius" is to make sure the patch does not go outside of the image.
   this->spinXCenter->setMaximum(image->GetLargestPossibleRegion().GetSize()[0] - 1 - radius);
 
   this->spinYCenter->setMinimum(radius);
+  // The "- 1 - radius" is to make sure the patch does not go outside of the image.
   this->spinYCenter->setMaximum(image->GetLargestPossibleRegion().GetSize()[1] - 1 - radius);
 }
 
@@ -156,11 +158,11 @@ void PatchInfoWidget<TImage>::slot_Update(const itk::ImageRegion<2>& patchRegion
   this->spinXCenter->setValue(QString::number(patchCenter[0]).toUInt());
   this->spinYCenter->setValue(QString::number(patchCenter[1]).toUInt());
 
-  ImageType::PixelType average;
+  typename TImage::PixelType average;
   average.SetSize(Image->GetNumberOfComponentsPerPixel());
   average.Fill(0);
   
-  ImageType::PixelType variance;
+  typename TImage::PixelType variance;
   variance.SetSize(Image->GetNumberOfComponentsPerPixel());
   variance.Fill(0);
   
@@ -228,14 +230,14 @@ void PatchInfoWidget<TImage>::on_btnSavePatch_clicked()
 template <typename TImage>
 void PatchInfoWidget<TImage>::Save(const std::string& fileName)
 {
-  typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> RegionOfInterestImageFilterType;
-  RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
+  typedef itk::RegionOfInterestImageFilter<TImage, TImage> RegionOfInterestImageFilterType;
+  typename RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
   regionOfInterestImageFilter->SetRegionOfInterest(this->Region);
   regionOfInterestImageFilter->SetInput(this->Image);
   regionOfInterestImageFilter->Update();
 
   QFileInfo fileInfo(fileName.c_str());
-  
+
   if(fileInfo.suffix().toStdString() == "png")
   {
     ITKHelpers::WriteRGBImage(regionOfInterestImageFilter->GetOutput(), fileName);
