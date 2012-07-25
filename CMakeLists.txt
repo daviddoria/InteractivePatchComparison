@@ -86,7 +86,6 @@ CustomImageStyle.cxx
 CustomTrackballStyle.cxx
 PatchInfoWidget.cpp
 OddValidator.cpp
-TopPatchesWidget.cpp
 PixmapDelegate.cpp
 TableModelTopPatches.cpp
 Layer.cpp

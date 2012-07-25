@@ -16,6 +16,9 @@
  *
  *=========================================================================*/
 
+#ifndef PatchInfoWidget_H
+#define PatchInfoWidget_H
+
 #include "PatchInfoWidget.h"
 
 // Qt
@@ -40,7 +43,8 @@
 // ITK
 #include "itkRegionOfInterestImageFilter.h"
 
-PatchInfoWidget::PatchInfoWidget(QWidget* parent) : QWidget(parent)
+template <typename TImage>
+PatchInfoWidget<TImage>::PatchInfoWidget(QWidget* parent) : PatchInfoWidgetParent(parent)
 {
   this->MaskImage = NULL;
   this->Image = NULL;
@@ -54,7 +58,8 @@ PatchInfoWidget::PatchInfoWidget(QWidget* parent) : QWidget(parent)
 //   this->spinYCenter->findChild<QLineEdit*>()->setValidator(intValidator);
 }
 
-void PatchInfoWidget::SetImage(ImageType* const image)
+template <typename TImage>
+void PatchInfoWidget<TImage>::SetImage(ImageType* const image)
 {
   this->Image = image;
 
@@ -72,13 +77,15 @@ void PatchInfoWidget::SetImage(ImageType* const image)
   this->spinYCenter->setMaximum(image->GetLargestPossibleRegion().GetSize()[1] - 1 - radius);
 }
 
-unsigned int PatchInfoWidget::GetRadius()
+template <typename TImage>
+unsigned int PatchInfoWidget<TImage>::GetRadius()
 {
   // This assumes square patches with odd side lengths
   return Region.GetSize()[0] / 2;
 }
 
-void PatchInfoWidget::SetMask(Mask* const mask)
+template <typename TImage>
+void PatchInfoWidget<TImage>::SetMask(Mask* const mask)
 {
   this->MaskImage = mask;
 }
@@ -100,7 +107,8 @@ void PatchInfoWidget::SetMask(Mask* const mask)
 //   this->spinYCenter->findChild<QLineEdit*>()->setPalette(p);
 // }
 
-void PatchInfoWidget::on_spinXCenter_valueChanged(int value)
+template <typename TImage>
+void PatchInfoWidget<TImage>::on_spinXCenter_valueChanged(int value)
 {
   itk::Index<2> currentCenter = ITKHelpers::GetRegionCenter(this->Region);
 
@@ -117,7 +125,8 @@ void PatchInfoWidget::on_spinXCenter_valueChanged(int value)
   emit signal_PatchMoved(Region);
 }
 
-void PatchInfoWidget::on_spinYCenter_valueChanged(int value)
+template <typename TImage>
+void PatchInfoWidget<TImage>::on_spinYCenter_valueChanged(int value)
 {
   itk::Index<2> currentCenter = ITKHelpers::GetRegionCenter(this->Region);
 
@@ -134,8 +143,8 @@ void PatchInfoWidget::on_spinYCenter_valueChanged(int value)
   emit signal_PatchMoved(Region);
 }
 
-
-void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
+template <typename TImage>
+void PatchInfoWidget<TImage>::slot_Update(const itk::ImageRegion<2>& patchRegion)
 {
   if(!this->Image->GetLargestPossibleRegion().IsInside(patchRegion))
   {
@@ -199,7 +208,8 @@ void PatchInfoWidget::slot_Update(const itk::ImageRegion<2>& patchRegion)
   this->graphicsView_AverageColor->setScene(averageColorScene);
 }
 
-void PatchInfoWidget::on_btnSavePatch_clicked()
+template <typename TImage>
+void PatchInfoWidget<TImage>::on_btnSavePatch_clicked()
 {
   bool ok;
   QString title("Filename");
@@ -215,7 +225,8 @@ void PatchInfoWidget::on_btnSavePatch_clicked()
   }
 }
 
-void PatchInfoWidget::Save(const std::string& fileName)
+template <typename TImage>
+void PatchInfoWidget<TImage>::Save(const std::string& fileName)
 {
   typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> RegionOfInterestImageFilterType;
   RegionOfInterestImageFilterType::Pointer regionOfInterestImageFilter = RegionOfInterestImageFilterType::New();
@@ -235,12 +246,14 @@ void PatchInfoWidget::Save(const std::string& fileName)
   }
 }
 
-itk::ImageRegion<2> PatchInfoWidget::GetRegion() const
+template <typename TImage>
+itk::ImageRegion<2> PatchInfoWidget<TImage>::GetRegion() const
 {
   return Region;
 }
 
-void PatchInfoWidget::MakeInvalid()
+template <typename TImage>
+void PatchInfoWidget<TImage>::MakeInvalid()
 {
   QImage solidImage = QImage(1, 1, QImage::Format_ARGB32); // A 1x1 color image
   QColor color(Qt::black);
@@ -257,7 +270,8 @@ void PatchInfoWidget::MakeInvalid()
   lblPixelVariance->setText("Invalid");
 }
 
-bool PatchInfoWidget::eventFilter(QObject *object, QEvent *event)
+template <typename TImage>
+bool PatchInfoWidget<TImage>::eventFilter(QObject *object, QEvent *event)
 {
   // When the focus leaves one of the text boxes, update the patch
   // and set the background color back to normal
@@ -280,3 +294,5 @@ bool PatchInfoWidget::eventFilter(QObject *object, QEvent *event)
 
   return false; // Pass the event along (don't consume it)
 }
+
+#endif

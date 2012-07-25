@@ -1,3 +1,24 @@
+/*=========================================================================
+ *
+ *  Copyright David Doria 2012 daviddoria@gmail.com
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ *=========================================================================*/
+
+#ifndef TopPatchesWidget_HPP
+#define TopPatchesWidget_HPP
+
 #include "TopPatchesWidget.h"
 
 // ITK
@@ -25,7 +46,8 @@
 // Custom
 #include "PixmapDelegate.h"
 
-TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
+template<typename TImage>
+TopPatchesWidget<TImage>::TopPatchesWidget(QWidget* parent) : TopPatchesWidgetParent(parent)
 {
   this->setupUi(this);
 
@@ -64,12 +86,14 @@ TopPatchesWidget::TopPatchesWidget(QWidget* parent) : QWidget(parent)
   connect(&this->FutureWatcher, SIGNAL(finished()), this->ProgressDialog , SLOT(cancel()));
 }
 
-void TopPatchesWidget::slot_Finished()
+template<typename TImage>
+void TopPatchesWidget<TImage>::slot_Finished()
 {
   std::cout << "Finshed" << std::endl;
 }
 
-void TopPatchesWidget::SetTargetRegion(const itk::ImageRegion<2>& targetRegion)
+template<typename TImage>
+void TopPatchesWidget<TImage>::SetTargetRegion(const itk::ImageRegion<2>& targetRegion)
 {
   this->TargetRegion = targetRegion;
   
@@ -86,7 +110,8 @@ void TopPatchesWidget::SetTargetRegion(const itk::ImageRegion<2>& targetRegion)
   this->TargetPatchScene->addPixmap(pixmap);
 }
 
-void TopPatchesWidget::slot_SelectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
+template<typename TImage>
+void TopPatchesWidget<TImage>::slot_SelectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
 {
   QModelIndexList indexes = this->tblviewTopPatches->selectionModel()->selection().indexes();
 
@@ -108,13 +133,15 @@ void TopPatchesWidget::slot_SelectionChanged(const QItemSelection& selected, con
 //   emit signal_TopPatchSelected(this->TopPatchesModel->GetTopPatchData()[selected.row()].first);
 // }
 
-void TopPatchesWidget::SetImage(ImageType* const image)
+template<typename TImage>
+void TopPatchesWidget<TImage>::SetImage(TImage* const image)
 {
   this->Image = image;
   this->TopPatchesModel->SetImage(this->Image);
 }
 
-void TopPatchesWidget::on_btnCompute_clicked()
+template<typename TImage>
+void TopPatchesWidget<TImage>::on_btnCompute_clicked()
 {
   std::cout << "Set patch display size to: " << this->gfxTargetPatch->size().height() << std::endl;
   this->TopPatchesModel->SetPatchDisplaySize(this->gfxTargetPatch->size().height());
@@ -137,7 +164,8 @@ void TopPatchesWidget::on_btnCompute_clicked()
   this->ProgressDialog->exec();
 }
 
-void TopPatchesWidget::Compute()
+template<typename TImage>
+void TopPatchesWidget<TImage>::Compute()
 {
   this->SelfPatchCompareFunctor.SetImage(this->Image);
   //this->PatchCompare.SetMask(this->MaskImage);
@@ -157,7 +185,7 @@ void TopPatchesWidget::Compute()
 
   // Perform a full sort
   std::sort(this->TopPatchData.begin(), this->TopPatchData.end(),
-                    Helpers::SortBySecondAccending<SelfPatchCompare<ImageType>::PatchDataType>);
+                    Helpers::SortBySecondAccending<typename SelfPatchCompare<TImage>::PatchDataType>);
 
   this->TopPatchData.resize(numberOfPatches);
   std::cout << "There are " << this->TopPatchData.size() << " top patches." << std::endl;
@@ -168,13 +196,14 @@ void TopPatchesWidget::Compute()
 
 }
 
-
-void TopPatchesWidget::SetPatchDistanceFunctor(PatchDistance* const patchDistanceFunctor)
+template<typename TImage>
+void TopPatchesWidget<TImage>::SetPatchDistanceFunctor(PatchDistance<TImage>* const patchDistanceFunctor)
 {
   this->SelfPatchCompareFunctor.SetPatchDistanceFunctor(patchDistanceFunctor);
 }
 
-bool TopPatchesWidget::eventFilter(QObject *object, QEvent *event)
+template<typename TImage>
+bool TopPatchesWidget<TImage>::eventFilter(QObject *object, QEvent *event)
 {
   // When the focus leaves one of the text boxes, update the patches
   QColor normalColor = QColor(255, 255, 255);
@@ -195,7 +224,8 @@ bool TopPatchesWidget::eventFilter(QObject *object, QEvent *event)
   return false; // Pass the event along (don't consume it)
 }
 
-void TopPatchesWidget::on_spinNumberOfBestPatches_valueChanged(int value)
+template<typename TImage>
+void TopPatchesWidget<TImage>::on_spinNumberOfBestPatches_valueChanged(int value)
 {
   QColor activeColor = QColor(255, 0, 0);
   QPalette p = this->spinNumberOfBestPatches->findChild<QLineEdit*>()->palette();
@@ -203,8 +233,11 @@ void TopPatchesWidget::on_spinNumberOfBestPatches_valueChanged(int value)
   this->spinNumberOfBestPatches->findChild<QLineEdit*>()->setPalette(p);
 }
 
-void TopPatchesWidget::SetSelfPatchCompareFunctor(
-     const SelfPatchCompare<ImageType>& selfPatchCompareFunctor)
+template<typename TImage>
+void TopPatchesWidget<TImage>::SetSelfPatchCompareFunctor(
+     const SelfPatchCompare<TImage>& selfPatchCompareFunctor)
 {
   this->SelfPatchCompareFunctor = selfPatchCompareFunctor;
 }
+
+#endif

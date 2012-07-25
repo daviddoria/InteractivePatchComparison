@@ -178,10 +178,10 @@ private:
   std::string MaskFileName;
 
   /** The functor to use in the PatchInformation widgets */
-  PatchDistance* CurrentDistanceFunctor;
+  PatchDistance<ImageType>* CurrentDistanceFunctor;
 
   /** A list of all functor to potentially use. */
-  std::vector<TopPatchesWidget*> TopPatchesWidgets;
+  std::vector<TopPatchesWidget<ImageType>*> TopPatchesWidgets;
 
 };
 

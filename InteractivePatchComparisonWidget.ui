@@ -145,7 +145,7 @@
          </widget>
         </item>
         <item>
-         <widget class="PatchInfoWidget" name="SourcePatchInfoWidget" native="true"/>
+         <widget class="PatchInfoWidgetParent" name="SourcePatchInfoWidget" native="true"/>
         </item>
         <item>
          <widget class="QLabel" name="lblTargetPatch">
@@ -198,7 +198,7 @@
          </widget>
         </item>
         <item>
-         <widget class="PatchInfoWidget" name="TargetPatchInfoWidget" native="true"/>
+         <widget class="PatchInfoWidgetParent" name="TargetPatchInfoWidget" native="true"/>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -263,7 +263,7 @@
      <x>0</x>
      <y>0</y>
      <width>763</width>
-     <height>21</height>
+     <height>29</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuLeft_Pane">
@@ -410,7 +410,7 @@
    <header>QVTKWidget.h</header>
   </customwidget>
   <customwidget>
-   <class>PatchInfoWidget</class>
+   <class>PatchInfoWidgetParent</class>
    <extends>QWidget</extends>
    <header>PatchInfoWidget.h</header>
    <container>1</container>

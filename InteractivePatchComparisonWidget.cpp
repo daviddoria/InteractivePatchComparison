@@ -112,6 +112,9 @@ void InteractivePatchComparisonWidget::SharedConstructor()
 {
   this->setupUi(this);
 
+  this->TargetPatchInfoWidget = new TopPatchesWidget<ImageType>;
+  this->SourcePatchInfoWidget = new TopPatchesWidget<ImageType>;
+  
   this->CurrentDistanceFunctor = NULL;
 
   OddValidator* oddValidator = new OddValidator;
@@ -236,13 +239,14 @@ void InteractivePatchComparisonWidget::showEvent(QShowEvent* event)
 void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
 {
   this->Image = ImageType::New();
-  
-  // Set the working directory
-  QFileInfo fileInfo(fileName.c_str());
-  std::string workingDirectory = fileInfo.absoluteDir().absolutePath().toStdString() + "/";
 
-  //std::cout << "Working directory set to: " << workingDirectory << std::endl;
-  QDir::setCurrent(QString(workingDirectory.c_str()));
+  // Create a FileInfo object to get extensions, etc.
+  QFileInfo fileInfo(fileName.c_str());
+
+  // Set the working directory
+//   std::string workingDirectory = fileInfo.absoluteDir().absolutePath().toStdString() + "/";
+//   QDir::setCurrent(QString(workingDirectory.c_str()));
+//   std::cout << "Working directory set to: " << workingDirectory << std::endl;
 
   typedef itk::ImageFileReader<ImageType> ReaderType;
   ReaderType::Pointer reader = ReaderType::New();
@@ -634,7 +638,7 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
 
   this->CurrentDistanceFunctor = ssdDistanceFunctor;
 
-  TopPatchesWidget* topPatchesWidget = new TopPatchesWidget;
+  TopPatchesWidget<ImageType>* topPatchesWidget = new TopPatchesWidget<ImageType>;
   topPatchesWidget->SetPatchDistanceFunctor(ssdDistanceFunctor);
   topPatchesWidget->SetImage(this->Image);
   topPatchesWidget->setWindowTitle("SSD");
@@ -648,13 +652,18 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
 
   // Setup the blurred top patches widget
   this->BlurredImage = ImageType::New();
-  float sigma = 2.0f;
-  ITKHelpers::BlurAllChannels(this->Image.GetPointer(), this->BlurredImage.GetPointer(), sigma);
+  //float sigma = 2.0f;
+  //ITKHelpers::BlurAllChannels(this->Image.GetPointer(), this->BlurredImage.GetPointer(), sigma);
+
+  float domainSigma = 5.0f;
+  float rangeSigma = 50.0f;
+  ITKHelpers::BilateralFilterAllChannels(this->Image.GetPointer(), this->BlurredImage.GetPointer(), domainSigma, rangeSigma);
+  ITKHelpers::WriteRGBImage(this->BlurredImage.GetPointer(), "blurred.png");
 
   SSD<ImageType>* blurredSSDDistanceFunctor = new SSD<ImageType>;
   blurredSSDDistanceFunctor->SetImage(this->BlurredImage);
 
-  TopPatchesWidget* blurredTopPatchesWidget = new TopPatchesWidget;
+  TopPatchesWidget<ImageType>* blurredTopPatchesWidget = new TopPatchesWidget<ImageType>;
   blurredTopPatchesWidget->setWindowTitle("Blurred SSD");
   //blurredTopPatchesWidget->SetImage(this->Image);
   blurredTopPatchesWidget->SetImage(this->BlurredImage);
