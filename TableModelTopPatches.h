@@ -33,51 +33,66 @@
 // Custom
 #include "PatchComparison/SelfPatchCompare.h"
 
+template <typename TImage>
 class TableModelTopPatches : public QAbstractTableModel
 {
 public:
-  typedef itk::VectorImage<float, 2> ImageType;
-  
-  //TableModelTopPatches(QObject * parent);
-  TableModelTopPatches(const std::vector<SelfPatchCompare<ImageType>::PatchDataType>& patchData,
+  /** Constructor.*/
+  TableModelTopPatches(const std::vector<typename SelfPatchCompare<TImage>::PatchDataType>& patchData,
                        QObject * parent);
 
+  /** Return the number of rows.*/
   int rowCount(const QModelIndex& parent) const;
+
+  /** Return the number of columns.*/
   int columnCount(const QModelIndex& parent) const;
+
+  /** Display the data.*/
   QVariant data(const QModelIndex& index, int role) const;
+
+  /** Display the headers.*/
   QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
+  /** Set the properties of the displayed items.*/
   Qt::ItemFlags flags(const QModelIndex& index) const;
 
+  /** Set the number of patches to display.*/
   void SetMaxTopPatchesToDisplay(const unsigned int maxTopPatchesToDisplay);
 
+  /** Respond when the user clicks a row.*/
   void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
 
+  /** Refresh the widget.*/
   void Refresh();
 
+  /** Set the size to display the patches.*/
   void SetPatchDisplaySize(const unsigned int value);
 
-  void SetImage(ImageType* const image);
+  /** Set the image from which to get the patches.*/
+  void SetImage(TImage* const image);
 
-  void SetTopPatchData(const std::vector<SelfPatchCompare<ImageType>::PatchDataType>& topPatchData);
+  /** Set the data for the top patches.*/
+  void SetTopPatchData(const std::vector<typename SelfPatchCompare<TImage>::PatchDataType>& topPatchData);
 
-  void SetClusterIDs(const std::vector<unsigned int>& clusterIDs);
-
-  std::vector<SelfPatchCompare<ImageType>::PatchDataType> GetTopPatchData();
+  /** Get the data for the top patches.*/
+  std::vector<typename SelfPatchCompare<TImage>::PatchDataType> GetTopPatchData();
 
 private:
 
-  /** This is how big to draw the patches in the table. */
+  /** The size to draw the patches in the table. */
   // TODO: This should be set by the size of the target patch, or a multiplier, or something
   unsigned int PatchDisplaySize;
 
+  /** The number of patches to display.*/
   unsigned int MaxTopPatchesToDisplay;
 
-  std::vector<SelfPatchCompare<ImageType>::PatchDataType> TopPatchData;
+  /** The data for the top patches.*/
+  std::vector<typename SelfPatchCompare<TImage>::PatchDataType> TopPatchData;
 
-  std::vector<unsigned int> ClusterIDs;
-
-  ImageType* Image;
+  /** The image from which to get the patches.*/
+  TImage* Image;
 };
+
+#include "TableModelTopPatches.hpp"
 
 #endif

@@ -16,6 +16,9 @@
  *
  *=========================================================================*/
 
+#ifndef TableModelTopPatches_HPP
+#define TableModelTopPatches_HPP
+
 #include "TableModelTopPatches.h"
 
 // Qt
@@ -27,43 +30,50 @@
 #include "QtHelpers/QtHelpers.h"
 #include "ITKQtHelpers/ITKQtHelpers.h"
 
-TableModelTopPatches::TableModelTopPatches(
-    const std::vector<typename SelfPatchCompare<ImageType>::PatchDataType>& patchData, QObject * parent) :
+template <typename TImage>
+TableModelTopPatches<TImage>::TableModelTopPatches(
+    const std::vector<typename SelfPatchCompare<TImage>::PatchDataType>& patchData, QObject * parent) :
     QAbstractTableModel(parent), PatchDisplaySize(20), MaxTopPatchesToDisplay(0),
     TopPatchData(patchData), Image(NULL)
 {
 }
 
-void TableModelTopPatches::SetPatchDisplaySize(const unsigned int value)
+template <typename TImage>
+void TableModelTopPatches<TImage>::SetPatchDisplaySize(const unsigned int value)
 {
   this->PatchDisplaySize = value;
 }
 
-Qt::ItemFlags TableModelTopPatches::flags(const QModelIndex& index) const
+template <typename TImage>
+Qt::ItemFlags TableModelTopPatches<TImage>::flags(const QModelIndex& index) const
 {
   //Qt::ItemFlags itemFlags = (!Qt::ItemIsEditable) | Qt::ItemIsSelectable | Qt::ItemIsEnabled | (!Qt::ItemIsUserCheckable) | (!Qt::ItemIsTristate);
   Qt::ItemFlags itemFlags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
   return itemFlags;
 }
 
-int TableModelTopPatches::rowCount(const QModelIndex& parent) const
+template <typename TImage>
+int TableModelTopPatches<TImage>::rowCount(const QModelIndex& parent) const
 {
   unsigned int numberOfRowsToDisplay = std::min(this->TopPatchData.size(), this->MaxTopPatchesToDisplay);
 
   return numberOfRowsToDisplay;
 }
 
-int TableModelTopPatches::columnCount(const QModelIndex& parent) const
+template <typename TImage>
+int TableModelTopPatches<TImage>::columnCount(const QModelIndex& parent) const
 {
   return 2;
 }
 
-void TableModelTopPatches::SetMaxTopPatchesToDisplay(const unsigned int maxTopPatchesToDisplay)
+template <typename TImage>
+void TableModelTopPatches<TImage>::SetMaxTopPatchesToDisplay(const unsigned int maxTopPatchesToDisplay)
 {
   this->MaxTopPatchesToDisplay = maxTopPatchesToDisplay;
 }
 
-QVariant TableModelTopPatches::data(const QModelIndex& index, int role) const
+template <typename TImage>
+QVariant TableModelTopPatches<TImage>::data(const QModelIndex& index, int role) const
 {
   QVariant returnValue;
   if(role == Qt::DisplayRole && index.row() >= 0)
@@ -94,7 +104,8 @@ QVariant TableModelTopPatches::data(const QModelIndex& index, int role) const
   return returnValue;
 }
 
-QVariant TableModelTopPatches::headerData(int section, Qt::Orientation orientation, int role) const
+template <typename TImage>
+QVariant TableModelTopPatches<TImage>::headerData(int section, Qt::Orientation orientation, int role) const
 {
   QVariant returnValue;
   if(role == Qt::DisplayRole)
@@ -116,38 +127,40 @@ QVariant TableModelTopPatches::headerData(int section, Qt::Orientation orientati
   return returnValue;
 }
 
-void TableModelTopPatches::Refresh()
+template <typename TImage>
+void TableModelTopPatches<TImage>::Refresh()
 {
   beginResetModel();
   endResetModel();
 }
 
-void TableModelTopPatches::selectionChanged(const QItemSelection& selected,
+template <typename TImage>
+void TableModelTopPatches<TImage>::selectionChanged(const QItemSelection& selected,
                                             const QItemSelection& deselected)
 {
   //std::cout << "TopPatchesTableModel::selectionChanged()" << std::endl;
 }
 
-void TableModelTopPatches::SetImage(ImageType* const image)
+template <typename TImage>
+void TableModelTopPatches<TImage>::SetImage(TImage* const image)
 {
   this->Image = image;
 }
 
-void TableModelTopPatches::SetTopPatchData(
-  const std::vector<typename SelfPatchCompare<ImageType>::PatchDataType>& topPatchData)
+template <typename TImage>
+void TableModelTopPatches<TImage>::SetTopPatchData(
+  const std::vector<typename SelfPatchCompare<TImage>::PatchDataType>& topPatchData)
 {
   this->TopPatchData = topPatchData;
-  this->ClusterIDs.resize(this->TopPatchData.size(), 0);
+
   Refresh();
 }
 
-std::vector<typename SelfPatchCompare<TableModelTopPatches::ImageType>::PatchDataType>
-TableModelTopPatches::GetTopPatchData()
+template <typename TImage>
+std::vector<typename SelfPatchCompare<TImage>::PatchDataType>
+TableModelTopPatches<TImage>::GetTopPatchData()
 {
   return this->TopPatchData;
 }
 
-void TableModelTopPatches::SetClusterIDs(const std::vector<unsigned int>& clusterIDs)
-{
-  this->ClusterIDs = clusterIDs;
-}
+#endif

@@ -37,17 +37,18 @@
 #include <QtConcurrentRun>
 
 // Submodules
-#include "ITKVTKHelpers/ITKHelpers/Helpers/Helpers.h"
+#include "Helpers/Helpers.h"
 #include "ITKVTKHelpers/ITKVTKHelpers.h"
 #include "QtHelpers/QtHelpers.h"
 #include "ITKQtHelpers/ITKQtHelpers.h"
-#include "PatchComparison/Mask/Mask.h"
+#include "Mask/Mask.h"
 
 // Custom
 #include "PixmapDelegate.h"
 
 template<typename TImage>
-TopPatchesWidget<TImage>::TopPatchesWidget(QWidget* parent) : TopPatchesWidgetParent(parent)
+TopPatchesWidget<TImage>::TopPatchesWidget(QWidget* parent) : TopPatchesWidgetParent(parent),
+SecondaryPatchDistanceFunctor(NULL)
 {
   this->setupUi(this);
 
@@ -60,7 +61,7 @@ TopPatchesWidget<TImage>::TopPatchesWidget(QWidget* parent) : TopPatchesWidgetPa
   this->gfxTargetPatch->setScene(this->TargetPatchScene);
 
   this->ProxyModel = new QSortFilterProxyModel;
-  this->TopPatchesModel = new TableModelTopPatches(this->TopPatchData, this);
+  this->TopPatchesModel = new TableModelTopPatches<TImage>(this->TopPatchData, this);
   this->ProxyModel->setSourceModel(this->TopPatchesModel);
   this->tblviewTopPatches->setModel(ProxyModel);
   this->TopPatchesModel->SetMaxTopPatchesToDisplay(this->spinNumberOfBestPatches->value());
@@ -141,7 +142,12 @@ void TopPatchesWidget<TImage>::SetImage(TImage* const image)
 }
 
 template<typename TImage>
-void TopPatchesWidget<TImage>::on_btnCompute_clicked()
+void TopPatchesWidget<TImage>::on_btnComputeSecondary_clicked()
+{
+}
+
+template<typename TImage>
+void TopPatchesWidget<TImage>::on_btnFindTopPatches_clicked()
 {
   std::cout << "Set patch display size to: " << this->gfxTargetPatch->size().height() << std::endl;
   this->TopPatchesModel->SetPatchDisplaySize(this->gfxTargetPatch->size().height());
@@ -238,6 +244,13 @@ void TopPatchesWidget<TImage>::SetSelfPatchCompareFunctor(
      const SelfPatchCompare<TImage>& selfPatchCompareFunctor)
 {
   this->SelfPatchCompareFunctor = selfPatchCompareFunctor;
+}
+
+template<typename TImage>
+void TopPatchesWidget<TImage>::SetSecondaryPatchDistanceFunctor
+                                 (PatchDistance<TImage>* const patchDistanceFunctor)
+{
+  this->SecondaryPatchDistanceFunctor = patchDistanceFunctor;
 }
 
 #endif

@@ -86,7 +86,6 @@ CustomImageStyle.cxx
 CustomTrackballStyle.cxx
 OddValidator.cpp
 PixmapDelegate.cpp
-TableModelTopPatches.cpp
 ${InteractivePatchComparisonWidgetUISrcs} ${InteractivePatchComparisonWidgetMOCSrcs})
 TARGET_LINK_LIBRARIES(InteractivePatchComparison 
 EigenHelpers QtHelpers Helpers VTKHelpers ITKHelpers ITKVTKHelpers

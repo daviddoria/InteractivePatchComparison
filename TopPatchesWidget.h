@@ -58,8 +58,11 @@ public slots:
   /** When a patch (or patches) is clicked or the arrow keys are used, emit a signal. */
   virtual void slot_SelectionChanged(const QItemSelection &, const QItemSelection &) = 0;
 
-  /** Called when the compute button is clicked. */
-  virtual void on_btnCompute_clicked() = 0;
+  /** Called when the "Find Top Matches" button is clicked. */
+  virtual void on_btnFindTopPatches_clicked() = 0;
+
+  /** Called when the "compute secondary" button is clicked. */
+  virtual void on_btnComputeSecondary_clicked() = 0;
 
   /** Called when the progress bar is complete. */
   virtual void slot_Finished() = 0;
@@ -93,6 +96,9 @@ public:
   /** Set the DistanceFunctor to use in the SelfPatchCompareFunctor. */
   void SetPatchDistanceFunctor(PatchDistance<TImage>* const patchDistanceFunctor);
 
+  /** Set the DistanceFunctor to use for secondary comparison. */
+  void SetSecondaryPatchDistanceFunctor(PatchDistance<TImage>* const patchDistanceFunctor);
+
   /** Set the SelfPatchCompareFunctor to use. */
   void SetSelfPatchCompareFunctor(const SelfPatchCompare<TImage>& selfPatchCompareFunctor);
 
@@ -101,8 +107,11 @@ public:
   /** When a patch (or patches) is clicked or the arrow keys are used, emit a signal. */
   void slot_SelectionChanged(const QItemSelection &, const QItemSelection &);
 
-  /** Called when the compute button is clicked. */
-  void on_btnCompute_clicked();
+  /** Called when the "Find Top Patches" button is clicked. */
+  void on_btnFindTopPatches_clicked();
+
+  /** Called when the "compute secondary" button is clicked. */
+  void on_btnComputeSecondary_clicked();
 
   /** Called when the progress bar is complete. */
   void slot_Finished();
@@ -127,7 +136,7 @@ private:
   QGraphicsPixmapItem* TargetPatchItem;
 
   /** The table model used to display the patches. */
-  TableModelTopPatches* TopPatchesModel;
+  TableModelTopPatches<TImage>* TopPatchesModel;
 
   /** The proxy model to allow the table model to be sorted. */
   QSortFilterProxyModel* ProxyModel;
@@ -147,6 +156,8 @@ private:
   /** The functor to use to find the best patch. */
   SelfPatchCompare<TImage> SelfPatchCompareFunctor;
   //SelfPatchCompareLocalOptimization<TImage> SelfPatchCompareFunctor;
+
+  PatchDistance<TImage>* SecondaryPatchDistanceFunctor;
 };
 
 #include "TopPatchesWidget.hpp"
