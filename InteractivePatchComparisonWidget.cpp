@@ -199,10 +199,10 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   /** Alert the PatchInfoWidgets when the patches have moved. These are typically called when the
     * user specifies the position of the patches using the text boxes.*/
   connect(this, SIGNAL(signal_TargetPatchMoved(const itk::ImageRegion<2>&)),
-          TargetPatchInfoWidget, SLOT(slot_Update(const itk::ImageRegion<2>& )));
+          TargetPatchInfoWidget, SLOT(slot_SetRegion(const itk::ImageRegion<2>& )));
 
   connect(this, SIGNAL(signal_SourcePatchMoved(const itk::ImageRegion<2>&)),
-          SourcePatchInfoWidget, SLOT(slot_Update(const itk::ImageRegion<2>& )));
+          SourcePatchInfoWidget, SLOT(slot_SetRegion(const itk::ImageRegion<2>& )));
 
 }
 
@@ -239,6 +239,10 @@ void InteractivePatchComparisonWidget::showEvent(QShowEvent* event)
   this->Renderer->ResetCamera();
 
   Refresh();
+
+  std::cout << "InteractivePatchComparisonWidget showEvent" << std::endl;
+  this->TargetPatchInfoWidget->Update();
+  this->SourcePatchInfoWidget->Update();
 }
 
 void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)

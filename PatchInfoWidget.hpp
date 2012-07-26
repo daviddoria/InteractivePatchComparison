@@ -146,36 +146,34 @@ void PatchInfoWidget<TImage>::on_spinYCenter_valueChanged(int value)
 }
 
 template <typename TImage>
-void PatchInfoWidget<TImage>::slot_Update(const itk::ImageRegion<2>& patchRegion)
+void PatchInfoWidget<TImage>::Update()
 {
-  if(!this->Image->GetLargestPossibleRegion().IsInside(patchRegion))
+  if(!this->MaskImage || !this->Image || (this->Region.GetSize()[0] == 0))
   {
     return;
   }
-
-  this->Region = patchRegion;
-  itk::Index<2> patchCenter = ITKHelpers::GetRegionCenter(patchRegion);
+  itk::Index<2> patchCenter = ITKHelpers::GetRegionCenter(this->Region);
   this->spinXCenter->setValue(QString::number(patchCenter[0]).toUInt());
   this->spinYCenter->setValue(QString::number(patchCenter[1]).toUInt());
 
   typename TImage::PixelType average;
   average.SetSize(Image->GetNumberOfComponentsPerPixel());
   average.Fill(0);
-  
+
   typename TImage::PixelType variance;
   variance.SetSize(Image->GetNumberOfComponentsPerPixel());
   variance.Fill(0);
-  
-  if(this->MaskImage && this->MaskImage->CountValidPixels(patchRegion) > 0)
+
+  if(this->MaskImage && this->MaskImage->CountValidPixels(this->Region) > 0)
   {
     //average = Helpers::AverageInRegionMasked(Image.GetPointer(), MaskImage.GetPointer(), patchRegion);
 
     // This assumes both patches are fully valid (often the case when exploring)
-    average = ITKHelpers::AverageInRegion(Image, patchRegion);
+    average = ITKHelpers::AverageInRegion(Image, this->Region);
     itk::VariableLengthVector<int> intAverage = average;
     this->lblPixelMean->setText(ITKHelpers::VectorToString(average).c_str());
 
-    variance = MaskOperations::VarianceInRegionMasked(this->Image, this->MaskImage, patchRegion);
+    variance = MaskOperations::VarianceInRegionMasked(this->Image, this->MaskImage, this->Region);
 
     this->lblPixelVariance->setText(ITKHelpers::VectorToString(variance).c_str());
   }
@@ -190,8 +188,12 @@ void PatchInfoWidget<TImage>::slot_Update(const itk::ImageRegion<2>& patchRegion
   // followed by GetQImage.
 //   QImage sourcePatchImage = MaskOperations::GetQImageMasked(this->Image, this->MaskImage,
 //                             patchRegion);
-  QImage sourcePatchImage = ITKQtHelpers::GetQImageColor(this->Image, patchRegion);
+  QImage sourcePatchImage = ITKQtHelpers::GetQImageColor(this->Image, this->Region);
 
+  if(this->chkFlip->isChecked())
+  {
+    sourcePatchImage = sourcePatchImage.mirrored(false, true); // (horizontal, vertical)
+  }
   sourcePatchImage = QtHelpers::FitToGraphicsView(sourcePatchImage, this->graphicsView_Patch);
 
   QGraphicsScene* sourceScene = new QGraphicsScene();
@@ -208,6 +210,19 @@ void PatchInfoWidget<TImage>::slot_Update(const itk::ImageRegion<2>& patchRegion
   QGraphicsScene* averageColorScene = new QGraphicsScene();
   averageColorScene->addPixmap(QPixmap::fromImage(averageColorQImage));
   this->graphicsView_AverageColor->setScene(averageColorScene);
+}
+
+template <typename TImage>
+void PatchInfoWidget<TImage>::slot_SetRegion(const itk::ImageRegion<2>& patchRegion)
+{
+  if(!this->Image->GetLargestPossibleRegion().IsInside(patchRegion))
+  {
+    return;
+  }
+
+  this->Region = patchRegion;
+
+  Update();
 }
 
 template <typename TImage>
@@ -295,6 +310,32 @@ bool PatchInfoWidget<TImage>::eventFilter(QObject *object, QEvent *event)
   }
 
   return false; // Pass the event along (don't consume it)
+}
+
+template <typename TImage>
+void PatchInfoWidget<TImage>::showEvent(QShowEvent* event)
+{
+  //std::cout << "PatchInfoWidget showEvent" << std::endl;
+  if(this->Region.GetSize()[0] != 0)
+  {
+    //std::cout << "PatchInfoWidget showEvent update" << std::endl;
+    Update();
+  }
+}
+
+template <typename TImage>
+void PatchInfoWidget<TImage>::on_chkFlip_stateChanged(int state)
+{
+  Update();
+}
+
+template <typename TImage>
+void PatchInfoWidget<TImage>::resizeEvent(QResizeEvent* event)
+{
+  if(this->Region.GetSize()[0] != 0)
+  {
+    Update();
+  }
 }
 
 #endif
