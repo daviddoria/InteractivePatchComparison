@@ -56,7 +56,9 @@ public:
   /** Set the properties of the displayed items.*/
   Qt::ItemFlags flags(const QModelIndex& index) const;
 
-  /** Set the number of patches to display.*/
+  /** Set the maximum number of patches to display. This function is not just called SetTopPatchesToDisplay
+    * because if the number of total patches is less than this, the number of total patches is used as the number of
+    * patches to display. */
   void SetMaxTopPatchesToDisplay(const unsigned int maxTopPatchesToDisplay);
 
   /** Respond when the user clicks a row.*/

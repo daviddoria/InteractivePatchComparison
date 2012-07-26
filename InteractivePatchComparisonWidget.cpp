@@ -661,44 +661,45 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
   ////////////////// Setup the histogram top patches widget //////////////////
   HistogramDistance<ImageType>* histogramDistanceFunctor = new HistogramDistance<ImageType>;
   histogramDistanceFunctor->SetImage(this->Image);
-
-  TopPatchesWidget<ImageType>* histogramTopPatchesWidget = new TopPatchesWidget<ImageType>;
-  histogramTopPatchesWidget->SetPatchDistanceFunctor(histogramDistanceFunctor);
-  histogramTopPatchesWidget->SetImage(this->Image);
-  histogramTopPatchesWidget->setWindowTitle("Histogram Distance");
-  this->TopPatchesWidgets.push_back(histogramTopPatchesWidget);
-  histogramTopPatchesWidget->show();
-
-  // This is used when the user clicks on a top patch in the view of the top patches.
-  connect(histogramTopPatchesWidget,
-          SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
-          this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
+  ssdTopPatchesWidget->SetSecondaryPatchDistanceFunctor(histogramDistanceFunctor);
+  // It is much too slow to compare histograms for every source patch
+//   TopPatchesWidget<ImageType>* histogramTopPatchesWidget = new TopPatchesWidget<ImageType>;
+//   histogramTopPatchesWidget->SetPatchDistanceFunctor(histogramDistanceFunctor);
+//   histogramTopPatchesWidget->SetImage(this->Image);
+//   histogramTopPatchesWidget->setWindowTitle("Histogram Distance");
+//   this->TopPatchesWidgets.push_back(histogramTopPatchesWidget);
+//   histogramTopPatchesWidget->show();
+// 
+//   // This is used when the user clicks on a top patch in the view of the top patches.
+//   connect(histogramTopPatchesWidget,
+//           SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
+//           this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
 
   //////////////// Setup the blurred top patches widget //////////////////
-  this->BlurredImage = ImageType::New();
-  //float sigma = 2.0f;
-  //ITKHelpers::BlurAllChannels(this->Image.GetPointer(), this->BlurredImage.GetPointer(), sigma);
-
-  float domainSigma = 5.0f;
-  float rangeSigma = 50.0f;
-  ITKHelpers::BilateralFilterAllChannels(this->Image.GetPointer(), this->BlurredImage.GetPointer(), domainSigma, rangeSigma);
-  ITKHelpers::WriteRGBImage(this->BlurredImage.GetPointer(), "blurred.png");
-
-  SSD<ImageType>* blurredSSDDistanceFunctor = new SSD<ImageType>;
-  blurredSSDDistanceFunctor->SetImage(this->BlurredImage);
-
-  TopPatchesWidget<ImageType>* blurredTopPatchesWidget = new TopPatchesWidget<ImageType>;
-  blurredTopPatchesWidget->setWindowTitle("Blurred SSD");
-  //blurredTopPatchesWidget->SetImage(this->Image);
-  blurredTopPatchesWidget->SetImage(this->BlurredImage);
-  blurredTopPatchesWidget->SetPatchDistanceFunctor(blurredSSDDistanceFunctor);
-  this->TopPatchesWidgets.push_back(blurredTopPatchesWidget);
-  blurredTopPatchesWidget->show();
-
-  // This is used when the user clicks on a top patch in the view of the top patches.
-  connect(blurredTopPatchesWidget,
-          SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
-          this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
+//   this->BlurredImage = ImageType::New();
+//   //float sigma = 2.0f;
+//   //ITKHelpers::BlurAllChannels(this->Image.GetPointer(), this->BlurredImage.GetPointer(), sigma);
+// 
+//   float domainSigma = 5.0f;
+//   float rangeSigma = 50.0f;
+//   ITKHelpers::BilateralFilterAllChannels(this->Image.GetPointer(), this->BlurredImage.GetPointer(), domainSigma, rangeSigma);
+//   ITKHelpers::WriteRGBImage(this->BlurredImage.GetPointer(), "blurred.png");
+// 
+//   SSD<ImageType>* blurredSSDDistanceFunctor = new SSD<ImageType>;
+//   blurredSSDDistanceFunctor->SetImage(this->BlurredImage);
+// 
+//   TopPatchesWidget<ImageType>* blurredTopPatchesWidget = new TopPatchesWidget<ImageType>;
+//   blurredTopPatchesWidget->setWindowTitle("Blurred SSD");
+//   //blurredTopPatchesWidget->SetImage(this->Image);
+//   blurredTopPatchesWidget->SetImage(this->BlurredImage);
+//   blurredTopPatchesWidget->SetPatchDistanceFunctor(blurredSSDDistanceFunctor);
+//   this->TopPatchesWidgets.push_back(blurredTopPatchesWidget);
+//   blurredTopPatchesWidget->show();
+// 
+//   // This is used when the user clicks on a top patch in the view of the top patches.
+//   connect(blurredTopPatchesWidget,
+//           SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
+//           this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
 }
 
 bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *event)

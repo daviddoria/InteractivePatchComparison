@@ -38,7 +38,7 @@ class QSortFilterProxyModel;
 #include "PatchComparison/SelfPatchCompareLocalOptimization.h"
 
 // Custom
-#include "TableModelTopPatches.h"
+#include "TableModelTopPatches.h" // Can't forward declare a class template
 
 /** This class is necessary because a class template cannot have the Q_OBJECT macro directly. */
 class TopPatchesWidgetParent : public QWidget, public Ui::TopPatchesWidget

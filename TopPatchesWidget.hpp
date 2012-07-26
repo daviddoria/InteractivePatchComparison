@@ -81,6 +81,7 @@ SecondaryPatchDistanceFunctor(NULL)
   this->ProgressDialog = new QProgressDialog();
   this->ProgressDialog->setMinimum(0);
   this->ProgressDialog->setMaximum(0);
+  this->ProgressDialog->setWindowModality(Qt::WindowModal);
   this->ProgressDialog->hide();
 
   connect(&this->FutureWatcher, SIGNAL(finished()), this, SLOT(slot_Finished()));
@@ -144,6 +145,16 @@ void TopPatchesWidget<TImage>::SetImage(TImage* const image)
 template<typename TImage>
 void TopPatchesWidget<TImage>::on_btnComputeSecondary_clicked()
 {
+  // Replace the data using the secondary distance functor
+  for(int i = 0; i < this->spinNumberOfBestPatches->value(); ++i)
+  {
+    float secondaryDistance = this->SecondaryPatchDistanceFunctor->Distance(this->TargetRegion, this->TopPatchData[i].first);
+    this->TopPatchData[i].second = secondaryDistance;
+  }
+
+  // Update the data in the model
+  this->TopPatchesModel->SetTopPatchData(this->TopPatchData);
+  this->TopPatchesModel->Refresh();
 }
 
 template<typename TImage>
@@ -164,9 +175,6 @@ void TopPatchesWidget<TImage>::on_btnFindTopPatches_clicked()
   QFuture<void> future = QtConcurrent::run(this, &TopPatchesWidget::Compute);
   this->FutureWatcher.setFuture(future);
 
-  this->ProgressDialog->setMinimum(0);
-  this->ProgressDialog->setMaximum(0);
-  this->ProgressDialog->setWindowModality(Qt::WindowModal);
   this->ProgressDialog->exec();
 }
 
@@ -199,7 +207,6 @@ void TopPatchesWidget<TImage>::Compute()
   this->TopPatchesModel->SetMaxTopPatchesToDisplay(this->spinNumberOfBestPatches->value());
   this->TopPatchesModel->SetTopPatchData(this->TopPatchData);
   this->TopPatchesModel->Refresh();
-
 }
 
 template<typename TImage>
