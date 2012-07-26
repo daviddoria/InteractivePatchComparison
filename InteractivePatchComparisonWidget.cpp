@@ -709,3 +709,8 @@ bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *even
 
   return false; // Pass the event along (don't consume it)
 }
+
+void InteractivePatchComparisonWidget::closeEvent(QCloseEvent* event)
+{
+  QApplication::quit();
+}

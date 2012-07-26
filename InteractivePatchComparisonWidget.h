@@ -115,6 +115,9 @@ private:
   /** When the widget finishes loading, this function is called. */
   void showEvent(QShowEvent* event);
 
+  /** When the widget closed, this function is called. */
+  void closeEvent(QCloseEvent* event);
+
   /** Open an image. */
   void OpenImage(const std::string& filename);
 
