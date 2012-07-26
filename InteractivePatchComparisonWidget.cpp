@@ -69,6 +69,7 @@
 #include "PatchComparison/CorrelationScore.h"
 #include "PatchComparison/PixelDifferences.h"
 #include "PatchComparison/SSD.h"
+#include "PatchComparison/HistogramDistance.h"
 #include "PatchComparison/ProjectedDistance.h"
 #include "PatchComparison/LocalPCADistance.h"
 
@@ -271,8 +272,6 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
 
   this->TargetPatchInfoWidget->SetImage(this->Image.GetPointer());
   this->SourcePatchInfoWidget->SetImage(this->Image.GetPointer());
-
-//   this->TopPatchesPanel->SetImage(this->Image.GetPointer());
 
   this->ImageLayer.ImageSlice->VisibilityOn();
   this->SourcePatchLayer.ImageSlice->VisibilityOn();
@@ -640,26 +639,42 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
     throw std::runtime_error("Cannot SetupDistanceFunctors() before calling SetImage()!");
   }
 
-  // Setup the normal top patches widget
-  // SSD
+  ////////////////// Setup the normal top patches widget //////////////////
   SSD<ImageType>* ssdDistanceFunctor = new SSD<ImageType>;
   ssdDistanceFunctor->SetImage(this->Image);
 
+  // Use this distance functor for the single distance that is computed between the two user selected patches.
   this->CurrentDistanceFunctor = ssdDistanceFunctor;
 
-  TopPatchesWidget<ImageType>* topPatchesWidget = new TopPatchesWidget<ImageType>;
-  topPatchesWidget->SetPatchDistanceFunctor(ssdDistanceFunctor);
-  topPatchesWidget->SetImage(this->Image);
-  topPatchesWidget->setWindowTitle("SSD");
-  this->TopPatchesWidgets.push_back(topPatchesWidget);
-  topPatchesWidget->show();
+  TopPatchesWidget<ImageType>* ssdTopPatchesWidget = new TopPatchesWidget<ImageType>;
+  ssdTopPatchesWidget->SetPatchDistanceFunctor(ssdDistanceFunctor);
+  ssdTopPatchesWidget->SetImage(this->Image);
+  ssdTopPatchesWidget->setWindowTitle("SSD");
+  this->TopPatchesWidgets.push_back(ssdTopPatchesWidget);
+  ssdTopPatchesWidget->show();
 
   // This is used when the user clicks on a top patch in the view of the top patches.
-  connect(topPatchesWidget,
+  connect(ssdTopPatchesWidget,
           SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
           this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
 
-  // Setup the blurred top patches widget
+  ////////////////// Setup the histogram top patches widget //////////////////
+  HistogramDistance<ImageType>* histogramDistanceFunctor = new HistogramDistance<ImageType>;
+  histogramDistanceFunctor->SetImage(this->Image);
+
+  TopPatchesWidget<ImageType>* histogramTopPatchesWidget = new TopPatchesWidget<ImageType>;
+  histogramTopPatchesWidget->SetPatchDistanceFunctor(histogramDistanceFunctor);
+  histogramTopPatchesWidget->SetImage(this->Image);
+  histogramTopPatchesWidget->setWindowTitle("Histogram Distance");
+  this->TopPatchesWidgets.push_back(histogramTopPatchesWidget);
+  histogramTopPatchesWidget->show();
+
+  // This is used when the user clicks on a top patch in the view of the top patches.
+  connect(histogramTopPatchesWidget,
+          SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
+          this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
+
+  //////////////// Setup the blurred top patches widget //////////////////
   this->BlurredImage = ImageType::New();
   //float sigma = 2.0f;
   //ITKHelpers::BlurAllChannels(this->Image.GetPointer(), this->BlurredImage.GetPointer(), sigma);

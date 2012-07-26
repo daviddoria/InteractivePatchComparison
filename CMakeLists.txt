@@ -18,11 +18,6 @@ if(NOT TARGET VTKHelpers)
   include_directories(${VTKHelpers_includes})
 endif()
 
-if(NOT TARGET ITKVTKHelpers)
-  add_subdirectory(ITKVTKHelpers)
-  include_directories(${ITKVTKHelpers_includes})
-endif()
-
 if(NOT TARGET QtHelpers)
   add_subdirectory(QtHelpers)
   include_directories(${QtHelpers_includes})
