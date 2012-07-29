@@ -277,8 +277,6 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
   this->SourcePatchLayer.ImageSlice->VisibilityOn();
   this->TargetPatchLayer.ImageSlice->VisibilityOn();
 
-  SetupDistanceFunctors();
-
   // Generate a fully valid mask if one has not been set.
   //if(this->MaskImage->GetLargestPossibleRegion().GetSize()[0] == 0)
   if(!this->MaskImage)
@@ -290,6 +288,8 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
     this->TargetPatchInfoWidget->SetMask(this->MaskImage);
     this->SourcePatchInfoWidget->SetMask(this->MaskImage);
   }
+
+  SetupDistanceFunctors();
 
   UpdatePatches();
 
@@ -305,28 +305,17 @@ void InteractivePatchComparisonWidget::OpenImage(const std::string& fileName)
 
 void InteractivePatchComparisonWidget::OpenMask(const std::string& fileName)
 {
-  typedef itk::ImageFileReader<Mask> ReaderType;
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(fileName);
-  reader->Update();
+  this->MaskImage = Mask::New();
+  this->MaskImage->Read(fileName);
 
   // If the image has already been loaded, make sure the image size matches the mask size
   if( (this->Image->GetLargestPossibleRegion().GetSize()[0] > 0) &&
-      (this->Image->GetLargestPossibleRegion() != reader->GetOutput()->GetLargestPossibleRegion()) )
+      (this->Image->GetLargestPossibleRegion() != this->MaskImage->GetLargestPossibleRegion()) )
     {
     std::cerr << "OpenMask(): Image and mask must be the same size!" << std::endl;
+    this->MaskImage = NULL;
     return;
     }
-  this->MaskImage = Mask::New();
-  ITKHelpers::DeepCopy(reader->GetOutput(), this->MaskImage.GetPointer());
-
-  // For this program, we ALWAYS assume the hole to be filled is white, and the valid/source region is black.
-  // This is not simply reversible because of some subtle erosion operations that are performed.
-  // For this reason, we provide an "load inverted mask" action in the file menu.
-  this->MaskImage->SetValidValue(0);
-  this->MaskImage->SetHoleValue(255);
-
-  this->MaskImage->Cleanup();
 
   MaskOperations::SetMaskTransparency(this->MaskImage, this->MaskImageLayer.ImageData);
 
@@ -429,7 +418,7 @@ void InteractivePatchComparisonWidget::on_actionOpenMaskInverted_activated()
 void InteractivePatchComparisonWidget::on_actionOpenMask_activated()
 {
   // Get a filename to open
-  QString fileName = QFileDialog::getOpenFileName(this, "Open File", ".", "Image Files (*.png *.bmp);;Image Files(*.mha)");
+  QString fileName = QFileDialog::getOpenFileName(this, "Open File", ".", "Mask Files (*.mask)");
 
   //std::cout << "Got filename: " << fileName.toStdString() << std::endl;
   if(fileName.toStdString().empty())
@@ -638,6 +627,8 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
   {
     throw std::runtime_error("Cannot SetupDistanceFunctors() before calling SetImage()!");
   }
+
+  this->TopPatchesWidgets.clear();
 
   ////////////////// Setup the normal top patches widget //////////////////
   SSD<ImageType>* ssdDistanceFunctor = new SSD<ImageType>;
