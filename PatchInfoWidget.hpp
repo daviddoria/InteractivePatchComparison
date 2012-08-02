@@ -157,11 +157,11 @@ void PatchInfoWidget<TImage>::Update()
   this->spinYCenter->setValue(QString::number(patchCenter[1]).toUInt());
 
   typename TImage::PixelType average;
-  average.SetSize(Image->GetNumberOfComponentsPerPixel());
+  //average.SetSize(Image->GetNumberOfComponentsPerPixel()); // If using VectorImage
   average.Fill(0);
 
   typename TImage::PixelType variance;
-  variance.SetSize(Image->GetNumberOfComponentsPerPixel());
+  //variance.SetSize(Image->GetNumberOfComponentsPerPixel()); // If using VectorImage
   variance.Fill(0);
 
   if(this->MaskImage && this->MaskImage->CountValidPixels(this->Region) > 0)
@@ -170,7 +170,7 @@ void PatchInfoWidget<TImage>::Update()
 
     // This assumes both patches are fully valid (often the case when exploring)
     average = ITKHelpers::AverageInRegion(Image, this->Region);
-    itk::VariableLengthVector<int> intAverage = average;
+    //itk::VariableLengthVector<int> intAverage = average;
     this->lblPixelMean->setText(ITKHelpers::VectorToString(average).c_str());
 
     variance = MaskOperations::VarianceInRegionMasked(this->Image, this->MaskImage, this->Region);

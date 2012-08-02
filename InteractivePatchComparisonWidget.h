@@ -55,7 +55,8 @@ class InteractivePatchComparisonWidget : public QMainWindow, private Ui::Interac
 Q_OBJECT
 public:
 
-  typedef itk::VectorImage<float, 2> ImageType;
+  //typedef itk::VectorImage<float, 2> ImageType;
+  typedef itk::Image<itk::CovariantVector<unsigned char, 3>, 2> ImageType;
 
   // Constructor/Destructor
   InteractivePatchComparisonWidget(QWidget* parent = 0);

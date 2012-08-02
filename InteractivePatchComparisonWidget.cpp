@@ -411,7 +411,7 @@ void InteractivePatchComparisonWidget::on_actionOpenMaskInverted_activated()
 {
   //std::cout << "on_actionOpenMaskInverted_activated()" << std::endl;
   on_actionOpenMask_activated();
-  this->MaskImage->Invert();
+  this->MaskImage->InvertData();
   this->MaskImage->Cleanup();
   }
 
@@ -634,9 +634,6 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
   SSD<ImageType>* ssdDistanceFunctor = new SSD<ImageType>;
   ssdDistanceFunctor->SetImage(this->Image);
 
-  // Use this distance functor for the single distance that is computed between the two user selected patches.
-  this->CurrentDistanceFunctor = ssdDistanceFunctor;
-
   TopPatchesWidget<ImageType>* ssdTopPatchesWidget = new TopPatchesWidget<ImageType>;
   ssdTopPatchesWidget->SetPatchDistanceFunctor(ssdDistanceFunctor);
   ssdTopPatchesWidget->SetImage(this->Image);
@@ -691,6 +688,12 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
 //   connect(blurredTopPatchesWidget,
 //           SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
 //           this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
+
+
+  // Use this distance functor for the single distance that is computed between the two user selected patches.
+  //this->CurrentDistanceFunctor = ssdDistanceFunctor;
+  this->CurrentDistanceFunctor = histogramDistanceFunctor;
+
 }
 
 bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *event)
