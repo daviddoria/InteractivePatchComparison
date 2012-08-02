@@ -647,9 +647,24 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
           this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
 
   ////////////////// Setup the histogram top patches widget //////////////////
+  // RGB Histogram
+//   HistogramDistance<ImageType>* histogramDistanceFunctor = new HistogramDistance<ImageType>;
+//   histogramDistanceFunctor->SetImage(this->Image);
+
+  typedef itk::VectorImage<float, 2> HSVImageType;
+  HSVImageType::Pointer hsvImage = HSVImageType::New();
+  ITKHelpers::ITKImageToHSVImage(this->Image.GetPointer(), hsvImage.GetPointer());
+
+  ITKHelpers::ScaleAllChannelsTo255(hsvImage.GetPointer());
+  this->HSVImage = ImageType::New();
+  ITKHelpers::CastImage(hsvImage.GetPointer(), this->HSVImage.GetPointer());
+  
+  // Convert back to an uchar image so our distance functor vector can hold the object
   HistogramDistance<ImageType>* histogramDistanceFunctor = new HistogramDistance<ImageType>;
-  histogramDistanceFunctor->SetImage(this->Image);
-  ssdTopPatchesWidget->SetSecondaryPatchDistanceFunctor(histogramDistanceFunctor);
+  histogramDistanceFunctor->SetImage(this->HSVImage);
+
+  //ssdTopPatchesWidget->SetSecondaryPatchDistanceFunctor(histogramDistanceFunctor);
+
   // It is much too slow to compare histograms for every source patch
 //   TopPatchesWidget<ImageType>* histogramTopPatchesWidget = new TopPatchesWidget<ImageType>;
 //   histogramTopPatchesWidget->SetPatchDistanceFunctor(histogramDistanceFunctor);

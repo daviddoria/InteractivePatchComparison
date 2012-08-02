@@ -191,6 +191,8 @@ private:
   /** A list of all functor to potentially use. */
   PatchInfoWidget<ImageType>* SourcePatchInfoWidget;
   PatchInfoWidget<ImageType>* TargetPatchInfoWidget;
+
+  ImageType::Pointer HSVImage;
 };
 
 #endif // InteractivePatchComparisonWidget_H
