@@ -662,6 +662,7 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
   // Convert back to an uchar image so our distance functor vector can hold the object
   HistogramDistance<ImageType>* histogramDistanceFunctor = new HistogramDistance<ImageType>;
   histogramDistanceFunctor->SetImage(this->HSVImage);
+  histogramDistanceFunctor->SetDistanceNameModifier("HSV");
 
   //ssdTopPatchesWidget->SetSecondaryPatchDistanceFunctor(histogramDistanceFunctor);
 
@@ -708,7 +709,7 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
   // Use this distance functor for the single distance that is computed between the two user selected patches.
   //this->CurrentDistanceFunctor = ssdDistanceFunctor;
   this->CurrentDistanceFunctor = histogramDistanceFunctor;
-
+  this->lblScoreName->setText(this->CurrentDistanceFunctor->GetDistanceName().c_str());
 }
 
 bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *event)
