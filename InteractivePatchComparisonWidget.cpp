@@ -120,8 +120,6 @@ void InteractivePatchComparisonWidget::SharedConstructor()
   this->SourcePatchInfoWidget = new PatchInfoWidget<ImageType>;
   this->SourcePatchInfoWidgetPlaceholder->addWidget(this->SourcePatchInfoWidget);
   this->SourcePatchInfoWidgetPlaceholder->setCurrentWidget(this->SourcePatchInfoWidget);
-  
-  this->CurrentDistanceFunctor = NULL;
 
   OddValidator* oddValidator = new OddValidator;
   this->spinPatchRadius->findChild<QLineEdit*>()->setValidator(oddValidator);
@@ -575,8 +573,13 @@ void InteractivePatchComparisonWidget::UpdatePatches()
   if(this->Image->GetLargestPossibleRegion().IsInside(targetRegion) &&
      this->Image->GetLargestPossibleRegion().IsInside(sourceRegion))
   {
-    float distance = this->CurrentDistanceFunctor->Distance(sourceRegion, targetRegion);
-    this->lblScore->setNum(distance);
+    for(size_t i = 0; i < this->DistanceFunctors.size(); ++i)
+    {
+      float distance = this->DistanceFunctors[i]->Distance(sourceRegion, targetRegion);
+      std::stringstream ss;
+      ss << this->DistanceFunctors[i]->GetDistanceName() << ": " << distance;
+      this->ScoreDisplayMap[this->DistanceFunctors[i]]->setText(ss.str().c_str());
+    }
 
     Refresh();
   }
@@ -633,6 +636,11 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
   ////////////////// Setup the normal top patches widget //////////////////
   SSD<ImageType>* ssdDistanceFunctor = new SSD<ImageType>;
   ssdDistanceFunctor->SetImage(this->Image);
+  this->DistanceFunctors.push_back(ssdDistanceFunctor);
+
+  QLabel* ssdLabel = new QLabel;
+  this->layoutScores->addWidget(ssdLabel);
+  this->ScoreDisplayMap[ssdDistanceFunctor] = ssdLabel;
 
   TopPatchesWidget<ImageType>* ssdTopPatchesWidget = new TopPatchesWidget<ImageType>;
   ssdTopPatchesWidget->SetPatchDistanceFunctor(ssdDistanceFunctor);
@@ -658,12 +666,16 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
   ITKHelpers::ScaleAllChannelsTo255(hsvImage.GetPointer());
   this->HSVImage = ImageType::New();
   ITKHelpers::CastImage(hsvImage.GetPointer(), this->HSVImage.GetPointer());
-  
+
   // Convert back to an uchar image so our distance functor vector can hold the object
   HistogramDistance<ImageType>* histogramDistanceFunctor = new HistogramDistance<ImageType>;
   histogramDistanceFunctor->SetImage(this->HSVImage);
   histogramDistanceFunctor->SetDistanceNameModifier("HSV");
+  this->DistanceFunctors.push_back(histogramDistanceFunctor);
 
+  QLabel* histogramDistanceLabel = new QLabel;
+  this->layoutScores->addWidget(histogramDistanceLabel);
+  this->ScoreDisplayMap[histogramDistanceFunctor] = histogramDistanceLabel;
   //ssdTopPatchesWidget->SetSecondaryPatchDistanceFunctor(histogramDistanceFunctor);
 
   // It is much too slow to compare histograms for every source patch
@@ -705,11 +717,6 @@ void InteractivePatchComparisonWidget::SetupDistanceFunctors()
 //           SIGNAL(signal_TopPatchesSelected(const std::vector<itk::ImageRegion<2> >&)),
 //           this, SLOT(slot_SelectedPatchesChanged(const std::vector<itk::ImageRegion<2> >& )));
 
-
-  // Use this distance functor for the single distance that is computed between the two user selected patches.
-  //this->CurrentDistanceFunctor = ssdDistanceFunctor;
-  this->CurrentDistanceFunctor = histogramDistanceFunctor;
-  this->lblScoreName->setText(this->CurrentDistanceFunctor->GetDistanceName().c_str());
 }
 
 bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *event)

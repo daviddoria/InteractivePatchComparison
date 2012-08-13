@@ -183,7 +183,8 @@ private:
   std::string MaskFileName;
 
   /** The functor to use in the PatchInformation widgets */
-  PatchDistance<ImageType>* CurrentDistanceFunctor;
+  //PatchDistance<ImageType>* CurrentDistanceFunctor;
+  std::vector<PatchDistance<ImageType>*> DistanceFunctors;
 
   /** A list of all functor to potentially use. */
   std::vector<TopPatchesWidget<ImageType>*> TopPatchesWidgets;
@@ -193,6 +194,8 @@ private:
   PatchInfoWidget<ImageType>* TargetPatchInfoWidget;
 
   ImageType::Pointer HSVImage;
+
+  std::map<PatchDistance<ImageType>*, QLabel*> ScoreDisplayMap;
 };
 
 #endif // InteractivePatchComparisonWidget_H
