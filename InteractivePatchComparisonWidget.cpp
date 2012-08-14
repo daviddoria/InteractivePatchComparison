@@ -29,6 +29,9 @@
 #include "itkVector.h"
 
 // Qt
+#include <QDropEvent>
+#include <QMouseEvent>
+#include <QDrag>
 #include <QFileDialog>
 #include <QIcon>
 #include <QLineEdit>
@@ -112,11 +115,12 @@ InteractivePatchComparisonWidget::InteractivePatchComparisonWidget(const std::st
 void InteractivePatchComparisonWidget::SharedConstructor()
 {
   this->setupUi(this);
+  this->setAcceptDrops(true);
 
   this->TargetPatchInfoWidget = new PatchInfoWidget<ImageType>;
   this->TargetPatchInfoWidgetPlaceholder->addWidget(this->TargetPatchInfoWidget);
   this->TargetPatchInfoWidgetPlaceholder->setCurrentWidget(this->TargetPatchInfoWidget);
-  
+
   this->SourcePatchInfoWidget = new PatchInfoWidget<ImageType>;
   this->SourcePatchInfoWidgetPlaceholder->addWidget(this->SourcePatchInfoWidget);
   this->SourcePatchInfoWidgetPlaceholder->setCurrentWidget(this->SourcePatchInfoWidget);
@@ -373,6 +377,9 @@ void InteractivePatchComparisonWidget::GetPatchSizeFromGUI()
 
   this->PatchSize[0] = Helpers::SideLengthFromRadius(patchRadius);
   this->PatchSize[1] = Helpers::SideLengthFromRadius(patchRadius);
+
+  this->TargetRegion.SetSize(this->PatchSize);
+  this->SourceRegion.SetSize(this->PatchSize);
 }
 
 void InteractivePatchComparisonWidget::SetupPatches()
@@ -486,6 +493,8 @@ void InteractivePatchComparisonWidget::slot_TargetPatchMoved(const itk::ImageReg
   targetPosition[1] = patchRegion.GetIndex()[1];
   this->TargetPatchLayer.ImageSlice->SetPosition(targetPosition);
 
+  this->TargetRegion = patchRegion;
+
   // Update the TopPatches widgets
   for(unsigned int i = 0; i < this->TopPatchesWidgets.size(); ++i)
   {
@@ -501,6 +510,10 @@ void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageReg
 {
   //std::cout << "slot_SourcePatchMoved to " << patchRegion << std::endl;
 
+  // We can SetPosition(region.GetIndex()) of the source/target image slices
+  // directly because the corner of the regions because VTK says that the
+  // "position" of an image is it's corner.
+
   double sourcePosition[3];
   this->SourcePatchLayer.ImageSlice->GetPosition(sourcePosition);
 
@@ -508,92 +521,105 @@ void InteractivePatchComparisonWidget::slot_SourcePatchMoved(const itk::ImageReg
   sourcePosition[1] = patchRegion.GetIndex()[1];
   this->SourcePatchLayer.ImageSlice->SetPosition(sourcePosition);
 
+  this->SourceRegion = patchRegion;
+
   Refresh();
   UpdatePatches();
 }
 
 void InteractivePatchComparisonWidget::UpdatePatches()
 {
-  // Source patch
-  double sourcePosition[3];
-  this->SourcePatchLayer.ImageSlice->GetPosition(sourcePosition);
-
-  itk::Index<2> sourceCorner;
-  sourceCorner[0] = sourcePosition[0];
-  sourceCorner[1] = sourcePosition[1];
-
-  // Snap to grid
-  sourcePosition[0] = sourceCorner[0];
-  sourcePosition[1] = sourceCorner[1];
-  this->SourcePatchLayer.ImageSlice->SetPosition(sourcePosition);
-
-  itk::ImageRegion<2> sourceRegion(sourceCorner, this->PatchSize);
-
-  // Patch 2
-  double targetPosition[3];
-  this->TargetPatchLayer.ImageSlice->GetPosition(targetPosition);
-
-  itk::Index<2> targetCorner;
-  targetCorner[0] = targetPosition[0];
-  targetCorner[1] = targetPosition[1];
-
-  // Snap to grid
-  targetPosition[0] = targetCorner[0];
-  targetPosition[1] = targetCorner[1];
-  this->TargetPatchLayer.ImageSlice->SetPosition(targetPosition);
-
-  itk::ImageRegion<2> targetRegion(targetCorner, this->PatchSize);
-
   // If the patch is not inside the image, don't do anything
-  if(!Image->GetLargestPossibleRegion().IsInside(targetRegion))
+  if(!Image->GetLargestPossibleRegion().IsInside(this->TargetRegion))
   {
-    TargetPatchInfoWidget->MakeInvalid();
+    this->TargetPatchInfoWidget->MakeInvalid();
   }
   else
   {
     // Set the TopPatchesWidgets to use the new target patch
     for(unsigned int i = 0; i < this->TopPatchesWidgets.size(); ++i)
     {
-      this->TopPatchesWidgets[i]->SetTargetRegion(targetRegion);
+      this->TopPatchesWidgets[i]->SetTargetRegion(this->TargetRegion);
     }
 
-    emit signal_TargetPatchMoved(targetRegion);
+    emit signal_TargetPatchMoved(this->TargetRegion);
   }
 
-  if(!Image->GetLargestPossibleRegion().IsInside(sourceRegion))
+  if(!Image->GetLargestPossibleRegion().IsInside(this->SourceRegion))
   {
-    SourcePatchInfoWidget->MakeInvalid();
+    this->SourcePatchInfoWidget->MakeInvalid();
   }
   else
   {
-    emit signal_SourcePatchMoved(sourceRegion);
+    emit signal_SourcePatchMoved(this->SourceRegion);
   }
 
   // If both patches are valid, we can compute the difference
-  if(this->Image->GetLargestPossibleRegion().IsInside(targetRegion) &&
-     this->Image->GetLargestPossibleRegion().IsInside(sourceRegion))
+  if(this->Image->GetLargestPossibleRegion().IsInside(this->TargetRegion) &&
+     this->Image->GetLargestPossibleRegion().IsInside(this->SourceRegion))
   {
-    for(size_t i = 0; i < this->DistanceFunctors.size(); ++i)
-    {
-      float distance = this->DistanceFunctors[i]->Distance(sourceRegion, targetRegion);
-      std::stringstream ss;
-      ss << this->DistanceFunctors[i]->GetDistanceName() << ": " << distance;
-      this->ScoreDisplayMap[this->DistanceFunctors[i]]->setText(ss.str().c_str());
-    }
+    ComputeDifferences();
 
     Refresh();
+  }
+}
+
+void InteractivePatchComparisonWidget::ComputeDifferences()
+{
+  for(size_t i = 0; i < this->DistanceFunctors.size(); ++i)
+  {
+    float distance = this->DistanceFunctors[i]->Distance(this->SourceRegion, this->TargetRegion);
+    std::stringstream ss;
+    ss << this->DistanceFunctors[i]->GetDistanceName() << ": " << distance;
+    this->ScoreDisplayMap[this->DistanceFunctors[i]]->setText(ss.str().c_str());
   }
 }
 
 void InteractivePatchComparisonWidget::PatchesMovedEventHandler(vtkObject* caller, long unsigned int eventId,
                                                                 void* callData)
 {
+  std::cout << "PatchesMovedEventHandler()" << std::endl;
   vtkProp* prop = static_cast<vtkProp*>(callData);
   // These casts are necessary because the compiler complains (warns) about mismatched pointer types
-  if(prop == static_cast<vtkProp*>(TargetPatchLayer.ImageSlice) ||
-     prop == static_cast<vtkProp*>(SourcePatchLayer.ImageSlice)) 
+  if(prop == static_cast<vtkProp*>(this->TargetPatchLayer.ImageSlice) ||
+     prop == static_cast<vtkProp*>(this->SourcePatchLayer.ImageSlice)) 
     {
-    UpdatePatches();
+      // We use the GetPosition() of the source/target image slices directly as the corner of the
+      // regions because VTK says that the "position" of an image is it's corner.
+
+      // Source patch
+      double sourcePosition[3];
+      this->SourcePatchLayer.ImageSlice->GetPosition(sourcePosition);
+
+      itk::Index<2> sourceCorner;
+      sourceCorner[0] = sourcePosition[0];
+      sourceCorner[1] = sourcePosition[1];
+
+      // Snap to grid
+      sourcePosition[0] = sourceCorner[0];
+      sourcePosition[1] = sourceCorner[1];
+      this->SourcePatchLayer.ImageSlice->SetPosition(sourcePosition);
+
+      this->SourceRegion.SetIndex(sourceCorner);
+      this->SourceRegion.SetSize(this->PatchSize);
+
+      // Patch 2
+      double targetPosition[3];
+      this->TargetPatchLayer.ImageSlice->GetPosition(targetPosition);
+
+      itk::Index<2> targetCorner;
+      targetCorner[0] = targetPosition[0];
+      targetCorner[1] = targetPosition[1];
+
+      // Snap to grid
+      targetPosition[0] = targetCorner[0];
+      targetPosition[1] = targetCorner[1];
+      this->TargetPatchLayer.ImageSlice->SetPosition(targetPosition);
+
+      this->TargetRegion.SetIndex(targetCorner);
+      this->TargetRegion.SetSize(this->PatchSize);
+
+      UpdatePatches();
     }
 }
 
@@ -750,4 +776,68 @@ bool InteractivePatchComparisonWidget::eventFilter(QObject *object, QEvent *even
 void InteractivePatchComparisonWidget::closeEvent(QCloseEvent* event)
 {
   QApplication::quit();
+}
+
+void InteractivePatchComparisonWidget::dropEvent ( QDropEvent * event )
+{
+  std::cout << "dropEvent." << std::endl;
+
+  //QString filename = event->mimeData()->data("FileName");
+  QString data = event->mimeData()->text();
+  std::stringstream ss;
+  ss << data.toStdString();
+
+  itk::Index<2> targetCenter = ITKHelpers::GetRegionCenter(this->TargetRegion);
+  itk::Index<2> sourceCenter = ITKHelpers::GetRegionCenter(this->SourceRegion);
+
+  ss >> targetCenter[0] >> targetCenter[1]
+     >> sourceCenter[0] >> sourceCenter[1];
+
+  std::cout << "Dropped " << data.toStdString() << std::endl;
+  std::cout << "Target set from drop: " << targetCenter << std::endl;
+  std::cout << "Source set from drop: " << sourceCenter << std::endl;
+
+  itk::Index<2> targetCorner;
+  targetCorner[0] = targetCenter[0] - this->TargetRegion.GetSize()[0]/2;
+  targetCorner[1] = targetCenter[1] - this->TargetRegion.GetSize()[1]/2;
+
+  itk::Index<2> sourceCorner;
+  sourceCorner[0] = sourceCenter[0] - this->SourceRegion.GetSize()[0]/2;
+  sourceCorner[1] = sourceCenter[1] - this->SourceRegion.GetSize()[1]/2;
+
+  this->TargetRegion.SetIndex(targetCorner);
+  this->SourceRegion.SetIndex(sourceCorner);
+
+  std::cout << "TargetRegion from drop: " << this->TargetRegion << std::endl;
+  std::cout << "SourceRegion set from drop: " << this->SourceRegion << std::endl;
+  
+  UpdatePatches();
+}
+
+void InteractivePatchComparisonWidget::mousePressEvent(QMouseEvent *event)
+{
+  if (event->button() == Qt::LeftButton)
+  {
+    QDrag *drag = new QDrag(this);
+    QMimeData *mimeData = new QMimeData;
+
+    itk::Index<2> targetCenter = ITKHelpers::GetRegionCenter(this->TargetRegion);
+    itk::Index<2> sourceCenter = ITKHelpers::GetRegionCenter(this->SourceRegion);
+    std::stringstream ss;
+    ss << targetCenter[0] << " " << targetCenter[1]
+       << " " << sourceCenter[0] << " " << sourceCenter[1];
+    mimeData->setText(ss.str().c_str());
+    std::cout << "Dragging " << ss.str() << std::endl;
+    drag->setMimeData(mimeData);
+
+    //Qt::DropAction dropAction = drag->exec();
+    drag->exec();
+  }
+}
+
+void InteractivePatchComparisonWidget::dragEnterEvent ( QDragEnterEvent * event )
+{
+  //std::cout << "dragEnterEvent." << std::endl;
+
+  event->accept();
 }

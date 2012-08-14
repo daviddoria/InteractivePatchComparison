@@ -32,6 +32,7 @@ int main( int argc, char** argv )
   if(argc == 1)
   {
     interactivePatchComparisonWidget = new InteractivePatchComparisonWidget;
+    std::cout << "Called with no arguments. Potential arguments are: image.png" << std::endl;
   }
   else if(argc == 2)
   {

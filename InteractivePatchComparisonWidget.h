@@ -183,19 +183,39 @@ private:
   std::string MaskFileName;
 
   /** The functor to use in the PatchInformation widgets */
-  //PatchDistance<ImageType>* CurrentDistanceFunctor;
   std::vector<PatchDistance<ImageType>*> DistanceFunctors;
 
-  /** A list of all functor to potentially use. */
+  /** A list of all TopPatchesWidgets to potentially use. */
   std::vector<TopPatchesWidget<ImageType>*> TopPatchesWidgets;
 
-  /** A list of all functor to potentially use. */
+  /** The widget to display and retreive information about the source patch. */
   PatchInfoWidget<ImageType>* SourcePatchInfoWidget;
+
+  /** The widget to display and retreive information about the source patch. */
   PatchInfoWidget<ImageType>* TargetPatchInfoWidget;
 
+  /** Store the HSV image. */
   ImageType::Pointer HSVImage;
 
+  /** Store the association of a PatchDistance object and the label that will be used to display its score. */
   std::map<PatchDistance<ImageType>*, QLabel*> ScoreDisplayMap;
+
+  /** Get data that has been dropped. */
+  void dropEvent ( QDropEvent * event );
+
+  /** Start the drag event. */
+  void mousePressEvent(QMouseEvent *event);
+
+  /** The source patch to compare. */
+  itk::ImageRegion<2> SourceRegion;
+
+  /** The target patch to compare. */
+  itk::ImageRegion<2> TargetRegion;
+
+  /** Compute all of the DifferenceFunctors on the TargetPatch and SourcePatch. */
+  void ComputeDifferences();
+
+  void dragEnterEvent ( QDragEnterEvent * event );
 };
 
 #endif // InteractivePatchComparisonWidget_H
